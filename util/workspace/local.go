@@ -18,7 +18,7 @@ type localWorkspace struct {
 
 var _ Workspace = &localWorkspace{}
 
-// NewLocalWorkspace returns a new local workspace
+// NewLocalWorkspace returns a new local workspace.
 func NewLocalWorkspace(dir string) (Workspace, error) {
 	// Get absolute path for provided dir
 	absDir, err := filepath.Abs(dir)
@@ -117,7 +117,30 @@ func (w *localWorkspace) GetWriter(_ context.Context, path string) (io.Writer, e
 	return writer, nil
 }
 
-// Open reads the provided object from a local source and provides an io.ReadCloser
-func (w *localWorkspace) Open(_ context.Context, fpath string) (io.ReadCloser, error) {
-	return w.fs.Open(fpath)
+// Walk traverses the workspace directory.
+func (w *localWorkspace) Walk(walkFunc filepath.WalkFunc) error {
+	return afero.Walk(w.fs, ".", walkFunc)
+}
+
+// Path generates a path of a file with the workspace directory.
+func (w *localWorkspace) Path(elem ...string) string {
+	complete := []string{w.dir}
+	return filepath.Join(append(complete, elem...)...)
+}
+
+// NewDirectory creates a new workspace under the current Workspace.
+func (w *localWorkspace) NewDirectory(path string) (Workspace, error) {
+	if err := w.fs.MkdirAll(path, 0750); err != nil {
+		return nil, err
+	}
+	space := &localWorkspace{
+		fs:  afero.NewBasePathFs(w.fs, path),
+		dir: w.Path(path),
+	}
+	return space, nil
+}
+
+// DeleteDirectory will delete a directory under a workspace.
+func (w *localWorkspace) DeleteDirectory(path string) error {
+	return w.fs.RemoveAll(path)
 }

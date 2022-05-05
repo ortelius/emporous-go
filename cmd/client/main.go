@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"github.com/spf13/cobra"
+
+	"github.com/uor-framework/client/cli"
+)
 
 func main() {
-	fmt.Println("Not implemented")
+	rootCmd := cli.NewRootCmd()
+	cobra.CheckErr(rootCmd.Execute())
 }

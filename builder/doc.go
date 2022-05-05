@@ -14,4 +14,4 @@ limitations under the License.
 package builder
 
 // This package performs the content templating, building,
-// and publising of the client data sets.
+// and rendering of the client data sets.
