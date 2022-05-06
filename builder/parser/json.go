@@ -10,7 +10,8 @@ import (
 var _ Parser = &jsonParser{}
 
 type jsonParser struct {
-	filename string
+	filename      string
+	templateFuncs []TemplatingFunc
 }
 
 // NewJSONParser returns the JSON implementation
@@ -21,14 +22,11 @@ func NewJSONParser(filename string) Parser {
 	}
 }
 
-func (p *jsonParser) GetLinkableData(data []byte, fileIndex map[string]struct{}) (template.Template, map[string]interface{}, error) {
+func (p *jsonParser) GetLinkableData(data []byte) (template.Template, map[string]interface{}, error) {
 	links := make(map[string]interface{})
 	handler := func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) (err error) {
-		// Currently determining whether to replace the value based on
-		// if it is found in the current workspace.
-		// QUESTION(jpower432): Would it be better to have in content
-		// annotation to determine what should be substituted.
-		if _, found := fileIndex[string(value)]; found {
+		// Generically determine when a value should be substituted
+		if p.evaluateTFuncs(string(value)) {
 			filename := ConvertFilenameForGoTemplateValue(string(value))
 			templateValue := fileNameToGoTemplateValue(filename)
 			// Set the template values to its original value
@@ -46,6 +44,19 @@ func (p *jsonParser) GetLinkableData(data []byte, fileIndex map[string]struct{})
 	}
 	t, err := template.New(p.filename).Parse(string(data))
 	return *t, links, err
+}
+
+func (p *jsonParser) AddFuncs(tFuncs ...TemplatingFunc) {
+	p.templateFuncs = append(p.templateFuncs, tFuncs...)
+}
+
+func (p *jsonParser) evaluateTFuncs(value string) bool {
+	for _, f := range p.templateFuncs {
+		if f(value) {
+			return true
+		}
+	}
+	return false
 }
 
 func fileNameToGoTemplateValue(convertedFilename string) string {

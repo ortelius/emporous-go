@@ -108,6 +108,20 @@ func (o *RootOptions) Run(ctx context.Context) error {
 		return err
 	}
 
+	// Function to determine whether the
+	// data should be replace in the template
+	tFunc := func(value interface{}) bool {
+		stringValue, ok := value.(string)
+		if !ok {
+			return false
+		}
+
+		// If the file is found in the workspace
+		// return true
+		_, found := fileIndex[stringValue]
+		return found
+	}
+
 	for path := range fileIndex {
 		_, _ = fmt.Fprintf(o.IOStreams.Out, "Adding node %s\n", path)
 		node := graph.NewNode(path)
@@ -121,7 +135,8 @@ func (o *RootOptions) Run(ctx context.Context) error {
 			if err := userSpace.ReadObject(ctx, path, buf); err != nil {
 				return err
 			}
-			node.Template, node.Links, err = p.GetLinkableData(buf.Bytes(), fileIndex)
+			p.AddFuncs(tFunc)
+			node.Template, node.Links, err = p.GetLinkableData(buf.Bytes())
 			if err != nil {
 				return err
 			}

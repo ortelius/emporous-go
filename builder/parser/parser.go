@@ -12,8 +12,17 @@ import (
 type Parser interface {
 	// GetLinkableData returns a template and a map with template
 	// variable names mapped to the original content
-	GetLinkableData(data []byte, fileIndex map[string]struct{}) (template.Template, map[string]interface{}, error)
+	GetLinkableData([]byte) (template.Template, map[string]interface{}, error)
+	// AddFuncs adds functions used evaluate
+	// whether a value is an in-content link.
+	// If no functions are addded all values will be considered
+	// links.
+	AddFuncs(...TemplatingFunc)
 }
+
+// TemplatingFunc determine the condition
+// that must be met for data to be templated
+type TemplatingFunc func(interface{}) bool
 
 // ErrInvalidFormat defines an error for unsupported format types
 type ErrInvalidFormat struct {
