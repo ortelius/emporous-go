@@ -43,7 +43,10 @@ func (p *jsonParser) GetLinkableData(data []byte) (template.Template, map[string
 		return template.Template{}, links, err
 	}
 	t, err := template.New(p.filename).Parse(string(data))
-	return *t, links, err
+	if err != nil {
+		return template.Template{}, links, err
+	}
+	return *t, links, nil
 }
 
 func (p *jsonParser) AddFuncs(tFuncs ...TemplatingFunc) {

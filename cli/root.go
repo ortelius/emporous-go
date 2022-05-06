@@ -120,7 +120,7 @@ func (o *RootOptions) Run(ctx context.Context) error {
 			return fmt.Errorf("no file info")
 		}
 
-		if info.Mode().IsDir() {
+		if info.IsDir() {
 			return nil
 		}
 

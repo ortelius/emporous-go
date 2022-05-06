@@ -15,7 +15,7 @@ type Parser interface {
 	GetLinkableData([]byte) (template.Template, map[string]interface{}, error)
 	// AddFuncs adds functions used evaluate
 	// whether a value is an in-content link.
-	// If no functions are addded all values will be considered
+	// If no functions are added all values will be considered
 	// links.
 	AddFuncs(...TemplatingFunc)
 }
@@ -45,8 +45,7 @@ func ByExtension(filename string) (Parser, error) {
 // ConvertFilenameForGoTemplateValue converts the current
 // file string to a value that is an acceptable variable for Go templating
 func ConvertFilenameForGoTemplateValue(filename string) string {
-	ext := filepath.Ext(filename)
-	base := strings.TrimSuffix(filename, ext)
-	ext = strings.TrimPrefix(ext, ".")
-	return fmt.Sprintf("%s_%s", base, ext)
+	filename = strings.Replace(filename, ".", "_", -1)
+	filename = strings.Replace(filename, string(filepath.Separator), "_", -1)
+	return filename
 }

@@ -74,7 +74,7 @@ func (c *orasClient) Execute(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Artifact published at %#v\n", desc.Digest)
+	fmt.Printf("Artifact published with digest %#v to %s\n", desc.Digest, c.ref)
 	return nil
 }
 

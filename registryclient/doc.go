@@ -14,4 +14,4 @@ limitations under the License.
 package registryclient
 
 // This package defines types and methods for
-// interacting with the client data sets for publising to a registry.
+// interacting with the client data sets for publishing to a registry.

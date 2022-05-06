@@ -131,10 +131,24 @@ func TestRootRun(t *testing.T) {
 				Push:        true,
 			},
 		},
+		{
+			name: "Success/MultiLevelWorkspace",
+			opts: &RootOptions{
+				IOStreams: genericclioptions.IOStreams{
+					Out:    os.Stdout,
+					In:     os.Stdin,
+					ErrOut: os.Stderr,
+				},
+				Destination: fmt.Sprintf("%s/client-test:latest", u.Host),
+				RootDir:     "testdata/multi-level-workspace",
+				Push:        true,
+			},
+		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			c.opts.Output = t.TempDir()
 			err := c.opts.Run(context.TODO())
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
