@@ -27,9 +27,11 @@ type orasClient struct {
 
 var _ Client = &orasClient{}
 
-func NewORASClient(ref string) Client {
+func NewORASClient(ref string, copyOpts []oras.CopyOpt, registryOpts content.RegistryOptions) Client {
 	return &orasClient{
-		ref: ref,
+		ref:          ref,
+		copyOpts:     copyOpts,
+		registryOpts: registryOpts,
 	}
 }
 

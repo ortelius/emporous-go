@@ -54,6 +54,42 @@ func TestRootComplete(t *testing.T) {
 	}
 }
 
+func TestRootValidate(t *testing.T) {
+	type spec struct {
+		name     string
+		opts     *RootOptions
+		expError string
+	}
+
+	cases := []spec{
+		{
+			name: "Valid/RootDirExists",
+			opts: &RootOptions{
+				Reference: "test-registry.com/client-test:latest",
+				RootDir:   "testdata",
+			},
+		},
+		{
+			name: "Invalid/RootDirDoesNotExist",
+			opts: &RootOptions{
+				RootDir: "fake",
+			},
+			expError: "workspace directory \"fake\": stat fake: no such file or directory",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			err := c.opts.Validate()
+			if c.expError != "" {
+				require.EqualError(t, err, c.expError)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestRootRun(t *testing.T) {
 	server := httptest.NewServer(registry.New())
 	t.Cleanup(server.Close)

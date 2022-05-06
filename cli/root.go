@@ -11,6 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"oras.land/oras-go/pkg/content"
 
 	"github.com/uor-framework/client/builder"
 	"github.com/uor-framework/client/builder/graph"
@@ -23,6 +24,9 @@ type RootOptions struct {
 	IOStreams genericclioptions.IOStreams
 	Reference string
 	RootDir   string
+	Insecure  bool
+	PlainHTTP bool
+	Configs   []string
 }
 
 func NewRootCmd() *cobra.Command {
@@ -49,6 +53,10 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().StringArrayVarP(&o.Configs, "config", "c", nil, "auth config path")
+	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", false, "allow connections to SSL registry without certs")
+	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", false, "use plain http and not https")
+
 	return cmd
 }
 
@@ -62,8 +70,11 @@ func (o *RootOptions) Complete(args []string) error {
 }
 
 func (o *RootOptions) Validate() error {
-	// TODO(jpower432): check that the directory passed exists and
-	// validate the reference is valid
+	if _, err := os.Stat(o.RootDir); err != nil {
+		return fmt.Errorf("workspace directory %q: %v", o.RootDir, err)
+	}
+
+	// TODO(jpower432): Validate the reference
 	return nil
 }
 
@@ -123,6 +134,12 @@ func (o *RootOptions) Run(ctx context.Context) error {
 
 	for _, node := range g.Nodes {
 		for link, data := range node.Links {
+			// Currently with the parsing implementation
+			// all initial values are expected to represent
+			// the file string data present in the content.
+			// FIXME(jpower432): Making this assumption could lead
+			// to bug when trying to translate links to a graph. There
+			// may also be a way to avoid this reflection.
 			stringData, ok := data.(string)
 			if !ok {
 				return fmt.Errorf("link %q: value should be of type string", link)
@@ -152,7 +169,12 @@ func (o *RootOptions) Run(ctx context.Context) error {
 	}
 
 	// Gather descriptors written to the temporary directory for publishing
-	client := registryclient.NewORASClient(o.Reference)
+	registryOpts := content.RegistryOptions{
+		Insecure:  o.Insecure,
+		PlainHTTP: o.PlainHTTP,
+		Configs:   o.Configs,
+	}
+	client := registryclient.NewORASClient(o.Reference, nil, registryOpts)
 	var files []string
 	err = renderSpace.Walk(func(path string, info os.FileInfo, err error) error {
 		if err != nil {
