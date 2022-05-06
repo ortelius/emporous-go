@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/kubectl/pkg/util/templates"
 	"oras.land/oras-go/pkg/content"
 
 	"github.com/uor-framework/client/builder"
@@ -21,13 +21,25 @@ import (
 )
 
 type RootOptions struct {
-	IOStreams genericclioptions.IOStreams
-	Reference string
-	RootDir   string
-	Insecure  bool
-	PlainHTTP bool
-	Configs   []string
+	IOStreams   genericclioptions.IOStreams
+	Destination string
+	RootDir     string
+	Insecure    bool
+	PlainHTTP   bool
+	Configs     []string
+	Output      string
+	Push        bool
 }
+
+var clientExamples = templates.Examples(
+	`
+	# Template content in a directory without pushing
+	client directory
+
+	# Template content in a directory and push to a registry location
+	client directory --push --destination localhost:5000/myartifacts:latest
+	`,
+)
 
 func NewRootCmd() *cobra.Command {
 	o := RootOptions{}
@@ -39,13 +51,14 @@ func NewRootCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use: fmt.Sprintf(
-			"%s <directory> <reference>",
+			"%s <directory>",
 			filepath.Base(os.Args[0]),
 		),
 		Short:         "Templates, builds, and publishes OCI content",
+		Example:       clientExamples,
 		SilenceErrors: false,
 		SilenceUsage:  false,
-		Args:          cobra.ExactArgs(2),
+		Args:          cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			cobra.CheckErr(o.Complete(args))
 			cobra.CheckErr(o.Validate())
@@ -53,19 +66,24 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringArrayVarP(&o.Configs, "config", "c", nil, "auth config path")
-	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", false, "allow connections to SSL registry without certs")
-	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", false, "use plain http and not https")
+	cmd.Flags().StringArrayVarP(&o.Configs, "config", "c", o.Configs, "auth config path")
+	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to SSL registry without certs")
+	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https")
+	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "location to stored templated files")
+	cmd.Flags().BoolVarP(&o.Push, "push", "p", o.Push, "push workspace artifacts to registry")
+	cmd.Flags().StringVarP(&o.Destination, "destination", "d", o.Destination, "image location to store artifacts in a registry")
 
 	return cmd
 }
 
 func (o *RootOptions) Complete(args []string) error {
-	if len(args) < 2 {
-		return errors.New("bug: expecting two arguments")
+	if len(args) < 1 {
+		return errors.New("bug: expecting one argument")
 	}
 	o.RootDir = args[0]
-	o.Reference = args[1]
+	if o.Output == "" {
+		o.Output = "client-workspace"
+	}
 	return nil
 }
 
@@ -74,11 +92,17 @@ func (o *RootOptions) Validate() error {
 		return fmt.Errorf("workspace directory %q: %v", o.RootDir, err)
 	}
 
+	if o.Push && o.Destination == "" {
+		return fmt.Errorf("destination must be set when using --push")
+
+	}
+
 	// TODO(jpower432): Validate the reference
 	return nil
 }
 
 func (o *RootOptions) Run(ctx context.Context) error {
+	_, _ = fmt.Fprintf(o.IOStreams.Out, "Using output directory %q\n", o.Output)
 	userSpace, err := workspace.NewLocalWorkspace(o.RootDir)
 	if err != nil {
 		return err
@@ -109,7 +133,7 @@ func (o *RootOptions) Run(ctx context.Context) error {
 	}
 
 	// Function to determine whether the
-	// data should be replace in the template
+	// data should be replaced in the template
 	tFunc := func(value interface{}) bool {
 		stringValue, ok := value.(string)
 		if !ok {
@@ -165,63 +189,59 @@ func (o *RootOptions) Run(ctx context.Context) error {
 		}
 	}
 
-	// Create a temporary directory for rendering the template
-	// content under root directory
-	tmpdir := fmt.Sprintf("tmp.%d", time.Now().Unix())
-	renderSpace, err := userSpace.NewDirectory(tmpdir)
+	renderSpace, err := workspace.NewLocalWorkspace(o.Output)
 	if err != nil {
 		return err
 	}
-	// Clean up rendered directory
-	defer func() {
-		if err := userSpace.DeleteDirectory(tmpdir); err != nil {
-			_, _ = fmt.Fprintln(o.IOStreams.ErrOut, err)
-		}
-	}()
 
 	if err = builder.Build(ctx, g, userSpace, renderSpace); err != nil {
-		return err
+		return fmt.Errorf("error building content: %v", err)
 	}
 
-	// Gather descriptors written to the temporary directory for publishing
-	registryOpts := content.RegistryOptions{
-		Insecure:  o.Insecure,
-		PlainHTTP: o.PlainHTTP,
-		Configs:   o.Configs,
-	}
-	client := registryclient.NewORASClient(o.Reference, nil, registryOpts)
-	var files []string
-	err = renderSpace.Walk(func(path string, info os.FileInfo, err error) error {
+	if o.Push {
+		// Gather descriptors written to the render directory for publishing
+		registryOpts := content.RegistryOptions{
+			Insecure:  o.Insecure,
+			PlainHTTP: o.PlainHTTP,
+			Configs:   o.Configs,
+		}
+		client := registryclient.NewORASClient(o.Destination, nil, registryOpts)
+		var files []string
+		err = renderSpace.Walk(func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return fmt.Errorf("traversing %s: %v", path, err)
+			}
+			if info == nil {
+				return fmt.Errorf("no file info")
+			}
+
+			if info.Mode().IsRegular() {
+				p := renderSpace.Path(path)
+				files = append(files, p)
+			}
+			return nil
+		})
 		if err != nil {
-			return fmt.Errorf("traversing %s: %v", path, err)
-		}
-		if info == nil {
-			return fmt.Errorf("no file info")
+			return err
 		}
 
-		if info.Mode().IsRegular() {
-			p := renderSpace.Path(path)
-			files = append(files, p)
+		descs, err := client.GatherDescriptors(files...)
+		if err != nil {
+			return err
 		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
 
-	descs, err := client.GatherDescriptors(files...)
-	if err != nil {
-		return err
-	}
+		configDesc, err := client.GenerateConfig(nil)
+		if err != nil {
+			return err
+		}
 
-	configDesc, err := client.GenerateConfig(nil)
-	if err != nil {
-		return err
-	}
+		if err := client.GenerateManifest(configDesc, nil, descs...); err != nil {
+			return err
+		}
 
-	if err := client.GenerateManifest(configDesc, nil, descs...); err != nil {
-		return err
+		if err := client.Execute(ctx); err != nil {
+			return fmt.Errorf("error publishing content to %s: %v", o.Destination, err)
+		}
 	}
-
-	return client.Execute(ctx)
+	return nil
 }

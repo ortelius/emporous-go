@@ -25,19 +25,19 @@ func TestRootComplete(t *testing.T) {
 	cases := []spec{
 		{
 			name: "Valid/CorrectNumberOfArguments",
-			args: []string{"testdata", "test-registry.com/client-test:latest"},
+			args: []string{"testdata"},
 			expOpts: &RootOptions{
-				Reference: "test-registry.com/client-test:latest",
-				RootDir:   "testdata",
+				Output:  "client-workspace",
+				RootDir: "testdata",
 			},
 			opts: &RootOptions{},
 		},
 		{
 			name:     "Invalid/NotEnoughArguments",
-			args:     []string{"testdata"},
+			args:     []string{},
 			expOpts:  &RootOptions{},
 			opts:     &RootOptions{},
-			expError: "bug: expecting two arguments",
+			expError: "bug: expecting one argument",
 		},
 	}
 
@@ -65,8 +65,15 @@ func TestRootValidate(t *testing.T) {
 		{
 			name: "Valid/RootDirExists",
 			opts: &RootOptions{
-				Reference: "test-registry.com/client-test:latest",
-				RootDir:   "testdata",
+				RootDir: "testdata",
+			},
+		},
+		{
+			name: "Valid/DestinationWithPush",
+			opts: &RootOptions{
+				Destination: "test-registry.com/client-test:latest",
+				RootDir:     "testdata",
+				Push:        true,
 			},
 		},
 		{
@@ -75,6 +82,14 @@ func TestRootValidate(t *testing.T) {
 				RootDir: "fake",
 			},
 			expError: "workspace directory \"fake\": stat fake: no such file or directory",
+		},
+		{
+			name: "Invalid/NoReferenceWithPush",
+			opts: &RootOptions{
+				RootDir: "testdata",
+				Push:    true,
+			},
+			expError: "destination must be set when using --push",
 		},
 	}
 
@@ -111,8 +126,9 @@ func TestRootRun(t *testing.T) {
 					In:     os.Stdin,
 					ErrOut: os.Stderr,
 				},
-				Reference: fmt.Sprintf("%s/client-test:latest", u.Host),
-				RootDir:   "testdata/flatworkspace",
+				Destination: fmt.Sprintf("%s/client-test:latest", u.Host),
+				RootDir:     "testdata/flatworkspace",
+				Push:        true,
 			},
 		},
 	}

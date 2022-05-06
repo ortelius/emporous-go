@@ -21,7 +21,7 @@ type Workspace interface {
 	GetWriter(context.Context, string) (io.Writer, error)
 	// Walk will traverse the workspace directory.
 	Walk(filepath.WalkFunc) error
-	// NewDirectory creates a new workspace under the current Workspace.
+	// NewDirectory creates a new workspace under the current workspace.
 	NewDirectory(string) (Workspace, error)
 	// DeleteDirectory will delete a directory under a workspace.
 	DeleteDirectory(string) error

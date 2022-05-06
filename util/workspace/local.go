@@ -128,7 +128,7 @@ func (w *localWorkspace) Path(elem ...string) string {
 	return filepath.Join(append(complete, elem...)...)
 }
 
-// NewDirectory creates a new workspace under the current Workspace.
+// NewDirectory creates a new workspace under the current workspace.
 func (w *localWorkspace) NewDirectory(path string) (Workspace, error) {
 	if err := w.fs.MkdirAll(path, 0750); err != nil {
 		return nil, err
