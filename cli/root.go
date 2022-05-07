@@ -151,14 +151,13 @@ func (o *RootOptions) Run(ctx context.Context) error {
 		node := graph.NewNode(path)
 
 		perr := &parser.ErrInvalidFormat{}
-		file := filepath.Base(path)
-		p, err := parser.ByExtension(file)
+		buf := new(bytes.Buffer)
+		if err := userSpace.ReadObject(ctx, path, buf); err != nil {
+			return err
+		}
+		p, err := parser.ByContentType(path, buf.Bytes())
 		switch {
 		case err == nil:
-			buf := new(bytes.Buffer)
-			if err := userSpace.ReadObject(ctx, path, buf); err != nil {
-				return err
-			}
 			p.AddFuncs(tFunc)
 			node.Template, node.Links, err = p.GetLinkableData(buf.Bytes())
 			if err != nil {

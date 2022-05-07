@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -39,7 +40,7 @@ func TestConvertFilenameForGoTemplateValue(t *testing.T) {
 	}
 }
 
-func TestByExtension(t *testing.T) {
+func TestContentType(t *testing.T) {
 	type spec struct {
 		name     string
 		input    string
@@ -50,19 +51,21 @@ func TestByExtension(t *testing.T) {
 	cases := []spec{
 		{
 			name:  "Success/JSON",
-			input: "test.json",
-			exp:   &jsonParser{filename: "test.json"},
+			input: "testdata/test.json",
+			exp:   &jsonParser{filename: "testdata/test.json"},
 		},
 		{
 			name:     "Failure/InvalidFormat",
-			input:    "fish.jpg",
-			expError: "format unsupported for filename: fish.jpg",
+			input:    "testdata/fish.jpg",
+			expError: "format unsupported for filename: testdata/fish.jpg",
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			actual, err := ByExtension(c.input)
+			data, err := ioutil.ReadFile(c.input)
+			require.NoError(t, err)
+			actual, err := ByContentType(c.input, data)
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
 			} else {

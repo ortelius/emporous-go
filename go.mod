@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/buger/jsonparser v1.1.1
+	github.com/gabriel-vasile/mimetype v1.4.0
 	github.com/google/go-containerregistry v0.5.1
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.0.2

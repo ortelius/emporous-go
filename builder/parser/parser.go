@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 // Parser defines methods for data parsing to identify links referenced and
@@ -33,10 +35,11 @@ func (e *ErrInvalidFormat) Error() string {
 	return fmt.Sprintf("format unsupported for filename: %s", e.filename)
 }
 
-// ByExtension returns a parser based on the extension of the filename.
-func ByExtension(filename string) (Parser, error) {
-	switch filepath.Ext(filename) {
-	case ".json":
+// ByContentType returns a parser based on the detected content type.
+func ByContentType(filename string, data []byte) (Parser, error) {
+	mType := mimetype.Detect(data)
+	switch mType.String() {
+	case "application/json":
 		return NewJSONParser(filename), nil
 	}
 	return nil, &ErrInvalidFormat{filename}
