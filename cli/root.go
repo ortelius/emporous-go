@@ -177,13 +177,12 @@ func (o *RootOptions) Run(ctx context.Context) error {
 			// all initial values are expected to represent
 			// the file string data present in the content.
 			// FIXME(jpower432): Making this assumption could lead
-			// to bug when trying to translate links to a graph. There
-			// may also be a way to avoid this reflection.
-			stringData, ok := data.(string)
+			// to bug when trying to translate links to a graph.
+			fpath, ok := data.(string)
 			if !ok {
 				return fmt.Errorf("link %q: value should be of type string", link)
 			}
-			if err := g.AddEdge(node.Name, stringData); err != nil {
+			if err := g.AddEdge(node.Name, fpath); err != nil {
 				return err
 			}
 		}

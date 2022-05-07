@@ -30,7 +30,7 @@ type ErrInvalidFormat struct {
 }
 
 func (e *ErrInvalidFormat) Error() string {
-	return fmt.Sprintf("format unrecognized by filename: %s", e.filename)
+	return fmt.Sprintf("format unsupported for filename: %s", e.filename)
 }
 
 // ByExtension returns a parser based on the extension of the filename.
