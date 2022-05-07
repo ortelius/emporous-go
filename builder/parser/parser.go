@@ -17,12 +17,10 @@ type Parser interface {
 	GetLinkableData([]byte) (template.Template, map[string]interface{}, error)
 	// AddFuncs adds functions used evaluate
 	// whether a value is an in-content link.
-	// If no functions are added all values will be considered
-	// links.
 	AddFuncs(...TemplatingFunc)
 }
 
-// TemplatingFunc determine the condition
+// TemplatingFunc determines the condition(s)
 // that must be met for data to be templated
 type TemplatingFunc func(interface{}) bool
 

@@ -53,6 +53,8 @@ func (p *jsonParser) AddFuncs(tFuncs ...TemplatingFunc) {
 	p.templateFuncs = append(p.templateFuncs, tFuncs...)
 }
 
+// If no functions are added no values will be considered
+// links.
 func (p *jsonParser) evaluateTFuncs(value string) bool {
 	for _, f := range p.templateFuncs {
 		if f(value) {
