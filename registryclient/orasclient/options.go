@@ -23,6 +23,7 @@ func (c *ClientConfig) apply(options []ClientOption) error {
 	return nil
 }
 
+// NewClient returns a new ORAS client implementation
 func NewClient(ref string, options ...ClientOption) (registryclient.Client, error) {
 	client := &orasClient{
 		ref: ref,

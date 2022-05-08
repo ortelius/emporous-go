@@ -21,6 +21,7 @@ type orasClient struct {
 
 var _ registryclient.Client = &orasClient{}
 
+// GatherDescriptors loads files to create OCI descriptors.
 func (c *orasClient) GatherDescriptors(files ...string) ([]ocispec.Descriptor, error) {
 	fromFile := content.NewFile("")
 	descs, err := loadFiles(fromFile, files...)
@@ -31,6 +32,8 @@ func (c *orasClient) GatherDescriptors(files ...string) ([]ocispec.Descriptor, e
 	return descs, nil
 }
 
+// GenerateConfig creates and stores a config.
+// The config descriptor is returned for manifest generation.
 func (c *orasClient) GenerateConfig(configAnnotations map[string]string) (ocispec.Descriptor, error) {
 	config, configDesc, err := content.GenerateConfig(configAnnotations)
 	if err != nil {
@@ -42,6 +45,8 @@ func (c *orasClient) GenerateConfig(configAnnotations map[string]string) (ocispe
 	return configDesc, nil
 }
 
+// GenerateManifest creates and stores a manifest.
+// This is generated from the config descriptor and artifact descriptors.
 func (c *orasClient) GenerateManifest(configDesc ocispec.Descriptor, manifestAnnotations map[string]string, descriptors ...ocispec.Descriptor) error {
 	manifest, manifestDesc, err := content.GenerateManifest(&configDesc, manifestAnnotations, descriptors...)
 	if err != nil {
@@ -51,6 +56,7 @@ func (c *orasClient) GenerateManifest(configDesc ocispec.Descriptor, manifestAnn
 	return c.fileStore.StoreManifest(c.ref, manifestDesc, manifest)
 }
 
+// Execute performs the copy of OCI artifacts.
 func (c *orasClient) Execute(ctx context.Context) error {
 	to, err := content.NewRegistry(c.registryOpts)
 	if err != nil {
