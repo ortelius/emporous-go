@@ -39,7 +39,7 @@ func ByContentType(filename string, data []byte) (Parser, error) {
 	switch mType.String() {
 	case "application/json":
 		return NewJSONParser(filename), nil
-	default: //"text/plain; charset=utf-8":
+	case "text/plain; charset=utf-8":
 		return NewUORParser(filename), nil
 	}
 	return nil, &ErrInvalidFormat{filename}
