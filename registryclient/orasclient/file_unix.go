@@ -1,7 +1,7 @@
 //go:build !windows
 // +build !windows
 
-package registryclient
+package orasclient
 
 import "strings"
 

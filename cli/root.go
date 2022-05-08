@@ -11,12 +11,11 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/util/templates"
-	"oras.land/oras-go/pkg/content"
 
 	"github.com/uor-framework/client/builder"
 	"github.com/uor-framework/client/builder/graph"
 	"github.com/uor-framework/client/builder/parser"
-	"github.com/uor-framework/client/registryclient"
+	"github.com/uor-framework/client/registryclient/orasclient"
 	"github.com/uor-framework/client/util/workspace"
 )
 
@@ -66,7 +65,7 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringArrayVarP(&o.Configs, "config", "c", o.Configs, "auth config path")
+	cmd.Flags().StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths")
 	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to SSL registry without certs")
 	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https")
 	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "location to stored templated files")
@@ -198,12 +197,15 @@ func (o *RootOptions) Run(ctx context.Context) error {
 
 	if o.Push {
 		// Gather descriptors written to the render directory for publishing
-		registryOpts := content.RegistryOptions{
-			Insecure:  o.Insecure,
-			PlainHTTP: o.PlainHTTP,
-			Configs:   o.Configs,
+		client, err := orasclient.NewClient(
+			o.Destination,
+			orasclient.SkipTLSVerify(o.Insecure),
+			orasclient.WithPlainHTTP(o.PlainHTTP),
+			orasclient.WithAuthConfigs(o.Configs),
+		)
+		if err != nil {
+			return fmt.Errorf("error configuring client: %v", err)
 		}
-		client := registryclient.NewORASClient(o.Destination, nil, registryOpts)
 		var files []string
 		err = renderSpace.Walk(func(path string, info os.FileInfo, err error) error {
 			if err != nil {
