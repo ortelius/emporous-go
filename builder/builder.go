@@ -31,7 +31,7 @@ func buildHelper(ctx context.Context, g *graph.Graph, userSpace, renderSpace wor
 	}
 
 	// Template and hash each child node to
-	// calculate parent not information
+	// calculate parent node information
 	for _, n := range start.Nodes {
 		if _, found := links[n.Name]; found {
 			continue
@@ -59,7 +59,7 @@ func buildHelper(ctx context.Context, g *graph.Graph, userSpace, renderSpace wor
 	}
 
 	// Must calculate the digest after writing the content of
-	// the buffer to file because the FromReader method consume the data.
+	// the buffer to file because the FromReader method consumes the data.
 	dgst, err := digest.FromReader(buf)
 	if err != nil {
 		return err
