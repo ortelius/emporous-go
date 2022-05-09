@@ -13,19 +13,30 @@ import (
 	"github.com/uor-framework/client/util/workspace"
 )
 
-// Build executes the file templating process to prepare for artifact publishing.
-func Build(ctx context.Context, g *graph.Graph, userSpace, renderSpace workspace.Workspace) error {
+// Builder renders and writes templates from the source workspace.
+type Builder struct {
+	Source workspace.Workspace
+}
+
+// NewBuilder creates an new Builder from the source
+// workspace
+func NewBuilder(source workspace.Workspace) Builder {
+	return Builder{source}
+}
+
+// Run traverses the graph to render the file templates to the destination workspace.
+func (b Builder) Run(ctx context.Context, g *graph.Graph, destination workspace.Workspace) error {
 	root, err := g.Root()
 	if err != nil {
 		return fmt.Errorf("error calculating root node: %v", err)
 	}
 	// Links store the calculated sub problem (i.e. link hashes)
 	links := make(map[string]interface{})
-	return buildHelper(ctx, g, userSpace, renderSpace, root, links)
+	return b.makeTemplates(ctx, g, root, destination, links)
 }
 
-// buildHelper does recursive DFS traversal of the graph to generate digest values and template files.
-func buildHelper(ctx context.Context, g *graph.Graph, userSpace, renderSpace workspace.Workspace, start *graph.Node, links map[string]interface{}) error {
+// makeTemplates does recursive DFS traversal of the graph to generate digest values and template files.
+func (b Builder) makeTemplates(ctx context.Context, g *graph.Graph, start *graph.Node, destination workspace.Workspace, links map[string]interface{}) error {
 	if start == nil {
 		return nil
 	}
@@ -36,7 +47,7 @@ func buildHelper(ctx context.Context, g *graph.Graph, userSpace, renderSpace wor
 		if _, found := links[n.Name]; found {
 			continue
 		}
-		if err := buildHelper(ctx, g, userSpace, renderSpace, n, links); err != nil {
+		if err := b.makeTemplates(ctx, g, n, destination, links); err != nil {
 			return err
 		}
 	}
@@ -49,12 +60,12 @@ func buildHelper(ctx context.Context, g *graph.Graph, userSpace, renderSpace wor
 			return err
 		}
 	} else {
-		if err := userSpace.ReadObject(ctx, start.Name, buf); err != nil {
+		if err := b.Source.ReadObject(ctx, start.Name, buf); err != nil {
 			return err
 		}
 	}
 
-	if err := renderSpace.WriteObject(ctx, start.Name, buf.Bytes()); err != nil {
+	if err := destination.WriteObject(ctx, start.Name, buf.Bytes()); err != nil {
 		return err
 	}
 

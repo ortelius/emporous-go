@@ -176,12 +176,12 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		}
 	}
 
+	templateBuilder := builder.NewBuilder(userSpace)
 	renderSpace, err := workspace.NewLocalWorkspace(o.Output)
 	if err != nil {
 		return err
 	}
-
-	if err = builder.Build(ctx, g, userSpace, renderSpace); err != nil {
+	if err := templateBuilder.Run(ctx, g, renderSpace); err != nil {
 		return fmt.Errorf("error building content: %v", err)
 	}
 
