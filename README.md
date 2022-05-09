@@ -15,11 +15,11 @@ To learn more about Universal Runtime visit the [UOR-Framework](https://github.c
 ### Template content in a directory without pushing 
 ```
 # The default workspace is "client-workspace" in the current working directory
-client directory --output my-workspace
+client build <directory> --output my-workspace
 ```
 
 ### Template content in a directory and push to a registry location
-`client directory --push --destination localhost:5000/myartifacts:latest`
+`client build <directory> --push --destination localhost:5000/myartifacts:latest`
 
 
 

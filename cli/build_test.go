@@ -13,12 +13,12 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-func TestRootComplete(t *testing.T) {
+func TestBuildComplete(t *testing.T) {
 	type spec struct {
 		name     string
 		args     []string
-		opts     *RootOptions
-		expOpts  *RootOptions
+		opts     *BuildOptions
+		expOpts  *BuildOptions
 		expError string
 	}
 
@@ -26,17 +26,17 @@ func TestRootComplete(t *testing.T) {
 		{
 			name: "Valid/CorrectNumberOfArguments",
 			args: []string{"testdata"},
-			expOpts: &RootOptions{
+			expOpts: &BuildOptions{
 				Output:  "client-workspace",
 				RootDir: "testdata",
 			},
-			opts: &RootOptions{},
+			opts: &BuildOptions{},
 		},
 		{
 			name:     "Invalid/NotEnoughArguments",
 			args:     []string{},
-			expOpts:  &RootOptions{},
-			opts:     &RootOptions{},
+			expOpts:  &BuildOptions{},
+			opts:     &BuildOptions{},
 			expError: "bug: expecting one argument",
 		},
 	}
@@ -54,23 +54,23 @@ func TestRootComplete(t *testing.T) {
 	}
 }
 
-func TestRootValidate(t *testing.T) {
+func TestBuildValidate(t *testing.T) {
 	type spec struct {
 		name     string
-		opts     *RootOptions
+		opts     *BuildOptions
 		expError string
 	}
 
 	cases := []spec{
 		{
 			name: "Valid/RootDirExists",
-			opts: &RootOptions{
+			opts: &BuildOptions{
 				RootDir: "testdata",
 			},
 		},
 		{
 			name: "Valid/DestinationWithPush",
-			opts: &RootOptions{
+			opts: &BuildOptions{
 				Destination: "test-registry.com/client-test:latest",
 				RootDir:     "testdata",
 				Push:        true,
@@ -78,14 +78,14 @@ func TestRootValidate(t *testing.T) {
 		},
 		{
 			name: "Invalid/RootDirDoesNotExist",
-			opts: &RootOptions{
+			opts: &BuildOptions{
 				RootDir: "fake",
 			},
 			expError: "workspace directory \"fake\": stat fake: no such file or directory",
 		},
 		{
 			name: "Invalid/NoReferenceWithPush",
-			opts: &RootOptions{
+			opts: &BuildOptions{
 				RootDir: "testdata",
 				Push:    true,
 			},
@@ -105,7 +105,7 @@ func TestRootValidate(t *testing.T) {
 	}
 }
 
-func TestRootRun(t *testing.T) {
+func TestBuildRun(t *testing.T) {
 	server := httptest.NewServer(registry.New())
 	t.Cleanup(server.Close)
 	u, err := url.Parse(server.URL)
@@ -113,18 +113,19 @@ func TestRootRun(t *testing.T) {
 
 	type spec struct {
 		name     string
-		opts     *RootOptions
+		opts     *BuildOptions
 		expError string
 	}
 
 	cases := []spec{
 		{
 			name: "Success/FlatWorkspace",
-			opts: &RootOptions{
-				IOStreams: genericclioptions.IOStreams{
+			opts: &BuildOptions{
+				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
 					Out:    os.Stdout,
 					In:     os.Stdin,
 					ErrOut: os.Stderr,
+				},
 				},
 				Destination: fmt.Sprintf("%s/client-test:latest", u.Host),
 				RootDir:     "testdata/flatworkspace",
@@ -133,11 +134,12 @@ func TestRootRun(t *testing.T) {
 		},
 		{
 			name: "Success/MultiLevelWorkspace",
-			opts: &RootOptions{
-				IOStreams: genericclioptions.IOStreams{
+			opts: &BuildOptions{
+				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
 					Out:    os.Stdout,
 					In:     os.Stdin,
 					ErrOut: os.Stderr,
+				},
 				},
 				Destination: fmt.Sprintf("%s/client-test:latest", u.Host),
 				RootDir:     "testdata/multi-level-workspace",
