@@ -13,7 +13,7 @@ import (
 // provide a template for building.
 type Parser interface {
 	// GetLinkableData returns a template and a map with template
-	// variable names mapped to the original content
+	// variable names mapped to the original content.
 	GetLinkableData([]byte) (template.Template, map[string]interface{}, error)
 	// AddFuncs adds functions used evaluate
 	// whether a value is an in-content link.
@@ -21,7 +21,7 @@ type Parser interface {
 }
 
 // TemplatingFunc determines the condition(s)
-// that must be met for data to be templated
+// that must be met for data to be templated.
 type TemplatingFunc func(interface{}) bool
 
 // ErrInvalidFormat defines an error for unsupported format types
@@ -44,8 +44,9 @@ func ByContentType(filename string, data []byte) (Parser, error) {
 }
 
 // ConvertFilenameForGoTemplateValue converts the current
-// file string to a value that is an acceptable variable for Go templating
+// file string to a value that is an acceptable variable for Go templating.
 func ConvertFilenameForGoTemplateValue(filename string) string {
+	// TODO: gather a list of invalid character.
 	filename = strings.Replace(filename, ".", "_", -1)
 	filename = strings.Replace(filename, string(filepath.Separator), "_", -1)
 	return filename
