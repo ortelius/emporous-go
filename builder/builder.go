@@ -85,8 +85,8 @@ func (b Builder) makeTemplates(ctx context.Context, g *graph.Graph, start *graph
 // the currently calculated values.
 func mergeLinkData(in, curr map[string]interface{}) map[string]interface{} {
 	for key := range in {
-		fmtVal := parser.ConvertFilenameForGoTemplateValue(in[key].(string))
-		currentVal, ok := curr[fmtVal]
+		//fmtVal := parser.ConvertFilenameForGoTemplateValue(in[key].(string))
+		currentVal, ok := curr[key]
 		if ok {
 			in[key] = currentVal
 		}

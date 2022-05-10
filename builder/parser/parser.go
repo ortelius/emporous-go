@@ -36,11 +36,14 @@ func (e *ErrInvalidFormat) Error() string {
 // ByContentType returns a parser based on the detected content type.
 func ByContentType(filename string, data []byte) (Parser, error) {
 	mType := mimetype.Detect(data)
+	// The .uor extension queues the
+	if ext := filepath.Ext(filename); ext == ".uor" {
+		return NewUORParser(filename), nil
+	}
+
 	switch mType.String() {
 	case "application/json":
 		return NewJSONParser(filename), nil
-	case "text/plain; charset=utf-8":
-		return NewUORParser(filename), nil
 	}
 	return nil, &ErrInvalidFormat{filename}
 }

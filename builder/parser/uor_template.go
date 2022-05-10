@@ -22,6 +22,7 @@ func NewUORParser(filename string) Parser {
 	}
 }
 
+// GetLinkableData returns a template and a map with template
 func (p *uorParser) GetLinkableData(data []byte) (template.Template, map[string]interface{}, error) {
 	pattern := `\_\_uor\.(.*?)\_\_`
 	templateSearch, _ := regexp.Compile(pattern)
@@ -31,7 +32,7 @@ func (p *uorParser) GetLinkableData(data []byte) (template.Template, map[string]
 		for _, t := range found {
 			filename := strings.Trim(string(t[0]), "__uor.")
 			filename = strings.Trim(filename, "__")
-			formattedFilename := ConvertFilenameForGoTemplateValue(string(t[0]))
+			formattedFilename := ConvertFilenameForGoTemplateValue(filename)
 			// Set the template values to its original value
 			// for now
 			templateValue := unstructuredFileNameToGoTemplateValue(formattedFilename)
