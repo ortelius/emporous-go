@@ -5,7 +5,7 @@ GO_BUILD_BINDIR :=./bin
 
 build:
 	mkdir -p ${GO_BUILD_BINDIR}
-	GOOS=linux GOARCH=amd64 $(GO) build -o $(GO_BUILD_BINDIR)/client $(GO_BUILD_PACKAGES)
+	$(GO) build -o $(GO_BUILD_BINDIR)/client $(GO_BUILD_PACKAGES)
 .PHONY: build
 
 vendor:
