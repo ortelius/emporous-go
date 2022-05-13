@@ -3,9 +3,6 @@ GO := go
 GO_BUILD_PACKAGES := ./cmd/...
 GO_BUILD_BINDIR :=./bin
 
-all: clean vendor test-unit build
-.PHONY: all
-
 build:
 	mkdir -p ${GO_BUILD_BINDIR}
 	GOOS=linux GOARCH=amd64 $(GO) build -o $(GO_BUILD_BINDIR)/client $(GO_BUILD_PACKAGES)
@@ -36,3 +33,6 @@ format:
 vet: 
 	$(GO) vet ./...
 .PHONY: vet
+
+all: clean vendor test-unit build
+.PHONY: all
