@@ -2,7 +2,7 @@
 name: Bug report
 about: Create a bug report to help improve the UOR client
 title: ''
-labels: kind/bug
+labels: bug
 assignees: ''
 ---
 

@@ -2,7 +2,7 @@
 name: Feature request
 about: Suggest an idea for the UOR Client
 title: ''
-labels: kind/feature
+labels: enhancement
 assignees: ''
 ---
 
