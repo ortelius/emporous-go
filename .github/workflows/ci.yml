@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: golangci/golangci-lint-action@v3
         with:
-          version: v3.2.0
+          version: v1.46
           args: --timeout=5m
           skip-go-installation: true
 
@@ -59,10 +59,8 @@ jobs:
       - name: running unit tests
         run: |
           make test-unit
-          sed -i'' "s:^github.com/$GITHUB_REPOSITORY/::" coverage.out
-          .github/workflows/codecov.sh -Z -f coverage.out
         working-directory: src/github.com/uor-framework/client
-      
+
       - name: running sanity checks
         run: |
           make sanity
