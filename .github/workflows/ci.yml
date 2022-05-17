@@ -1,0 +1,99 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+
+jobs:
+  #
+  # golangci-lint
+  #
+  linters:
+    name: Linters
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        go-version: [1.17, 1.18]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+      - uses: actions/checkout@v3
+      - uses: golangci/golangci-lint-action@v3
+        with:
+          version: v3.2.0
+          args: --timeout=5m
+          skip-go-installation: true
+
+  #
+  # Project checks
+  #
+  project:
+    name: Project Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.17'
+
+      - uses: actions/checkout@v3
+        with:
+          path: src/github.com/uor-framework/client
+
+      - name: verify go modules and vendor directory
+        run: |
+          make vendor
+        working-directory: src/github.com/uor-framework/client
+      
+      - name: running unit tests
+        run: |
+          make test-unit
+          sed -i'' "s:^github.com/$GITHUB_REPOSITORY/::" coverage.out
+          .github/workflows/codecov.sh -Z -f coverage.out
+        working-directory: src/github.com/uor-framework/client
+      
+      - name: running sanity checks
+        run: |
+          make sanity
+        working-directory: src/github.com/uor-framework/client
+
+  # Make sure binaries compile with other platforms
+  crossbuild:
+    name: Crossbuild Binaries
+    needs: [project, linters]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: arm64
+          - goos: linux
+            goarch: amd64
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.17'
+      - uses: actions/checkout@v3
+        with:
+          path: src/github.com/uor-framework/client
+      - name: Build
+        env:
+          GOOS: ${{matrix.goos}}
+          GOARCH: ${{matrix.goarch}}
+        run: |
+          make build
+        working-directory: src/github.com/uor-framework/client
+          
