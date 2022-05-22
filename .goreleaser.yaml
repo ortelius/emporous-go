@@ -1,0 +1,54 @@
+project_name: client
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod vendor
+
+builds:
+  - id: linux-amd64
+    binary: client-linux-{{ .Arch }}
+    main: ./cmd/client
+    goos:
+      - linux
+    goarch:
+      - amd64
+    no_unique_dist_dir: true
+  
+  - id: darwin-amd64
+    binary: client-darwin-{{ .Arch }}
+    main: ./cmd/client
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    no_unique_dist_dir: true
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+    - Merge pull request
+    - Merge branch
+    - go mod tidy
+
+release:
+
+  prerelease: auto
+
+  header: |
+    ## UOR Client ({{ .Date }})
+
+    Welcome to this new release!
+
+  footer: |
+    ## Thanks!
+
+    Those were the changes on {{ .Tag }}!
+
+  name_template: "{{.ProjectName}}-v{{.Version}} {{.Env.USER}}"

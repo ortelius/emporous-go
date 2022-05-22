@@ -12,7 +12,7 @@ client-workspace
 
 
 # Local vendor. Remove when ready to vendor dependencies.
-#/vendor/
+/vendor/
 
 # Local
 .idea
