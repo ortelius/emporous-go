@@ -30,8 +30,8 @@ func (p *uorParser) GetLinkableData(data []byte) (template.Template, map[string]
 	if templateSearch.Match(data) {
 		found := templateSearch.FindAllSubmatch(data, -1)
 		for _, t := range found {
-			filename := strings.Trim(string(t[0]), "__uor.")
-			filename = strings.Trim(filename, "__")
+			filename := strings.TrimPrefix(string(t[0]), "__uor.")
+			filename = strings.TrimSuffix(filename, "__")
 			formattedFilename := ConvertFilenameForGoTemplateValue(filename)
 			// Set the template values to its original value
 			// for now
