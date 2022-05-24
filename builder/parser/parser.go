@@ -36,7 +36,7 @@ func (e *ErrInvalidFormat) Error() string {
 // ByContentType returns a parser based on the detected content type.
 func ByContentType(filename string, data []byte) (Parser, error) {
 	mType := mimetype.Detect(data)
-	// The .uor extension queues the
+
 	if ext := filepath.Ext(filename); ext == ".uor" {
 		return NewUORParser(filename), nil
 	}
