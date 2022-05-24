@@ -8,8 +8,9 @@ import (
 
 // Client defines methods to publish content as artifacts
 type Client interface {
-	// GatherDescriptors loads files to create OCI descriptors.
-	GatherDescriptors(...string) ([]ocispec.Descriptor, error)
+	// GatherDescriptors loads files to create OCI descriptors with a specific
+	// media type.
+	GatherDescriptors(string, ...string) ([]ocispec.Descriptor, error)
 	// GenerateConfig creates and stores a config.
 	// The config descriptor is returned for manifest generation.
 	GenerateConfig(map[string]string) (ocispec.Descriptor, error)

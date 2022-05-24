@@ -215,7 +215,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 			return err
 		}
 
-		descs, err := client.GatherDescriptors(files...)
+		descs, err := client.GatherDescriptors("", files...)
 		if err != nil {
 			return err
 		}
