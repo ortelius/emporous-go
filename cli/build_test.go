@@ -146,6 +146,20 @@ func TestBuildRun(t *testing.T) {
 				Push:        true,
 			},
 		},
+		{
+			name: "Success/UORParsing",
+			opts: &BuildOptions{
+				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
+					Out:    os.Stdout,
+					In:     os.Stdin,
+					ErrOut: os.Stderr,
+				},
+				},
+				Destination: fmt.Sprintf("%s/client-test:latest", u.Host),
+				RootDir:     "testdata/uor-template",
+				Push:        true,
+			},
+		},
 	}
 
 	for _, c := range cases {

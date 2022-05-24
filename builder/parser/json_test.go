@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetLinkableData(t *testing.T) {
+func TestGetLinkableData_JSON(t *testing.T) {
 	type spec struct {
 		name        string
 		input       string
