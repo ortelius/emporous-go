@@ -206,14 +206,25 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 			}
 
 			if info.Mode().IsRegular() {
-				p := renderSpace.Path(path)
-				files = append(files, p)
+				files = append(files, path)
 			}
 			return nil
 		})
 		if err != nil {
 			return err
 		}
+
+		// To allow the files to be loaded relative to the render
+		// workspace, change to the render directory. This is required
+		// to get path correct in the description annotations.
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		if err := os.Chdir(renderSpace.Path()); err != nil {
+			return err
+		}
+		defer os.Chdir(cwd)
 
 		descs, err := client.GatherDescriptors("", files...)
 		if err != nil {
