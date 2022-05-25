@@ -238,6 +238,10 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 			return err
 		}
 
+		if err := client.MapPaths(renderSpace.Path(), descs...); err != nil {
+			return err
+		}
+
 		if err := client.Execute(ctx); err != nil {
 			return fmt.Errorf("error publishing content to %s: %v", o.Destination, err)
 		}

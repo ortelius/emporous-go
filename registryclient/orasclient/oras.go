@@ -70,6 +70,15 @@ func (c *orasClient) Execute(ctx context.Context) error {
 	return nil
 }
 
+// Execute performs the copy of OCI artifacts.
+func (c *orasClient) MapPaths(workDir string, descriptors ...ocispec.Descriptor) error {
+	for _, desc := range descriptors {
+		fpath := workDir + "/" + desc.Annotations["org.opencontainers.image.title"]
+		c.fileStore.MapPath(desc.Annotations["org.opencontainers.image.title"], fpath)
+	}
+	return nil
+}
+
 func loadFiles(store *content.File, files ...string) ([]ocispec.Descriptor, error) {
 	var descs []ocispec.Descriptor
 	for _, fileRef := range files {

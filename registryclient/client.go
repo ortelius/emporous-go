@@ -18,4 +18,5 @@ type Client interface {
 	GenerateManifest(ocispec.Descriptor, map[string]string, ...ocispec.Descriptor) error
 	// Execute performs the copy of OCI artifacts.
 	Execute(context.Context) error
+	MapPaths(string, ...ocispec.Descriptor) error
 }
