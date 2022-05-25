@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
@@ -218,6 +219,14 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		descs, err := client.GatherDescriptors(files...)
 		if err != nil {
 			return err
+		}
+
+		// Absolute paths cause unexpected behavior when pulling.
+		// only use the relative path for the title (filename).
+		for _, desc := range descs {
+			title := desc.Annotations["org.opencontainers.image.title"]
+			relPath := strings.TrimPrefix(title, renderSpace.Path()+"/")
+			desc.Annotations["org.opencontainers.image.title"] = relPath
 		}
 
 		configDesc, err := client.GenerateConfig(nil)
