@@ -2,40 +2,42 @@ package cli
 
 import (
 	"context"
-	"io/ioutil"
+	"fmt"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 
+	"github.com/google/go-containerregistry/pkg/registry"
 	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/client/cli/log"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-func TestBuildComplete(t *testing.T) {
+func TestPushComplete(t *testing.T) {
 	type spec struct {
 		name     string
 		args     []string
-		opts     *BuildOptions
-		expOpts  *BuildOptions
+		opts     *PushOptions
+		expOpts  *PushOptions
 		expError string
 	}
 
 	cases := []spec{
 		{
 			name: "Valid/CorrectNumberOfArguments",
-			args: []string{"testdata"},
-			expOpts: &BuildOptions{
-				Output:  "client-workspace",
-				RootDir: "testdata",
+			args: []string{"testdata", "test-registry.com/image:latest"},
+			expOpts: &PushOptions{
+				RootDir:     "testdata",
+				Destination: "test-registry.com/image:latest",
 			},
-			opts: &BuildOptions{},
+			opts: &PushOptions{},
 		},
 		{
 			name:     "Invalid/NotEnoughArguments",
 			args:     []string{},
-			expOpts:  &BuildOptions{},
-			opts:     &BuildOptions{},
-			expError: "bug: expecting one argument",
+			expOpts:  &PushOptions{},
+			opts:     &PushOptions{},
+			expError: "bug: expecting two arguments",
 		},
 	}
 
@@ -52,7 +54,7 @@ func TestBuildComplete(t *testing.T) {
 	}
 }
 
-func TestBuildValidate(t *testing.T) {
+func TestPushValidate(t *testing.T) {
 	type spec struct {
 		name     string
 		opts     *BuildOptions
@@ -87,84 +89,69 @@ func TestBuildValidate(t *testing.T) {
 	}
 }
 
-func TestBuildRun(t *testing.T) {
-
-	testlogr, err := log.NewLogger(ioutil.Discard, "debug")
+func TestPushRun(t *testing.T) {
+	server := httptest.NewServer(registry.New())
+	t.Cleanup(server.Close)
+	u, err := url.Parse(server.URL)
 	require.NoError(t, err)
 
 	type spec struct {
 		name     string
-		opts     *BuildOptions
+		opts     *PushOptions
 		expError string
 	}
 
 	cases := []spec{
 		{
 			name: "Success/FlatWorkspace",
-			opts: &BuildOptions{
-				RootOptions: &RootOptions{
-					IOStreams: genericclioptions.IOStreams{
-						Out:    os.Stdout,
-						In:     os.Stdin,
-						ErrOut: os.Stderr,
-					},
-					Logger: testlogr,
-				},
-				RootDir: "testdata/flatworkspace",
-			},
-		},
-		{
-			name: "Success/MultiLevelWorkspace",
-			opts: &BuildOptions{
-				RootOptions: &RootOptions{
-					IOStreams: genericclioptions.IOStreams{
-						Out:    os.Stdout,
-						In:     os.Stdin,
-						ErrOut: os.Stderr,
-					},
-					Logger: testlogr,
-				},
-				RootDir: "testdata/multi-level-workspace",
-			},
-		},
-		{
-			name: "Success/UORParsing",
-			opts: &BuildOptions{
-				RootOptions: &RootOptions{
-					IOStreams: genericclioptions.IOStreams{
-						Out:    os.Stdout,
-						In:     os.Stdin,
-						ErrOut: os.Stderr,
-					},
-					Logger: testlogr,
-				},
-				RootDir: "testdata/uor-template",
-			},
-		},
-		{
-			name: "Failure/TwoRoots",
-			opts: &BuildOptions{
+			opts: &PushOptions{
 				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
 					Out:    os.Stdout,
 					In:     os.Stdin,
 					ErrOut: os.Stderr,
 				},
 				},
-				RootDir: "testdata/tworoots",
+				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
+				RootDir:     "testdata/flatworkspace",
 			},
-			expError: "error building content: error calculating root node: multiple roots found in graph: fish.jpg, fish2.jpg",
+		},
+		{
+			name: "Success/MultiLevelWorkspace",
+			opts: &PushOptions{
+				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
+					Out:    os.Stdout,
+					In:     os.Stdin,
+					ErrOut: os.Stderr,
+				},
+				},
+				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
+				RootDir:     "testdata/multi-level-workspace",
+			},
+		},
+		{
+			name: "SuccessTwoRoots",
+			opts: &PushOptions{
+				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
+					Out:    os.Stdout,
+					In:     os.Stdin,
+					ErrOut: os.Stderr,
+				},
+				},
+				Destination: fmt.Sprintf("%s/client-tworoots-test:latest", u.Host),
+				RootDir:     "testdata/tworoots",
+			},
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			c.opts.Output = t.TempDir()
 			err := c.opts.Run(context.TODO())
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
 			} else {
 				require.NoError(t, err)
-				// Check build artifacts
+				// TODO(jpower432): check image is pullable
+				// Will do after adding pulling functionality
 			}
 		})
 	}

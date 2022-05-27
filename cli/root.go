@@ -2,6 +2,7 @@ package cli
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -31,7 +32,7 @@ func NewRootCmd() *cobra.Command {
 		ErrOut: os.Stderr,
 	}
 	cmd := &cobra.Command{
-		Use:           os.Args[0],
+		Use:           filepath.Base(os.Args[0]),
 		Short:         "UOR Client",
 		Long:          clientLong,
 		SilenceErrors: false,
@@ -54,6 +55,7 @@ func NewRootCmd() *cobra.Command {
 		"Log level (debug, info, warn, error, fatal)")
 
 	cmd.AddCommand(NewBuildCmd(&o))
+	cmd.AddCommand(NewPushCmd(&o))
 
 	return cmd
 }
