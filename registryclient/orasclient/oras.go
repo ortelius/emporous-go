@@ -51,27 +51,30 @@ func (c *orasClient) GenerateConfig(configAnnotations map[string]string) (ocispe
 
 // GenerateManifest creates and stores a manifest.
 // This is generated from the config descriptor and artifact descriptors.
-func (c *orasClient) GenerateManifest(configDesc ocispec.Descriptor, manifestAnnotations map[string]string, descriptors ...ocispec.Descriptor) error {
+func (c *orasClient) GenerateManifest(configDesc ocispec.Descriptor, manifestAnnotations map[string]string, descriptors ...ocispec.Descriptor) (ocispec.Descriptor, error) {
 	manifest, manifestDesc, err := content.GenerateManifest(&configDesc, manifestAnnotations, descriptors...)
 	if err != nil {
-		return fmt.Errorf("unable to create manifest: %w", err)
+		return ocispec.Descriptor{}, fmt.Errorf("unable to create manifest: %w", err)
 	}
 
-	return c.fileStore.StoreManifest(c.ref, manifestDesc, manifest)
+	if err := c.fileStore.StoreManifest(c.ref, manifestDesc, manifest); err != nil {
+		return ocispec.Descriptor{}, err
+	}
+
+	return manifestDesc, err
 }
 
 // Execute performs the copy of OCI artifacts.
-func (c *orasClient) Execute(ctx context.Context) error {
+func (c *orasClient) Execute(ctx context.Context) (ocispec.Descriptor, error) {
 	to, err := content.NewRegistry(c.registryOpts)
 	if err != nil {
-		return fmt.Errorf("could not create registry target: %w", err)
+		return ocispec.Descriptor{}, fmt.Errorf("could not create registry target: %w", err)
 	}
 	desc, err := oras.Copy(ctx, c.fileStore, c.ref, to, "", c.copyOpts...)
 	if err != nil {
-		return err
+		return ocispec.Descriptor{}, err
 	}
-	fmt.Printf("Artifact published with digest %#v to %s\n", desc.Digest, c.ref)
-	return nil
+	return desc, nil
 }
 
 func loadFiles(store *content.File, mediaType string, files ...string) ([]ocispec.Descriptor, error) {

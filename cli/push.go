@@ -131,12 +131,16 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	if err := client.GenerateManifest(configDesc, nil, descs...); err != nil {
+	if _, err := client.GenerateManifest(configDesc, nil, descs...); err != nil {
 		return err
 	}
 
-	if err := client.Execute(ctx); err != nil {
+	desc, err := client.Execute(ctx)
+	if err != nil {
 		return fmt.Errorf("error publishing content to %s: %v", o.Destination, err)
 	}
+
+	_, _ = fmt.Printf("Artifact %s published to %s\n", desc.Digest, o.Destination)
+
 	return nil
 }

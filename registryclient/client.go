@@ -16,7 +16,7 @@ type Client interface {
 	GenerateConfig(map[string]string) (ocispec.Descriptor, error)
 	// GenerateManifest creates and stores a manifest.
 	// This is generated from the config descriptor and artifact descriptors.
-	GenerateManifest(ocispec.Descriptor, map[string]string, ...ocispec.Descriptor) error
+	GenerateManifest(ocispec.Descriptor, map[string]string, ...ocispec.Descriptor) (ocispec.Descriptor, error)
 	// Execute performs the copy of OCI artifacts.
-	Execute(context.Context) error
+	Execute(context.Context) (ocispec.Descriptor, error)
 }
