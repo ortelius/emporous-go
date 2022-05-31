@@ -10,6 +10,25 @@ embedded in UOR artifacts.
 
 To learn more about Universal Runtime visit the UOR Framework website at https://uor-framework.github.io.
 
+## Development
+
+### Requirements
+
+- `go` version 1.17+
+
+### Build
+
+```
+make
+./bin/client -h
+```
+### Test
+
+#### Unit:
+```
+make test-unit
+```
+
 ## Basic Usage
 
 ### Template content in a directory without pushing 
@@ -18,8 +37,10 @@ To learn more about Universal Runtime visit the UOR Framework website at https:/
 client build <directory> --output my-workspace
 ```
 
-### Template content in a directory and push to a registry location
-`client build <directory> --push --destination localhost:5000/myartifacts:latest`
+### Push workspace to a registry location
+```
+client push mydirectory localhost:5000/myartifacts:latest
+```
 
 
 
