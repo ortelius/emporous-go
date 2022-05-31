@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/gabriel-vasile/mimetype"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/pkg/content"
 	"oras.land/oras-go/pkg/oras"
 
 	"github.com/uor-framework/client/registryclient"
 )
+
+const uorMediaType = "application/vnd.uor.config.v1+json"
 
 type orasClient struct {
 	registryOpts content.RegistryOptions
@@ -22,9 +25,9 @@ type orasClient struct {
 var _ registryclient.Client = &orasClient{}
 
 // GatherDescriptors loads files to create OCI descriptors.
-func (c *orasClient) GatherDescriptors(files ...string) ([]ocispec.Descriptor, error) {
+func (c *orasClient) GatherDescriptors(mediaType string, files ...string) ([]ocispec.Descriptor, error) {
 	fromFile := content.NewFile("")
-	descs, err := loadFiles(fromFile, files...)
+	descs, err := loadFiles(fromFile, mediaType, files...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to load files: %w", err)
 	}
@@ -39,6 +42,7 @@ func (c *orasClient) GenerateConfig(configAnnotations map[string]string) (ocispe
 	if err != nil {
 		return configDesc, fmt.Errorf("unable to create new manifest config: %w", err)
 	}
+	configDesc.MediaType = uorMediaType
 	if err := c.fileStore.Load(configDesc, config); err != nil {
 		return configDesc, fmt.Errorf("unable to load new manifest config: %w", err)
 	}
@@ -70,20 +74,41 @@ func (c *orasClient) Execute(ctx context.Context) error {
 	return nil
 }
 
-func loadFiles(store *content.File, files ...string) ([]ocispec.Descriptor, error) {
+func loadFiles(store *content.File, mediaType string, files ...string) ([]ocispec.Descriptor, error) {
 	var descs []ocispec.Descriptor
+	var skipMediaTypeDetection bool
+	var err error
+
+	if mediaType != "" {
+		skipMediaTypeDetection = true
+	}
 	for _, fileRef := range files {
-		filename, mediaType := parseFileRef(fileRef, "")
-		name := filepath.Clean(filename)
+		name := filepath.Clean(fileRef)
 		if !filepath.IsAbs(name) {
 			// convert to slash-separated path unless it is absolute path
 			name = filepath.ToSlash(name)
 		}
-		desc, err := store.Add(name, mediaType, filename)
+
+		if !skipMediaTypeDetection {
+			mediaType, err = getDefaultMediaType(fileRef)
+			if err != nil {
+				return nil, fmt.Errorf("file %q: error dectecting media type: %v", name, err)
+			}
+		}
+
+		desc, err := store.Add(name, mediaType, fileRef)
 		if err != nil {
 			return nil, err
 		}
 		descs = append(descs, desc)
 	}
 	return descs, nil
+}
+
+func getDefaultMediaType(file string) (string, error) {
+	mType, err := mimetype.DetectFile(file)
+	if err != nil {
+		return "", err
+	}
+	return mType.String(), nil
 }
