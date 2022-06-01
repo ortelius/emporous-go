@@ -31,10 +31,15 @@ make test-unit
 
 ## Basic Usage
 
+### User Workflow
+
+1. Create a directory with artifacts to publish to a registry as an OCI artifact. If the files reference each other, the client will replace the in-content linked files with the content address.
+2. Use the `client build` command to create the output workspace with the rendered content. If the files in the workspace do not contain links to each other, skip to this step.
+3. Use the `client push` command to publish the workspace to a registry as an OCI artifact.
 ### Template content in a directory without pushing 
 ```
 # The default workspace is "client-workspace" in the current working directory
-client build <directory> --output my-workspace
+client build mydirectory --output my-workspace
 ```
 
 ### Push workspace to a registry location
