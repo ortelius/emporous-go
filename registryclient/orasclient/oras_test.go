@@ -12,7 +12,7 @@ func TestGatherDescriptors(t *testing.T) {
 
 		c, err := NewClient("localhost:5000/test:latest", WithPlainHTTP(true))
 		require.NoError(t, err)
-		desc, err := c.GatherDescriptors("testdata/workspace/fish.jpg")
+		desc, err := c.GatherDescriptors("", "testdata/workspace/fish.jpg")
 		require.NoError(t, err)
 		require.Len(t, desc, 1)
 		require.Equal(t, expDigest, desc[0].Digest.String())
@@ -22,11 +22,11 @@ func TestGatherDescriptors(t *testing.T) {
 // TODO(jpower432): Create a mock client to mock non-tested actions
 func TestGenerateManifest(t *testing.T) {
 	t.Run("Success/OneArtifact", func(t *testing.T) {
-		expDigest := "sha256:b138454239f1cce34e1291ffaa658e6abd5c0b3f253166af5ba768ad18926c7c"
+		expDigest := "sha256:792a4e91200098b062d4bf3c8b95dc11c7c20d3a18d8208cd00cae44f6147e37"
 
 		c, err := NewClient("localhost:5000/test:latest", WithPlainHTTP(true))
 		require.NoError(t, err)
-		desc, err := c.GatherDescriptors("testdata/workspace/fish.jpg")
+		desc, err := c.GatherDescriptors("", "testdata/workspace/fish.jpg")
 		require.NoError(t, err)
 		configDesc, err := c.GenerateConfig(nil)
 		require.NoError(t, err)

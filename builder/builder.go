@@ -18,8 +18,8 @@ type Builder struct {
 	Source workspace.Workspace
 }
 
-// NewBuilder creates an new Builder from the source
-// workspace
+// NewBuilder creates a new Builder from the source
+// workspace.
 func NewBuilder(source workspace.Workspace) Builder {
 	return Builder{source}
 }

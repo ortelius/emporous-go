@@ -94,8 +94,8 @@ func (g *Graph) AddEdge(origin, destination string) error {
 }
 
 // Root calculates to root node of the graph.
-// This is calculated base on existing child nodes.
-// This expected only of root node to be found.
+// This is calculated based on existing child nodes.
+// This expects only one root node to be found.
 func (g *Graph) Root() (*Node, error) {
 	// FIXME(jpowe432): Optimize or redesign the chain
 
