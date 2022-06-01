@@ -24,7 +24,7 @@ type BuildOptions struct {
 
 var clientBuildExamples = templates.Examples(
 	`
-	# Template content in a directory without pushing
+	# Template content in a directory
 	client build mydirectory
 
 	# Template content into a specified output directory.

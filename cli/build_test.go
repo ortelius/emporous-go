@@ -2,10 +2,13 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/opencontainers/go-digest"
 	"github.com/stretchr/testify/require"
 	"github.com/uor-framework/client/cli/log"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -95,6 +98,7 @@ func TestBuildRun(t *testing.T) {
 	type spec struct {
 		name     string
 		opts     *BuildOptions
+		expected string
 		expError string
 	}
 
@@ -112,6 +116,7 @@ func TestBuildRun(t *testing.T) {
 				},
 				RootDir: "testdata/flatworkspace",
 			},
+			expected: "testdata/expected/flatworkspace",
 		},
 		{
 			name: "Success/MultiLevelWorkspace",
@@ -126,6 +131,7 @@ func TestBuildRun(t *testing.T) {
 				},
 				RootDir: "testdata/multi-level-workspace",
 			},
+			expected: "testdata/expected/multi-level-workspace",
 		},
 		{
 			name: "Success/UORParsing",
@@ -140,6 +146,7 @@ func TestBuildRun(t *testing.T) {
 				},
 				RootDir: "testdata/uor-template",
 			},
+			expected: "testdata/expected/uor-template",
 		},
 		{
 			name: "Failure/TwoRoots",
@@ -164,8 +171,42 @@ func TestBuildRun(t *testing.T) {
 				require.EqualError(t, err, c.expError)
 			} else {
 				require.NoError(t, err)
-				// Check build artifacts
+				actual := walkDir(t, c.opts.Output)
+				expected := walkDir(t, c.expected)
+
+				for path, data1 := range actual {
+					t.Log("checking path " + path)
+					data2, ok := expected[path]
+					require.True(t, ok)
+					require.Equal(t, digest.FromBytes(data2).String(), digest.FromBytes(data1).String())
+				}
 			}
 		})
 	}
+}
+
+func walkDir(t *testing.T, dir string) map[string][]byte {
+	files := map[string][]byte{}
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("traversing %s: %v", path, err)
+		}
+		if info == nil {
+			return fmt.Errorf("no file info")
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		data, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		files[filepath.Base(path)] = data
+
+		return nil
+	})
+	require.NoError(t, err)
+	return files
 }
