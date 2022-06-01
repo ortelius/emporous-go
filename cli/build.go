@@ -11,8 +11,8 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"github.com/uor-framework/client/builder"
-	"github.com/uor-framework/client/builder/graph"
 	"github.com/uor-framework/client/builder/parser"
+	"github.com/uor-framework/client/graph"
 	"github.com/uor-framework/client/util/workspace"
 )
 
@@ -118,9 +118,11 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return found
 	}
 
+	templateBuilder := builder.NewCompatibilityBuilder(userSpace)
+
 	for path := range fileIndex {
 		o.Logger.Infof("Adding node %s\n", path)
-		node := graph.NewNode(path)
+		node := graph.NewBuildNode(path)
 
 		perr := &parser.ErrInvalidFormat{}
 		buf := new(bytes.Buffer)
@@ -131,19 +133,23 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		switch {
 		case err == nil:
 			p.AddFuncs(tFunc)
-			node.Template, node.Links, err = p.GetLinkableData(buf.Bytes())
+			templates, links, err := p.GetLinkableData(buf.Bytes())
 			if err != nil {
 				return err
 			}
+			templateBuilder.Links[node.ID()] = links
+			templateBuilder.Templates[node.ID()] = templates
 		case !errors.As(err, &perr):
 			return err
 		}
 
-		g.Nodes[node.Name] = node
+		if err := g.AddNode(node); err != nil {
+			return err
+		}
 	}
 
 	for _, node := range g.Nodes {
-		for link, data := range node.Links {
+		for link, data := range templateBuilder.Links[node.ID()] {
 			// Currently with the parsing implementation
 			// all initial values are expected to represent
 			// the file string data present in the content.
@@ -153,13 +159,12 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 			if !ok {
 				return fmt.Errorf("link %q: value should be of type string", link)
 			}
-			if err := g.AddEdge(node.Name, fpath); err != nil {
+			if err := g.AddEdge(node.ID(), fpath); err != nil {
 				return err
 			}
 		}
 	}
 
-	templateBuilder := builder.NewBuilder(userSpace)
 	renderSpace, err := workspace.NewLocalWorkspace(o.Output)
 	if err != nil {
 		return err
