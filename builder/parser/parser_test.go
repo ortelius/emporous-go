@@ -79,6 +79,7 @@ func TestContentType(t *testing.T) {
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
 			} else {
+				require.NoError(t, err)
 				require.Equal(t, c.exp, actual)
 			}
 
