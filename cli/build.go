@@ -12,7 +12,8 @@ import (
 
 	"github.com/uor-framework/client/builder"
 	"github.com/uor-framework/client/builder/parser"
-	"github.com/uor-framework/client/graph"
+	"github.com/uor-framework/client/model/nodes/basic"
+	"github.com/uor-framework/client/model/nodes/collection"
 	"github.com/uor-framework/client/util/workspace"
 )
 
@@ -80,7 +81,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	g := graph.NewGraph()
+	c := collection.NewCollection(o.Output)
 
 	fileIndex := make(map[string]struct{})
 	// Do the initial walk to get an index of what is in the workspace
@@ -122,7 +123,11 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 
 	for path := range fileIndex {
 		o.Logger.Infof("Adding node %s\n", path)
-		node := graph.NewBuildNode(path)
+
+		// Since the paths will be unique in this
+		// case, the id is set as the location.
+		node := basic.NewNode(path, nil)
+		node.Location = path
 
 		perr := &parser.ErrInvalidFormat{}
 		buf := new(bytes.Buffer)
@@ -143,12 +148,12 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 			return err
 		}
 
-		if err := g.AddNode(node); err != nil {
+		if err := c.AddNode(node); err != nil {
 			return err
 		}
 	}
 
-	for _, node := range g.Nodes {
+	for _, node := range c.Nodes() {
 		for link, data := range templateBuilder.Links[node.ID()] {
 			// Currently with the parsing implementation
 			// all initial values are expected to represent
@@ -159,7 +164,9 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 			if !ok {
 				return fmt.Errorf("link %q: value should be of type string", link)
 			}
-			if err := g.AddEdge(node.ID(), fpath); err != nil {
+			to := c.NodeByID(fpath)
+			edge := collection.NewEdge(node, to)
+			if err := c.AddEdge(edge); err != nil {
 				return err
 			}
 		}
@@ -169,8 +176,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	if err := templateBuilder.Run(ctx, g, renderSpace); err != nil {
+	if err := templateBuilder.Run(ctx, c, renderSpace); err != nil {
 		return fmt.Errorf("error building content: %v", err)
 	}
 

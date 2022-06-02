@@ -10,6 +10,8 @@ embedded in UOR artifacts.
 
 To learn more about Universal Runtime visit the UOR Framework website at https://uor-framework.github.io.
 
+> WARNING: The repository is under active development and the API is subject to change.
+
 ## Development
 
 ### Requirements
