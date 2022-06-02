@@ -140,7 +140,7 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		return fmt.Errorf("error publishing content to %s: %v", o.Destination, err)
 	}
 
-	_, _ = fmt.Printf("Artifact %s published to %s\n", desc.Digest, o.Destination)
+	o.Logger.Infof("Artifact %s published to %s\n", desc.Digest, o.Destination)
 
 	return nil
 }

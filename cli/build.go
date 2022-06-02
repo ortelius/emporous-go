@@ -168,8 +168,8 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return fmt.Errorf("error building content: %v", err)
 	}
 
-	o.Logger.Infof("\nTo publish this content, run the following command:")
-	o.Logger.Infof("\nclient push %s IMAGE\n", o.Output)
+	_, _ = fmt.Fprintf(o.IOStreams.Out, "\nTo publish this content, run the following command:")
+	_, _ = fmt.Fprintf(o.IOStreams.Out, "\nclient push %s IMAGE\n", o.Output)
 
 	return nil
 }

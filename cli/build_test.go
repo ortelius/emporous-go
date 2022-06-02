@@ -151,11 +151,13 @@ func TestBuildRun(t *testing.T) {
 		{
 			name: "Failure/TwoRoots",
 			opts: &BuildOptions{
-				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
-					Out:    os.Stdout,
-					In:     os.Stdin,
-					ErrOut: os.Stderr,
-				},
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
 				},
 				RootDir: "testdata/tworoots",
 			},
