@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http/httptest"
 	"net/url"
 	"os"
@@ -10,10 +11,14 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/registry"
 	"github.com/stretchr/testify/require"
+	"github.com/uor-framework/client/cli/log"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 func TestPushE2E(t *testing.T) {
+	testlogr, err := log.NewLogger(ioutil.Discard, "debug")
+	require.NoError(t, err)
+
 	server := httptest.NewServer(registry.New())
 	t.Cleanup(server.Close)
 	u, err := url.Parse(server.URL)
@@ -31,20 +36,24 @@ func TestPushE2E(t *testing.T) {
 		{
 			name: "Success/FlatWorkspace",
 			buildOpts: &BuildOptions{
-				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
-					Out:    os.Stdout,
-					In:     os.Stdin,
-					ErrOut: os.Stderr,
-				},
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
 				},
 				RootDir: "testdata/flatworkspace",
 			},
 			pushOpts: &PushOptions{
-				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
-					Out:    os.Stdout,
-					In:     os.Stdin,
-					ErrOut: os.Stderr,
-				},
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
 			},
@@ -52,20 +61,24 @@ func TestPushE2E(t *testing.T) {
 		{
 			name: "Success/MultiLevelWorkspace",
 			buildOpts: &BuildOptions{
-				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
-					Out:    os.Stdout,
-					In:     os.Stdin,
-					ErrOut: os.Stderr,
-				},
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
 				},
 				RootDir: "testdata/multi-level-workspace",
 			},
 			pushOpts: &PushOptions{
-				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
-					Out:    os.Stdout,
-					In:     os.Stdin,
-					ErrOut: os.Stderr,
-				},
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
 			},
@@ -73,20 +86,24 @@ func TestPushE2E(t *testing.T) {
 		{
 			name: "Success/UORParsing",
 			buildOpts: &BuildOptions{
-				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
-					Out:    os.Stdout,
-					In:     os.Stdin,
-					ErrOut: os.Stderr,
-				},
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
 				},
 				RootDir: "testdata/uor-template",
 			},
 			pushOpts: &PushOptions{
-				RootOptions: &RootOptions{IOStreams: genericclioptions.IOStreams{
-					Out:    os.Stdout,
-					In:     os.Stdin,
-					ErrOut: os.Stderr,
-				},
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-uor-test:latest", u.Host),
 			},
