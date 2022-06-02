@@ -91,7 +91,7 @@ func (o *BuildOptions) Validate() error {
 }
 
 func (o *BuildOptions) Run(ctx context.Context) error {
-	_, _ = fmt.Fprintf(o.IOStreams.Out, "Using output directory %q\n", o.Output)
+	o.Logger.Debugf("Using output directory %q", o.Output)
 	userSpace, err := workspace.NewLocalWorkspace(o.RootDir)
 	if err != nil {
 		return err
@@ -136,7 +136,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 	}
 
 	for path := range fileIndex {
-		_, _ = fmt.Fprintf(o.IOStreams.Out, "Adding node %s\n", path)
+		o.Logger.Infof("Adding node %s\n", path)
 		node := graph.NewNode(path)
 
 		perr := &parser.ErrInvalidFormat{}
@@ -206,14 +206,29 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 			}
 
 			if info.Mode().IsRegular() {
-				p := renderSpace.Path(path)
-				files = append(files, p)
+				files = append(files, path)
 			}
 			return nil
 		})
 		if err != nil {
 			return err
 		}
+
+		// To allow the files to be loaded relative to the render
+		// workspace, change to the render directory. This is required
+		// to get path correct in the description annotations.
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		if err := os.Chdir(renderSpace.Path()); err != nil {
+			return err
+		}
+		defer func() {
+			if err := os.Chdir(cwd); err != nil {
+				o.Logger.Errorf("%v", err)
+			}
+		}()
 
 		descs, err := client.GatherDescriptors("", files...)
 		if err != nil {
