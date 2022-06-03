@@ -21,9 +21,19 @@ func TestConvertFilenameForGoTemplateValue(t *testing.T) {
 			exp:   "fish_jpg",
 		},
 		{
-			name:  "Valid/RelativePathNewDirecotry",
+			name:  "Valid/RelativePathNewDirectory",
 			input: "images/fish.jpg",
 			exp:   "images_fish_jpg",
+		},
+		{
+			name:  "Valid/SpecialCharacter",
+			input: "images/fish-1.jpg",
+			exp:   "images_fish_1_jpg",
+		},
+		{
+			name:  "Valid/SpecialCharacterAccepted",
+			input: "images/fish-1.jpg",
+			exp:   "images_fish_1_jpg",
 		},
 		{
 			name:  "Valid/RelativePathPreviousDirectory",

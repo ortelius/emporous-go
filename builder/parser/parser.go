@@ -51,8 +51,11 @@ func ByContentType(filename string, data []byte) (Parser, error) {
 // ConvertFilenameForGoTemplateValue converts the current
 // file string to a value that is an acceptable variable for Go templating.
 func ConvertFilenameForGoTemplateValue(filename string) string {
-	// TODO: gather a list of invalid character.
-	filename = strings.Replace(filename, ".", "_", -1)
-	filename = strings.Replace(filename, string(filepath.Separator), "_", -1)
+	goTemplateSpecialCharacters := []string{".", string(filepath.Separator), "-"}
+	replaceCh := "_"
+
+	for _, ch := range goTemplateSpecialCharacters {
+		filename = strings.Replace(filename, ch, replaceCh, -1)
+	}
 	return filename
 }
