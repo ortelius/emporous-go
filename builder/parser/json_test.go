@@ -51,6 +51,16 @@ func TestGetLinkableData_JSON(t *testing.T) {
 			expLinks:    map[string]interface{}{"info_json_uor": "info.json.uor"},
 		},
 		{
+			name:  "Success/SupportedSpecialCharacter",
+			input: "testdata/valid.json",
+			tFuncs: []TemplatingFunc{
+				func(i interface{}) bool { return true },
+			},
+			p:           &jsonParser{filename: "valid.json"},
+			expLinksLen: 1,
+			expLinks:    map[string]interface{}{"valid_name": "valid-name"},
+		},
+		{
 			name:  "Failure/InvalidCharacterForTemplate",
 			input: "testdata/invalid.json",
 			tFuncs: []TemplatingFunc{
