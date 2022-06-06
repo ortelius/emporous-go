@@ -74,7 +74,7 @@ func (o *BuildOptions) Validate() error {
 }
 
 func (o *BuildOptions) Run(ctx context.Context) error {
-	o.Logger.Debugf("Using output directory %q", o.Output)
+	o.Logger.Infof("Using output directory %q", o.Output)
 	userSpace, err := workspace.NewLocalWorkspace(o.RootDir)
 	if err != nil {
 		return err
