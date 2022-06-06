@@ -25,7 +25,7 @@ type PushOptions struct {
 var clientPushExamples = templates.Examples(
 	`
 	# Push artifacts
-	client push mydirectory localhost:5000/myartifacts:latest
+	client push my-workspace localhost:5000/myartifacts:latest
 	`,
 )
 

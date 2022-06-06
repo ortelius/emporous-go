@@ -25,10 +25,11 @@ type BuildOptions struct {
 var clientBuildExamples = templates.Examples(
 	`
 	# Template content in a directory
-	client build mydirectory
+	# The default workspace is "client-workspace" in the current working directory.
+	client build my-directory
 
 	# Template content into a specified output directory.
-	client build mydirectory myoutputdirectory
+	client build my-directory --output my-workspace
 	`,
 )
 

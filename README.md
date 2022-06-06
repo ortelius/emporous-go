@@ -40,7 +40,7 @@ make test-unit
 ### Template content in a directory without pushing 
 ```
 # The default workspace is "client-workspace" in the current working directory
-client build mydirectory --output my-workspace
+client build my-directory --output my-workspace
 ```
 
 ### Push workspace to a registry location
