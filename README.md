@@ -45,7 +45,7 @@ client build mydirectory --output my-workspace
 
 ### Push workspace to a registry location
 ```
-client push mydirectory localhost:5000/myartifacts:latest
+client push my-workspace localhost:5000/myartifacts:latest
 ```
 
 
