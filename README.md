@@ -62,23 +62,27 @@ Example json doc:
     "fish2": "subdir1/fish2.jpg"
 }
 ```
-4. Create a dataset-config.yaml outside of the content directory that references the relative paths from within the content directory to each file. Add user defined key value pairs as subkeys to the `section`. Each file should have as many attributes as possible. Groupings can be created by using the `*` wildcard. 
+4. Create a dataset-config.yaml outside of the content directory that references the relative paths from within the content directory to each file. Add user defined key value pairs as subkeys to the `annotations`section. Each file should have as many attributes as possible. Multiple files can be referenced by using the `*` wildcard. 
 
 Example dataset-config.yaml:
 ```
 kind: DataSetConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 files:
-  file: fish.jpg
-  attributes:
-    animal: fish
-    habitat: ocean
-    size: small
-    color: blue
-  file: level1/file.txt
-  attributes:
-    fiction: true  
-    genre: science fiction
+  - file: fish.jpg
+    attributes:
+      animal: fish
+      habitat: ocean
+      size: small
+      color: blue
+  - file: subdir1/file.txt
+    attributes:
+      fiction: true  
+      genre: science fiction
+  - file: *.jpg
+    attributes:
+      custom: customval
+
 ```
 5. Run the UOR client build command referencing the dataset config, the content directory, and optionally push to a registry location.
 
@@ -88,6 +92,6 @@ client build --dsconfig dataset-config.yaml content-dir --push --destination loc
 
 6. Optionally inspect the OCI manifest of the dataset:
 
-curl <servername>:<port>/v2/<namespace>/<repo>/manifests/<digest or tag>
+curl -H "Accept: application/vnd.oci.image.manifest.v1+json" <servername>:<port>/v2/<namespace>/<repo>/manifests/<digest or tag>
 
 

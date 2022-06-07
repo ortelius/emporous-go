@@ -1,7 +1,7 @@
 kind: DataSetConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 files:
-  - file: ".*.jpg"
+  - file: "*.jpg"
     attributes:
       animal: fish
       habitat: ocean
@@ -11,6 +11,6 @@ files:
     attributes:
       genre: "science fiction"
       bool: true
-  - file: "fish.jpg"
+  - file: fish.jpg"
     attributes:
       custom1: customval
