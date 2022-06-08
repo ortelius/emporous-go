@@ -14,19 +14,13 @@ func ReadConfig(configName string) (v1alpha1.DataSetConfiguration, error) {
 	viper.SetConfigType("yaml")
 
 	err := viper.ReadInConfig()
-	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-
+	if err != nil {
 		return configuration, err
+	}
 
-	} else {
-		if err != nil {
-			return configuration, err
-		}
-
-		err = viper.Unmarshal(&configuration)
-		if err != nil {
-			return configuration, err
-		}
+	err = viper.Unmarshal(&configuration)
+	if err != nil {
+		return configuration, err
 	}
 
 	return configuration, err
