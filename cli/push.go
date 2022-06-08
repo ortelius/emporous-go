@@ -13,7 +13,7 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"github.com/uor-framework/client/builder/api/v1alpha1"
-	"github.com/uor-framework/client/builder/config"
+	load "github.com/uor-framework/client/builder/config"
 	"github.com/uor-framework/client/registryclient/orasclient"
 	"github.com/uor-framework/client/util/workspace"
 )
@@ -111,10 +111,12 @@ func (o *PushOptions) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	config, err := config.ReadConfig(o.DSConfig)
-	if err != nil {
-		return err
+	var config v1alpha1.DataSetConfiguration
+	if len(o.DSConfig) > 0 {
+		config, err = load.ReadConfig(o.DSConfig)
+		if err != nil {
+			return err
+		}
 	}
 
 	// To allow the files to be loaded relative to the render
