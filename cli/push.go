@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
 
+	"github.com/uor-framework/client/builder/config"
 	"github.com/uor-framework/client/registryclient/orasclient"
 	"github.com/uor-framework/client/util/workspace"
 )
@@ -20,6 +21,7 @@ type PushOptions struct {
 	Insecure    bool
 	PlainHTTP   bool
 	Configs     []string
+	DSConfig    string
 }
 
 var clientPushExamples = templates.Examples(
@@ -49,6 +51,7 @@ func NewPushCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd.Flags().StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths")
 	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to SSL registry without certs")
 	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https")
+	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "", o.DSConfig, "DataSet config path")
 
 	return cmd
 }
@@ -105,6 +108,11 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		return err
 	}
 
+	config, err := config.ReadConfig(o.DSConfig)
+	if err != nil {
+		return err
+	}
+
 	// To allow the files to be loaded relative to the render
 	// workspace, change to the render directory. This is required
 	// to get path correct in the description annotations.
@@ -122,6 +130,12 @@ func (o *PushOptions) Run(ctx context.Context) error {
 	}()
 
 	descs, err := client.GatherDescriptors("", files...)
+	if err != nil {
+		return err
+	}
+
+	// Add the attributes from the config to their respective blocks
+	descs, err = AddDescriptors(descs, config)
 	if err != nil {
 		return err
 	}
