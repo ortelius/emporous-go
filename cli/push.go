@@ -172,10 +172,11 @@ func AddDescriptors(d []v1.Descriptor, c v1alpha1.DataSetConfiguration) ([]v1.De
 		filename := desc.Annotations["org.opencontainers.image.title"]
 		// For each file in the config
 		for i2, file := range c.Files {
-			// If the filename of the block matches the filename of the file in the config
 			// If the config has a grouping declared, make a valid regex.
 			if strings.Contains(file.File, "*") && !strings.Contains(file.File, ".*") {
 				file.File = strings.Replace(file.File, "*", ".*", -1)
+			} else {
+				file.File = strings.Replace(file.File, file.File, "^"+file.File+"$", -1)
 			}
 			namesearch, err := regexp.Compile(file.File)
 			if err != nil {
