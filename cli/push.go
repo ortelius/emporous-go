@@ -5,10 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 
+	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
 
+	"github.com/uor-framework/client/builder/api/v1alpha1"
+	load "github.com/uor-framework/client/builder/config"
 	"github.com/uor-framework/client/registryclient/orasclient"
 	"github.com/uor-framework/client/util/workspace"
 )
@@ -20,6 +25,7 @@ type PushOptions struct {
 	Insecure    bool
 	PlainHTTP   bool
 	Configs     []string
+	DSConfig    string
 }
 
 var clientPushExamples = templates.Examples(
@@ -49,6 +55,7 @@ func NewPushCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd.Flags().StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths")
 	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to SSL registry without certs")
 	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https")
+	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "", o.DSConfig, "DataSet config path")
 
 	return cmd
 }
@@ -104,6 +111,13 @@ func (o *PushOptions) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	var config v1alpha1.DataSetConfiguration
+	if len(o.DSConfig) > 0 {
+		config, err = load.ReadConfig(o.DSConfig)
+		if err != nil {
+			return err
+		}
+	}
 
 	// To allow the files to be loaded relative to the render
 	// workspace, change to the render directory. This is required
@@ -126,6 +140,12 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		return err
 	}
 
+	// Add the attributes from the config to their respective blocks
+	descs, err = AddDescriptors(descs, config)
+	if err != nil {
+		return err
+	}
+
 	configDesc, err := client.GenerateConfig(nil)
 	if err != nil {
 		return err
@@ -143,4 +163,38 @@ func (o *PushOptions) Run(ctx context.Context) error {
 	o.Logger.Infof("Artifact %s published to %s\n", desc.Digest, o.Destination)
 
 	return nil
+}
+
+// AddDescriptors adds the attributes of each file listed in the config
+// to the annotations of its respective descriptor.
+func AddDescriptors(d []v1.Descriptor, c v1alpha1.DataSetConfiguration) ([]v1.Descriptor, error) {
+	// For each descriptor
+	for i1, desc := range d {
+		// Get the filename of the block
+		filename := desc.Annotations["org.opencontainers.image.title"]
+		// For each file in the config
+		for i2, file := range c.Files {
+			// If the config has a grouping declared, make a valid regex.
+			if strings.Contains(file.File, "*") && !strings.Contains(file.File, ".*") {
+				file.File = strings.Replace(file.File, "*", ".*", -1)
+			} else {
+				file.File = strings.Replace(file.File, file.File, "^"+file.File+"$", -1)
+			}
+			namesearch, err := regexp.Compile(file.File)
+			if err != nil {
+				return []v1.Descriptor{}, err
+			}
+			// Find the matching descriptor
+			if namesearch.Match([]byte(filename)) {
+				// Get the k/v pairs from the config and add them to the block's annotations.
+				for k, v := range c.Files[i2].Attributes {
+					d[i1].Annotations[k] = v
+				}
+			} else {
+				// If the block does not have a corresponding config element, skip it.
+				continue
+			}
+		}
+	}
+	return d, nil
 }
