@@ -2,6 +2,7 @@ package orasclient
 
 import (
 	"github.com/uor-framework/client/registryclient"
+	"oras.land/oras-go/pkg/content"
 )
 
 // TODO(jpower432): Allow configuration for relevant ORAS copy options
@@ -24,9 +25,9 @@ func (c *ClientConfig) apply(options []ClientOption) error {
 }
 
 // NewClient returns a new ORAS client implementation
-func NewClient(ref string, options ...ClientOption) (registryclient.Client, error) {
+func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client := &orasClient{
-		ref: ref,
+		fileStore: content.NewFile(""),
 	}
 
 	config := &ClientConfig{}

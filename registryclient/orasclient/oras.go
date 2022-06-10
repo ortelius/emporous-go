@@ -2,6 +2,7 @@ package orasclient
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -9,6 +10,7 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/pkg/content"
 	"oras.land/oras-go/pkg/oras"
+	"oras.land/oras-go/pkg/target"
 
 	"github.com/uor-framework/client/registryclient"
 )
@@ -19,25 +21,27 @@ type orasClient struct {
 	registryOpts content.RegistryOptions
 	copyOpts     []oras.CopyOpt
 	fileStore    *content.File
-	ref          string
 }
 
 var _ registryclient.Client = &orasClient{}
 
 // GatherDescriptors loads files to create OCI descriptors.
 func (c *orasClient) GatherDescriptors(mediaType string, files ...string) ([]ocispec.Descriptor, error) {
-	fromFile := content.NewFile("")
-	descs, err := loadFiles(fromFile, mediaType, files...)
+	c.init()
+	descs, err := loadFiles(c.fileStore, mediaType, files...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to load files: %w", err)
 	}
-	c.fileStore = fromFile
 	return descs, nil
 }
 
 // GenerateConfig creates and stores a config.
 // The config descriptor is returned for manifest generation.
 func (c *orasClient) GenerateConfig(configAnnotations map[string]string) (ocispec.Descriptor, error) {
+	if err := c.checkFileStore(); err != nil {
+		return ocispec.Descriptor{}, err
+	}
+
 	config, configDesc, err := content.GenerateConfig(configAnnotations)
 	if err != nil {
 		return configDesc, fmt.Errorf("unable to create new manifest config: %w", err)
@@ -51,13 +55,17 @@ func (c *orasClient) GenerateConfig(configAnnotations map[string]string) (ocispe
 
 // GenerateManifest creates and stores a manifest.
 // This is generated from the config descriptor and artifact descriptors.
-func (c *orasClient) GenerateManifest(configDesc ocispec.Descriptor, manifestAnnotations map[string]string, descriptors ...ocispec.Descriptor) (ocispec.Descriptor, error) {
+func (c *orasClient) GenerateManifest(ref string, configDesc ocispec.Descriptor, manifestAnnotations map[string]string, descriptors ...ocispec.Descriptor) (ocispec.Descriptor, error) {
+	if err := c.checkFileStore(); err != nil {
+		return ocispec.Descriptor{}, err
+	}
+
 	manifest, manifestDesc, err := content.GenerateManifest(&configDesc, manifestAnnotations, descriptors...)
 	if err != nil {
 		return ocispec.Descriptor{}, fmt.Errorf("unable to create manifest: %w", err)
 	}
 
-	if err := c.fileStore.StoreManifest(c.ref, manifestDesc, manifest); err != nil {
+	if err := c.fileStore.StoreManifest(ref, manifestDesc, manifest); err != nil {
 		return ocispec.Descriptor{}, err
 	}
 
@@ -65,16 +73,49 @@ func (c *orasClient) GenerateManifest(configDesc ocispec.Descriptor, manifestAnn
 }
 
 // Execute performs the copy of OCI artifacts.
-func (c *orasClient) Execute(ctx context.Context) (ocispec.Descriptor, error) {
-	to, err := content.NewRegistry(c.registryOpts)
+func (c *orasClient) Execute(ctx context.Context, ref string, typ registryclient.ActionType) (ocispec.Descriptor, error) {
+	c.init()
+	var to, from target.Target
+	reg, err := content.NewRegistry(c.registryOpts)
 	if err != nil {
 		return ocispec.Descriptor{}, fmt.Errorf("could not create registry target: %w", err)
 	}
-	desc, err := oras.Copy(ctx, c.fileStore, c.ref, to, "", c.copyOpts...)
+
+	switch typ {
+	case registryclient.TypePush:
+		to = reg
+		from = c.fileStore
+	case registryclient.TypePull:
+		to = c.fileStore
+		from = reg
+	case registryclient.TypeInvalid:
+		return ocispec.Descriptor{}, errors.New("action type must be set")
+	default:
+		return ocispec.Descriptor{}, errors.New("unsupported action type")
+	}
+
+	desc, err := oras.Copy(ctx, from, ref, to, "", c.copyOpts...)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
 	return desc, nil
+}
+
+// init will initialize the file store
+// if not set to avoid panics.
+func (c *orasClient) init() {
+	if c.fileStore == nil {
+		c.fileStore = content.NewFile("")
+	}
+}
+
+// checkFileStore ensure that the file store
+// has been initialized.
+func (c *orasClient) checkFileStore() error {
+	if c.fileStore == nil {
+		return errors.New("file store uninitialized")
+	}
+	return nil
 }
 
 func loadFiles(store *content.File, mediaType string, files ...string) ([]ocispec.Descriptor, error) {
