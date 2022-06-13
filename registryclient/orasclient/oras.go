@@ -21,6 +21,7 @@ type orasClient struct {
 	registryOpts content.RegistryOptions
 	copyOpts     []oras.CopyOpt
 	fileStore    *content.File
+	outputDir    string
 }
 
 var _ registryclient.Client = &orasClient{}
@@ -74,7 +75,6 @@ func (c *orasClient) GenerateManifest(ref string, configDesc ocispec.Descriptor,
 
 // Execute performs the copy of OCI artifacts.
 func (c *orasClient) Execute(ctx context.Context, ref string, typ registryclient.ActionType) (ocispec.Descriptor, error) {
-	c.init()
 	var to, from target.Target
 	reg, err := content.NewRegistry(c.registryOpts)
 	if err != nil {
@@ -83,9 +83,13 @@ func (c *orasClient) Execute(ctx context.Context, ref string, typ registryclient
 
 	switch typ {
 	case registryclient.TypePush:
+		if err := c.checkFileStore(); err != nil {
+			return ocispec.Descriptor{}, err
+		}
 		to = reg
 		from = c.fileStore
 	case registryclient.TypePull:
+		c.fileStore = content.NewFile(c.outputDir)
 		to = c.fileStore
 		from = reg
 	case registryclient.TypeInvalid:
@@ -98,7 +102,7 @@ func (c *orasClient) Execute(ctx context.Context, ref string, typ registryclient
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
-	return desc, nil
+	return desc, c.fileStore.Close()
 }
 
 // init will initialize the file store

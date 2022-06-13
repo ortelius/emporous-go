@@ -13,6 +13,7 @@ type ClientOption func(o *ClientConfig) error
 
 // ClientConfig contains configuration data for the registry client.
 type ClientConfig struct {
+	output    string
 	configs   []string
 	plainHTTP bool
 	insecure  bool
@@ -41,6 +42,7 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client.registryOpts.Insecure = config.insecure
 	client.registryOpts.Configs = config.configs
 	client.registryOpts.PlainHTTP = config.plainHTTP
+	client.outputDir = config.output
 	return client, nil
 }
 
@@ -65,6 +67,14 @@ func SkipTLSVerify(insecure bool) ClientOption {
 func WithPlainHTTP(plainHTTP bool) ClientOption {
 	return func(config *ClientConfig) error {
 		config.plainHTTP = plainHTTP
+		return nil
+	}
+}
+
+// WithOutputDir will copy any pulled artifact to this directory
+func WithOutputDir(dir string) ClientOption {
+	return func(config *ClientConfig) error {
+		config.output = dir
 		return nil
 	}
 }

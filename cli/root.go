@@ -19,8 +19,7 @@ type RootOptions struct {
 
 var clientLong = templates.LongDesc(
 	`
-	This client helps you build and deploy sets of OCI artifacts to use
-	with existing clients.
+	This client helps you build and publish UOR collections as an OCI artifact.
 	`,
 )
 
@@ -56,6 +55,7 @@ func NewRootCmd() *cobra.Command {
 
 	cmd.AddCommand(NewBuildCmd(&o))
 	cmd.AddCommand(NewPushCmd(&o))
+	cmd.AddCommand(NewPullCmd(&o))
 
 	return cmd
 }

@@ -41,7 +41,7 @@ func NewPushCmd(rootOpts *RootOptions) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "push SRC DST",
-		Short:         "Push OCI artifacts from specified source into a registry",
+		Short:         "Push a UOR collection from specified source into a registry",
 		Example:       clientPushExamples,
 		SilenceErrors: false,
 		SilenceUsage:  false,
