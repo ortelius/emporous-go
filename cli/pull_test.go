@@ -166,6 +166,6 @@ func prepTestArtifact(t *testing.T, ref string) {
 	require.NoError(t, err)
 	registry, err := content.NewRegistry(content.RegistryOptions{PlainHTTP: true})
 	require.NoError(t, err)
-	desc, err = oras.Copy(context.TODO(), memoryStore, ref, registry, "")
+	_, err = oras.Copy(context.TODO(), memoryStore, ref, registry, "")
 	require.NoError(t, err)
 }
