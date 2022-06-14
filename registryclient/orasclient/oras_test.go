@@ -51,6 +51,7 @@ func TestExecute(t *testing.T) {
 	require.NoError(t, err)
 
 	ref := fmt.Sprintf("%s/test:latest", u.Host)
+	notExistRef := fmt.Sprintf("%s/notexist:latest", u.Host)
 	images := []string{fmt.Sprintf("%s/test:latest", u.Host), fmt.Sprintf("%s/test2:latest", u.Host)}
 	testdata := filepath.Join("testdata", "workspace", "fish.jpg")
 
@@ -129,7 +130,7 @@ func TestExecute(t *testing.T) {
 	t.Run("Failure/ImageDoesNotExist", func(t *testing.T) {
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
-		_, err = c.Execute(context.TODO(), "localhost:5001/fail:latest", registryclient.TypePull)
-		require.EqualError(t, err, "localhost:5001/fail:latest: not found")
+		_, err = c.Execute(context.TODO(), notExistRef, registryclient.TypePull)
+		require.EqualError(t, err, fmt.Sprintf("%s: not found", notExistRef))
 	})
 }
