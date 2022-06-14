@@ -20,7 +20,6 @@ type PullOptions struct {
 	Insecure  bool
 	PlainHTTP bool
 	Configs   []string
-	DSConfig  string
 }
 
 var clientPullExamples = templates.Examples(
@@ -50,7 +49,6 @@ func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd.Flags().StringArrayVarP(&o.Configs, "auth-configs", "c", o.Configs, "auth config paths")
 	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to SSL registry without certs")
 	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https")
-	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "", o.DSConfig, "DataSet config path")
 
 	return cmd
 }
