@@ -59,20 +59,20 @@ func TestPushComplete(t *testing.T) {
 func TestPushValidate(t *testing.T) {
 	type spec struct {
 		name     string
-		opts     *BuildOptions
+		opts     *PushOptions
 		expError string
 	}
 
 	cases := []spec{
 		{
 			name: "Valid/RootDirExists",
-			opts: &BuildOptions{
+			opts: &PushOptions{
 				RootDir: "testdata",
 			},
 		},
 		{
 			name: "Invalid/RootDirDoesNotExist",
-			opts: &BuildOptions{
+			opts: &PushOptions{
 				RootDir: "fake",
 			},
 			expError: "workspace directory \"fake\": stat fake: no such file or directory",
