@@ -48,6 +48,11 @@ client build my-directory --output my-workspace
 client push my-workspace localhost:5000/myartifacts:latest
 ```
 
+### Pull artifact to a location
+```
+client pull localhost:5000/myartifacts:latest my-output-directory
+```
+
 ## Getting Started
 
 1. Create a new directory. 
@@ -87,7 +92,8 @@ files:
 5. Run the UOR client build command referencing the dataset config, the content directory, and optionally push to a registry location.
 
 ```
-client build --dsconfig dataset-config.yaml content-dir --push --destination localhost:5000/test/dataset:latest
+client build --dsconfig dataset-config.yaml content-dir --output my-workspace
+client push my-workspace localhost:5000/test/dataset:latest
 ```
 
 6. Optionally inspect the OCI manifest of the dataset:
