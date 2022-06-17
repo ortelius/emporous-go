@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
@@ -171,7 +172,7 @@ func AddDescriptors(d []v1.Descriptor, c v1alpha1.DataSetConfiguration) ([]v1.De
 	// For each descriptor
 	for i1, desc := range d {
 		// Get the filename of the block
-		filename := desc.Annotations["org.opencontainers.image.title"]
+		filename := desc.Annotations[ocispec.AnnotationTitle]
 		// For each file in the config
 		for i2, file := range c.Files {
 			// If the config has a grouping declared, make a valid regex.

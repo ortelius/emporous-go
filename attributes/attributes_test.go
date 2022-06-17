@@ -49,3 +49,15 @@ func TestAttributes_String(t *testing.T) {
 	}
 	require.Equal(t, expString, attributes.String())
 }
+
+func TestAnnotationsToAttributes(t *testing.T) {
+	expList := map[string][]string{
+		"kind": {"jpg"},
+		"name": {"fish.jpg"},
+	}
+	annotations := map[string]string{
+		"kind": "jpg",
+		"name": "fish.jpg",
+	}
+	require.Equal(t, expList, AnnotationsToAttributes(annotations).List())
+}

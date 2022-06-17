@@ -6,6 +6,7 @@ coverage.out
 sha256sum.txt
 **/test-output
 client-workspace
+dataset-config.yaml
 
 
 # Logs.

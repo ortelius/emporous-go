@@ -12,10 +12,6 @@ import (
 // using a multi-map storing a set of values.
 // The current implementation would allow for aggregation of the attributes
 // of child nodes to the parent nodes.
-// TODO(jpower432): Research alternative data structures for storing these values.
-// Since this will most likely limit the collection size
-// there could we a more efficient data structure for storing multiple values
-// for one key for data aggregation.
 type Attributes map[string]map[string]struct{}
 
 var _ model.Attributes = &Attributes{}
@@ -89,4 +85,19 @@ func (a Attributes) Merge(attr model.Attributes) {
 			sub[val] = struct{}{}
 		}
 	}
+}
+
+// AnnotationsToAttributes converts annotations from a descriptors
+// to an Attribute type.
+func AnnotationsToAttributes(annotations map[string]string) model.Attributes {
+	attr := Attributes{}
+	for key, value := range annotations {
+		curr, exists := attr[key]
+		if !exists {
+			curr = map[string]struct{}{}
+		}
+		curr[value] = struct{}{}
+		attr[key] = curr
+	}
+	return attr
 }

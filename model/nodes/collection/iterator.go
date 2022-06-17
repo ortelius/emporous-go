@@ -60,14 +60,14 @@ func (n *InOrderIterator) Error() error {
 	return nil
 }
 
-// LazyOrderedNodesByAttribute implements the model.Iterator interface and traverse the nodes
+// ByAttributeIterator implements the model.Iterator interface and traverse the nodes
 // in from smallest to largest attribute list.
 type ByAttributesIterator struct {
 	iter       InOrderIterator
 	attributes ByAttributeSet
 }
 
-// NewLazyOrderedNodesByAttribute returns a LazyOrderedNodesAttribute initialized with the
+// NewByAttributesIterator returns a LazyOrderedNodesAttribute initialized with the
 // provided nodes.
 func NewByAttributesIterator(nodes []model.Node) *ByAttributesIterator {
 	return &ByAttributesIterator{attributes: nodes}

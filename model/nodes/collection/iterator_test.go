@@ -10,32 +10,61 @@ import (
 
 var iteratorTests = []struct {
 	nodes []model.Node
+	want  []model.Node
 }{
-	{nodes: nil},
-	{nodes: []model.Node{
-		&testutils.MockNode{
-			I: "node1",
-			A: testutils.MockAttributes{
-				"kind": "txt",
-				"name": "test",
+	{nodes: nil, want: nil},
+	{
+		nodes: []model.Node{
+			&testutils.MockNode{
+				I: "node1",
+				A: testutils.MockAttributes{
+					"kind": "txt",
+					"name": "test",
+				},
 			},
 		},
-	}},
-	{nodes: []model.Node{
-		&testutils.MockNode{
-			I: "node2",
-			A: testutils.MockAttributes{
-				"kind": "txt",
+		want: []model.Node{
+			&testutils.MockNode{
+				I: "node1",
+				A: testutils.MockAttributes{
+					"kind": "txt",
+					"name": "test",
+				},
 			},
 		},
-		&testutils.MockNode{
-			I: "node1",
-			A: testutils.MockAttributes{
-				"kind": "txt",
-				"name": "test",
+	},
+	{
+		nodes: []model.Node{
+			&testutils.MockNode{
+				I: "node1",
+				A: testutils.MockAttributes{
+					"kind": "txt",
+					"name": "test",
+				},
+			},
+			&testutils.MockNode{
+				I: "node2",
+				A: testutils.MockAttributes{
+					"kind": "txt",
+				},
 			},
 		},
-	}},
+		want: []model.Node{
+			&testutils.MockNode{
+				I: "node2",
+				A: testutils.MockAttributes{
+					"kind": "txt",
+				},
+			},
+			&testutils.MockNode{
+				I: "node1",
+				A: testutils.MockAttributes{
+					"kind": "txt",
+					"name": "test",
+				},
+			},
+		},
+	},
 }
 
 func TestByAttributeIterator(t *testing.T) {
@@ -48,8 +77,7 @@ func TestByAttributeIterator(t *testing.T) {
 				got = append(got, it.Node())
 				require.Equal(t, len(got)+it.Len(), len(test.nodes))
 			}
-			want := test.nodes
-			require.Equal(t, want, got)
+			require.Equal(t, test.want, got)
 			it.Reset()
 		}
 	}
