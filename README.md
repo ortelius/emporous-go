@@ -37,6 +37,7 @@ make test-unit
    > WARNING: Currently, only JSON is supported for link replacement.
 2. Use the `client build` command to create the output workspace with the rendered content. If the files in the workspace do not contain links to each other, skip this step.
 3. Use the `client push` command to publish the workspace to a registry as an OCI artifact.
+4. Use the `client pull` command to pull the artifact back to a local workspace.
 ### Template content in a directory without pushing 
 ```
 # The default workspace is "client-workspace" in the current working directory
@@ -46,6 +47,11 @@ client build my-directory --output my-workspace
 ### Push workspace to a registry location
 ```
 client push my-workspace localhost:5000/myartifacts:latest
+```
+
+### Pull artifact to a location
+```
+client pull localhost:5000/myartifacts:latest my-output-directory
 ```
 
 ## Getting Started
@@ -87,11 +93,16 @@ files:
 5. Run the UOR client build command referencing the dataset config, the content directory, and optionally push to a registry location.
 
 ```
-client build --dsconfig dataset-config.yaml content-dir --push --destination localhost:5000/test/dataset:latest
+client build content-dir --output my-workspace
+client push my-workspace localhost:5000/test/dataset:latest --dsconfig dataset-config.yaml 
 ```
 
 6. Optionally inspect the OCI manifest of the dataset:
+  `curl -H "Accept: application/vnd.oci.image.manifest.v1+json" <servername>:<port>/v2/<namespace>/<repo>/manifests/<digest or tag>`
 
-curl -H "Accept: application/vnd.oci.image.manifest.v1+json" <servername>:<port>/v2/<namespace>/<repo>/manifests/<digest or tag>
+7. Optionally pull the artifact back down to verify the content with `client pull`:
+  `client pull localhost:5000/test/dataset:latest my-output-directory`
+
+
 
 

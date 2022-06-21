@@ -15,7 +15,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-func TestPushE2E(t *testing.T) {
+func TestCLIE2E(t *testing.T) {
 	testlogr, err := log.NewLogger(ioutil.Discard, "debug")
 	require.NoError(t, err)
 
@@ -28,6 +28,7 @@ func TestPushE2E(t *testing.T) {
 		name          string
 		pushOpts      *PushOptions
 		buildOpts     *BuildOptions
+		pullOpts      *PullOptions
 		expBuildError string
 		expPushError  string
 	}
@@ -57,6 +58,17 @@ func TestPushE2E(t *testing.T) {
 				},
 				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
 			},
+			pullOpts: &PullOptions{
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
+				},
+				Output: t.TempDir(),
+			},
 		},
 		{
 			name: "Success/MultiLevelWorkspace",
@@ -81,6 +93,17 @@ func TestPushE2E(t *testing.T) {
 					Logger: testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
+			},
+			pullOpts: &PullOptions{
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
+				},
+				Output: t.TempDir(),
 			},
 		},
 		{
@@ -107,6 +130,17 @@ func TestPushE2E(t *testing.T) {
 				},
 				Destination: fmt.Sprintf("%s/client-uor-test:latest", u.Host),
 			},
+			pullOpts: &PullOptions{
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
+				},
+				Output: t.TempDir(),
+			},
 		},
 	}
 
@@ -126,8 +160,14 @@ func TestPushE2E(t *testing.T) {
 				require.EqualError(t, err, c.expBuildError)
 			} else {
 				require.NoError(t, err)
-				// TODO(jpower432): pull artifacts and check that they are valid
-				// Will do after adding pulling functionality
+			}
+
+			c.pullOpts.Source = c.pushOpts.Destination
+			err = c.pullOpts.Run(context.TODO())
+			if c.expPushError != "" {
+				require.EqualError(t, err, c.expBuildError)
+			} else {
+				require.NoError(t, err)
 			}
 		})
 	}

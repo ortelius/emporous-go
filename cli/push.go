@@ -14,6 +14,7 @@ import (
 
 	"github.com/uor-framework/client/builder/api/v1alpha1"
 	load "github.com/uor-framework/client/builder/config"
+	"github.com/uor-framework/client/registryclient"
 	"github.com/uor-framework/client/registryclient/orasclient"
 	"github.com/uor-framework/client/util/workspace"
 )
@@ -40,7 +41,7 @@ func NewPushCmd(rootOpts *RootOptions) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "push SRC DST",
-		Short:         "Push OCI artifacts from specified source into a registry",
+		Short:         "Push a UOR collection from specified source into a registry",
 		Example:       clientPushExamples,
 		SilenceErrors: false,
 		SilenceUsage:  false,
@@ -85,7 +86,6 @@ func (o *PushOptions) Run(ctx context.Context) error {
 	}
 
 	client, err := orasclient.NewClient(
-		o.Destination,
 		orasclient.SkipTLSVerify(o.Insecure),
 		orasclient.WithPlainHTTP(o.PlainHTTP),
 		orasclient.WithAuthConfigs(o.Configs),
@@ -151,11 +151,11 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	if _, err := client.GenerateManifest(configDesc, nil, descs...); err != nil {
+	if _, err := client.GenerateManifest(o.Destination, configDesc, nil, descs...); err != nil {
 		return err
 	}
 
-	desc, err := client.Execute(ctx)
+	desc, err := client.Execute(ctx, o.Destination, registryclient.TypePush)
 	if err != nil {
 		return fmt.Errorf("error publishing content to %s: %v", o.Destination, err)
 	}
