@@ -20,8 +20,7 @@ package collection
 // between linked content within a collection of files (e.g. a collection of static files rendered by a web server).
 
 // Basic iterator implementations are defines here within this package to iterate Collection child
-// nodes as a slice in various orders. However, since the Collection type implements the model.Tree
-// interface, it could also we traversed using the traversal.Walk to traversal.WalkBFS methods as well.
+// nodes as a slice in various orders.
 
 // Since Collections can relate to other Collection instances, they implement the model.Node interface as well
 // to allow storage and traversal in a tree structure to represent relation between distributed Collection nodes.
