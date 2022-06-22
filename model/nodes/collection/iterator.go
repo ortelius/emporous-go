@@ -60,7 +60,7 @@ func (n *InOrderIterator) Error() error {
 	return nil
 }
 
-// ByAttributeIterator implements the model.Iterator interface and traverse the nodes
+// ByAttributesIterator implements the model.Iterator interface and traverse the nodes
 // in from smallest to largest attribute list.
 type ByAttributesIterator struct {
 	iter       InOrderIterator

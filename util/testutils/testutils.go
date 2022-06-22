@@ -55,7 +55,7 @@ func (m MockAttributes) Len() int {
 	return len(m)
 }
 
-func (m MockAttributes) Merge(input model.Attributes) {
+func (m MockAttributes) Merge(_ model.Attributes) {
 	// Not implemented
 }
 
@@ -63,7 +63,7 @@ func (m MockAttributes) List() map[string][]string {
 	return nil
 }
 
-// MockNode implements the model.Node and model.Iterator interface for testing.
+// MockIterableNode implements the model.Node and model.Iterator interface for testing.
 type MockIterableNode struct {
 	// Node ID
 	I string

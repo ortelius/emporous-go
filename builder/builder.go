@@ -123,7 +123,7 @@ func (b *Compatibility) isBuildable(id string) bool {
 // render will render the template for the current state of the
 // node at the specified ID.
 func (b *Compatibility) render(w io.Writer, id string) error {
-	template, ok := b.Templates[id]
+	tmpl, ok := b.Templates[id]
 	if !ok {
 		return fmt.Errorf("no template associated with node %v", id)
 	}
@@ -133,7 +133,7 @@ func (b *Compatibility) render(w io.Writer, id string) error {
 		return fmt.Errorf("no links associated with node %v", id)
 	}
 
-	return template.Execute(w, values)
+	return tmpl.Execute(w, values)
 }
 
 // mergeLinkData will merge any references to in-content links with

@@ -366,7 +366,7 @@ func (m mockAttributes) String() string {
 	return strings.TrimSuffix(out.String(), ",")
 }
 
-func (m mockAttributes) Merge(input model.Attributes) {
+func (m mockAttributes) Merge(_ model.Attributes) {
 	// Not implemented
 }
 
