@@ -51,9 +51,14 @@ client build my-directory --output my-workspace
 client push my-workspace localhost:5000/myartifacts:latest
 ```
 
-### Pull artifact to a location
+### Pull UOR collection to a location
 ```
 client pull localhost:5000/myartifacts:latest my-output-directory
+```
+
+### Pull subsets of a UOR collection to a location by attribute
+```
+client pull localhost:5000/myartifacts:latest my-output-directory --attributes key=value
 ```
 
 ## Getting Started
@@ -102,8 +107,15 @@ client push my-workspace localhost:5000/test/dataset:latest --dsconfig dataset-c
 6. Optionally inspect the OCI manifest of the dataset:
   `curl -H "Accept: application/vnd.oci.image.manifest.v1+json" <servername>:<port>/v2/<namespace>/<repo>/manifests/<digest or tag>`
 
-7. Optionally pull the artifact back down to verify the content with `client pull`:
+7. Optionally pull the collection back down to verify the content with `client pull`:
   `client pull localhost:5000/test/dataset:latest my-output-directory`
+
+8. Optionally pull a subset of the collection back down to verify the content with `client pull`:
+  `client pull localhost:5000/test/dataset:latest my-output-directory --attributes "fiction=true"`
+
+# Glossary
+
+`collection`: a collection of linked files represented as on OCI artifact
 
 
 
