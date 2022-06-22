@@ -10,7 +10,7 @@ import (
 
 var (
 	_ model.Node     = &Collection{}
-	_ model.Rooted    = &Collection{}
+	_ model.Rooted   = &Collection{}
 	_ model.Iterator = &Collection{}
 )
 
