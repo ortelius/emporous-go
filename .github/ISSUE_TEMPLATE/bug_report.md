@@ -31,4 +31,6 @@ Briefly describe the problem you are having in a few paragraphs.
 
 
 **What version of the UOR client are you using:**
-```
+<!--
+Output of "client version"
+-->
