@@ -19,6 +19,8 @@ import (
 	"github.com/uor-framework/client/util/workspace"
 )
 
+// PushOptions describe configuration options that can
+// be set using the push subcommand.
 type PushOptions struct {
 	*RootOptions
 	Destination string
@@ -36,6 +38,7 @@ var clientPushExamples = templates.Examples(
 	`,
 )
 
+// NewPushCmd creates a new cobra.Command for the push subcommand.
 func NewPushCmd(rootOpts *RootOptions) *cobra.Command {
 	o := PushOptions{RootOptions: rootOpts}
 

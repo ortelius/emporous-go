@@ -16,6 +16,8 @@ import (
 	"github.com/uor-framework/client/util/workspace"
 )
 
+// BuildOptions describe configuration options that can
+// be set using the build subcommand.
 type BuildOptions struct {
 	*RootOptions
 	RootDir string
@@ -33,6 +35,7 @@ var clientBuildExamples = templates.Examples(
 	`,
 )
 
+// NewBuildCmd creates a new cobra.Command for the build subcommand.
 func NewBuildCmd(rootOpts *RootOptions) *cobra.Command {
 	o := BuildOptions{RootOptions: rootOpts}
 

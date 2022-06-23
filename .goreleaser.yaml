@@ -9,6 +9,8 @@ builds:
   - id: linux-amd64
     binary: client-linux-{{ .Arch }}
     main: ./cmd/client
+    ldflags:
+    - "-s -w -X github.com/uor-framework/client/cli.Version={{ .Version }}"
     goos:
       - linux
     goarch:
@@ -51,4 +53,4 @@ release:
 
     Those were the changes on {{ .Tag }}!
 
-  name_template: "{{.ProjectName}}-v{{.Version}} {{.Env.USER}}"
+  name_template: "{{.ProjectName}}-v{{.Version}}"

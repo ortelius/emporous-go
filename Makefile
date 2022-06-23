@@ -3,9 +3,11 @@ GO := go
 GO_BUILD_PACKAGES := ./cmd/...
 GO_BUILD_BINDIR :=./bin
 
+GO_LD_EXTRAFLAGS := -X github.com/uor-framework/client/cli.Version="$(shell git tag | sort -V | tail -1)"
+
 build:
 	mkdir -p ${GO_BUILD_BINDIR}
-	$(GO) build -o $(GO_BUILD_BINDIR)/client $(GO_BUILD_PACKAGES)
+	$(GO) build -o $(GO_BUILD_BINDIR)/client -ldflags="$(GO_LD_EXTRAFLAGS)" $(GO_BUILD_PACKAGES)
 .PHONY: build
 
 vendor:

@@ -11,6 +11,7 @@ import (
 	"github.com/uor-framework/client/cli/log"
 )
 
+// RootOptions describe global configuration options that can be set.
 type RootOptions struct {
 	IOStreams genericclioptions.IOStreams
 	LogLevel  string
@@ -23,6 +24,7 @@ var clientLong = templates.LongDesc(
 	`,
 )
 
+// NewRootCmd creates a new cobra.Command for the command root.
 func NewRootCmd() *cobra.Command {
 	o := RootOptions{}
 	o.IOStreams = genericclioptions.IOStreams{
@@ -56,6 +58,7 @@ func NewRootCmd() *cobra.Command {
 	cmd.AddCommand(NewBuildCmd(&o))
 	cmd.AddCommand(NewPushCmd(&o))
 	cmd.AddCommand(NewPullCmd(&o))
+	cmd.AddCommand(NewVersionCmd(&o))
 
 	return cmd
 }
