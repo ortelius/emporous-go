@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"runtime"
-	"runtime/debug"
 	"text/template"
 
 	"github.com/spf13/cobra"
@@ -16,7 +15,10 @@ var (
 	buildDate string
 	// version describes the version of the client
 	// set at build time or detected during runtime.
-	version string
+	version = "v0.0.0-unknown"
+	// buildData set at build time to add extra information
+	// to the version.
+	buildData string
 )
 
 var versionTemplate = `UOR Client:
@@ -49,19 +51,21 @@ func NewVersionCmd(rootOpts *RootOptions) *cobra.Command {
 
 // getVersion will output the templated version message.
 func getVersion(ro *RootOptions) error {
+
+	versionWithBuild := func() string {
+		if buildData != "" {
+			return fmt.Sprintf("%s+%s", version, buildData)
+		}
+
+		return version
+	}
+
 	versionInfo := clientVersion{
-		Version:   version,
+		Version:   versionWithBuild(),
 		GitCommit: commit,
 		BuildDate: buildDate,
 		GoVersion: runtime.Version(),
 		Platform:  fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
-	}
-
-	if versionInfo.Version == "" {
-		i, ok := debug.ReadBuildInfo()
-		if ok {
-			versionInfo.Version = i.Main.Version
-		}
 	}
 
 	tmp, err := template.New("version").Parse(versionTemplate)

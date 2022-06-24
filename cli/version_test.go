@@ -11,16 +11,29 @@ import (
 
 func TestGetVersion(t *testing.T) {
 	type spec struct {
-		name        string
-		testVersion string
-		testCommit  string
-		testDate    string
-		opts        *RootOptions
-		expError    string
-		assertFunc  func(string) bool
+		name          string
+		testVersion   string
+		testCommit    string
+		testDate      string
+		testBuildData string
+		opts          *RootOptions
+		expError      string
+		assertFunc    func(string) bool
 	}
 
 	cases := []spec{
+		{
+			name: "Valid/NoVariablesSet",
+			opts: &RootOptions{
+				IOStreams: genericclioptions.IOStreams{
+					In:     os.Stdin,
+					ErrOut: os.Stderr,
+				},
+			},
+			assertFunc: func(s string) bool {
+				return strings.Contains(s, "v0.0.0-unknown")
+			},
+		},
 		{
 			name: "Valid/VariablesSet",
 			opts: &RootOptions{
@@ -29,11 +42,27 @@ func TestGetVersion(t *testing.T) {
 					ErrOut: os.Stderr,
 				},
 			},
-			testVersion: "v0.0.0",
+			testVersion: "v0.0.1",
 			testCommit:  "commit",
 			testDate:    "today",
 			assertFunc: func(s string) bool {
-				return strings.Contains(s, "v0.0.0") && strings.Contains(s, "commit") && strings.Contains(s, "today")
+				return strings.Contains(s, "v0.0.1") && strings.Contains(s, "commit") && strings.Contains(s, "today")
+			},
+		},
+		{
+			name: "Valid/VariablesSetWithBuildData",
+			opts: &RootOptions{
+				IOStreams: genericclioptions.IOStreams{
+					In:     os.Stdin,
+					ErrOut: os.Stderr,
+				},
+			},
+			testVersion:   "v0.0.1",
+			testCommit:    "commit",
+			testDate:      "today",
+			testBuildData: "dev",
+			assertFunc: func(s string) bool {
+				return strings.Contains(s, "v0.0.1+dev")
 			},
 		},
 	}
@@ -42,9 +71,12 @@ func TestGetVersion(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			out := new(strings.Builder)
 			c.opts.IOStreams.Out = out
-			version = c.testVersion
+			if c.testVersion != "" {
+				version = c.testVersion
+			}
 			buildDate = c.testDate
 			commit = c.testCommit
+			buildData = c.testBuildData
 			err := getVersion(c.opts)
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
