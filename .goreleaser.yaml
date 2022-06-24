@@ -10,7 +10,9 @@ builds:
     binary: client-linux-{{ .Arch }}
     main: ./cmd/client
     ldflags:
-    - "-s -w -X github.com/uor-framework/client/cli.Version={{ .Version }}"
+      - "-X github.com/uor-framework/client/cli.version={{ .Version }}"
+      - "-X github.com/uor-framework/client/cli.commit={{ .ShortCommit }}"
+      - "-X github.com/uor-framework/client/cli.buildDate={{ .Date }}"
     goos:
       - linux
     goarch:
