@@ -2,8 +2,7 @@ GO := go
 
 GO_BUILD_PACKAGES := ./cmd/...
 GO_BUILD_BINDIR :=./bin
-
-export GIT_COMMIT := $(or $(SOURCE_GIT_COMMIT),$(shell git rev-parse --short HEAD))
+GIT_COMMIT := $(or $(SOURCE_GIT_COMMIT),$(shell git rev-parse --short HEAD))
 
 GO_LD_EXTRAFLAGS :=-X github.com/uor-framework/client/cli.version="$(shell git tag | sort -V | tail -1)" \
 				   -X github.com/uor-framework/client/cli.commit="$(GIT_COMMIT)" \
