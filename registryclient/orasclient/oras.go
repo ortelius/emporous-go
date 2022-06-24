@@ -13,12 +13,14 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"oras.land/oras-go/v2"
+	oras "oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 
+	"github.com/uor-framework/uor-client-go/content"
 	"github.com/uor-framework/uor-client-go/registryclient"
+	"github.com/uor-framework/uor-client-go/registryclient/orasclient/cache"
 )
 
 const uorMediaType = "application/vnd.uor.config.v1+json"
@@ -29,6 +31,7 @@ type orasClient struct {
 	configs   []string
 	copyOpts  oras.CopyOptions
 	fileStore *file.Store
+	cache     content.Store
 	destroy   func() error
 	outputDir string
 }
@@ -37,7 +40,6 @@ var _ registryclient.Client = &orasClient{}
 
 // GatherDescriptors loads files to create OCI descriptors.
 func (c *orasClient) GatherDescriptors(ctx context.Context, mediaType string, files ...string) ([]ocispec.Descriptor, error) {
-	c.init()
 	descs, err := loadFiles(ctx, c.fileStore, mediaType, files...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to load files: %w", err)
@@ -51,7 +53,6 @@ func (c *orasClient) GenerateConfig(ctx context.Context, config []byte, configAn
 	if err := c.checkFileStore(); err != nil {
 		return ocispec.Descriptor{}, err
 	}
-
 	configDesc := ocispec.Descriptor{
 		MediaType:   uorMediaType,
 		Digest:      digest.FromBytes(config),
@@ -111,25 +112,12 @@ func (c *orasClient) Execute(ctx context.Context, ref string, typ registryclient
 		return ocispec.Descriptor{}, errors.New("unsupported action type")
 	}
 
-	desc, err := oras.Copy(ctx, from, ref, to, "", c.copyOpts)
-	if err != nil {
-		return ocispec.Descriptor{}, err
-	}
-
-	return desc, nil
+	return oras.Copy(ctx, from, ref, to, ref, c.copyOpts)
 }
 
 // Destroy cleans up any on-disk resources used to track descriptors.
 func (c *orasClient) Destroy() error {
 	return c.destroy()
-}
-
-// init will initialize the file store
-// if not set to avoid panics.
-func (c *orasClient) init() {
-	if c.fileStore == nil {
-		c.fileStore = file.New("")
-	}
 }
 
 // checkFileStore ensure that the file store
@@ -142,7 +130,7 @@ func (c *orasClient) checkFileStore() error {
 }
 
 // setupRepo configures the client to access the remote repository.
-func (c *orasClient) setupRepo(ref string) (*remote.Repository, error) {
+func (c *orasClient) setupRepo(ref string) (oras.Target, error) {
 	repo, err := remote.NewRepository(ref)
 	if err != nil {
 		return nil, fmt.Errorf("could not create registry target: %w", err)
@@ -153,6 +141,10 @@ func (c *orasClient) setupRepo(ref string) (*remote.Repository, error) {
 		return nil, err
 	}
 	repo.Client = authC
+
+	if c.cache != nil {
+		return cache.New(repo, c.cache), nil
+	}
 	return repo, nil
 }
 

@@ -21,7 +21,7 @@ func NewNode(id string, attributes model.Attributes) *Node {
 	}
 }
 
-// ID returns the unique identifier for a GenericNode.
+// ID returns the unique identifier for a  basic Node.
 func (n *Node) ID() string {
 	return n.id
 }

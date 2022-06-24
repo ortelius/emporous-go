@@ -315,7 +315,7 @@ func TestCollection_Attributes(t *testing.T) {
 }
 
 func makeTestCollection(t *testing.T, nodes []model.Node, edges []model.Edge) Collection {
-	c := NewCollection("test")
+	c := New("test")
 	for _, node := range nodes {
 		require.NoError(t, c.AddNode(node))
 	}

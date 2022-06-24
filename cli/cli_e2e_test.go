@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/registry"
@@ -43,7 +44,7 @@ func TestCLIE2E(t *testing.T) {
 						In:     os.Stdin,
 						ErrOut: os.Stderr,
 					},
-					Logger: testlogr,
+					Logger:   testlogr,
 				},
 				RootDir: "testdata/flatworkspace",
 			},
@@ -54,7 +55,7 @@ func TestCLIE2E(t *testing.T) {
 						In:     os.Stdin,
 						ErrOut: os.Stderr,
 					},
-					Logger: testlogr,
+					Logger:   testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
 				PlainHTTP:   true,
@@ -66,7 +67,7 @@ func TestCLIE2E(t *testing.T) {
 						In:     os.Stdin,
 						ErrOut: os.Stderr,
 					},
-					Logger: testlogr,
+					Logger:   testlogr,
 				},
 				PlainHTTP: true,
 				Output:    t.TempDir(),
@@ -81,7 +82,7 @@ func TestCLIE2E(t *testing.T) {
 						In:     os.Stdin,
 						ErrOut: os.Stderr,
 					},
-					Logger: testlogr,
+					Logger:   testlogr,
 				},
 				RootDir: "testdata/multi-level-workspace",
 			},
@@ -92,7 +93,7 @@ func TestCLIE2E(t *testing.T) {
 						In:     os.Stdin,
 						ErrOut: os.Stderr,
 					},
-					Logger: testlogr,
+					Logger:   testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
 				PlainHTTP:   true,
@@ -104,7 +105,7 @@ func TestCLIE2E(t *testing.T) {
 						In:     os.Stdin,
 						ErrOut: os.Stderr,
 					},
-					Logger: testlogr,
+					Logger:   testlogr,
 				},
 				Output:    t.TempDir(),
 				PlainHTTP: true,
@@ -119,7 +120,7 @@ func TestCLIE2E(t *testing.T) {
 						In:     os.Stdin,
 						ErrOut: os.Stderr,
 					},
-					Logger: testlogr,
+					Logger:   testlogr,
 				},
 				RootDir: "testdata/uor-template",
 			},
@@ -130,7 +131,7 @@ func TestCLIE2E(t *testing.T) {
 						In:     os.Stdin,
 						ErrOut: os.Stderr,
 					},
-					Logger: testlogr,
+					Logger:   testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-uor-test:latest", u.Host),
 				PlainHTTP:   true,
@@ -142,7 +143,7 @@ func TestCLIE2E(t *testing.T) {
 						In:     os.Stdin,
 						ErrOut: os.Stderr,
 					},
-					Logger: testlogr,
+					Logger:   testlogr,
 				},
 				Output:    t.TempDir(),
 				PlainHTTP: true,
@@ -159,6 +160,11 @@ func TestCLIE2E(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+
+			cache := filepath.Join(t.TempDir(), "cache")
+			require.NoError(t, os.MkdirAll(cache, 0750))
+			c.pushOpts.cacheDir = cache
+			c.pullOpts.cacheDir = cache
 
 			c.pushOpts.RootDir = c.buildOpts.Output
 			err = c.pushOpts.Run(context.TODO())

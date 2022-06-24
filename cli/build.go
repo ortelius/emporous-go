@@ -84,7 +84,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	c := collection.NewCollection(o.Output)
+	c := collection.New(o.Output)
 
 	fileIndex := make(map[string]struct{})
 	// Do the initial walk to get an index of what is in the workspace

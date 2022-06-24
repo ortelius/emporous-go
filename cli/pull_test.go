@@ -182,6 +182,11 @@ func TestPullRun(t *testing.T) {
 			tmp := t.TempDir()
 			c.opts.Output = tmp
 			prepTestArtifact(t, c.opts.Source)
+
+			cache := filepath.Join(t.TempDir(), "cache")
+			require.NoError(t, os.MkdirAll(cache, 0750))
+			c.opts.cacheDir = cache
+
 			err := c.opts.Run(context.TODO())
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)

@@ -14,6 +14,7 @@ import (
 
 	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
 	load "github.com/uor-framework/uor-client-go/builder/config"
+	"github.com/uor-framework/uor-client-go/content/layout"
 	"github.com/uor-framework/uor-client-go/registryclient"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
 	"github.com/uor-framework/uor-client-go/util/workspace"
@@ -77,8 +78,6 @@ func (o *PushOptions) Validate() error {
 	if _, err := os.Stat(o.RootDir); err != nil {
 		return fmt.Errorf("workspace directory %q: %v", o.RootDir, err)
 	}
-
-	// TODO(jpower432): validate the reference and auth
 	return nil
 }
 
@@ -88,14 +87,21 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		return err
 	}
 
+	cache, err := layout.New(o.cacheDir)
+	if err != nil {
+		return err
+	}
+
 	client, err := orasclient.NewClient(
 		orasclient.SkipTLSVerify(o.Insecure),
 		orasclient.WithPlainHTTP(o.PlainHTTP),
 		orasclient.WithAuthConfigs(o.Configs),
+		orasclient.WithCache(cache),
 	)
 	if err != nil {
 		return fmt.Errorf("error configuring client: %v", err)
 	}
+	defer client.Destroy()
 
 	var files []string
 	err = space.Walk(func(path string, info os.FileInfo, err error) error {
@@ -165,7 +171,7 @@ func (o *PushOptions) Run(ctx context.Context) error {
 
 	o.Logger.Infof("Artifact %s published to %s\n", desc.Digest, o.Destination)
 
-	return client.Destroy()
+	return cache.Tag(ctx, desc, o.Destination)
 }
 
 // AddDescriptors adds the attributes of each file listed in the config

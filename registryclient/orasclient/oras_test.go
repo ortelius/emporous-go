@@ -11,6 +11,8 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/registry"
 	"github.com/stretchr/testify/require"
+	"oras.land/oras-go/v2/content/memory"
+
 	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
@@ -78,10 +80,42 @@ func TestExecute(t *testing.T) {
 		require.NoError(t, c.Destroy())
 	})
 
+	t.Run("Success/PushOneImage", func(t *testing.T) {
+		cache := memory.New()
+		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		c, err := NewClient(WithPlainHTTP(true), WithCache(cache))
+		require.NoError(t, err)
+		descs, err := c.GatherDescriptors(ctx, "", testdata)
+		require.NoError(t, err)
+		configDesc, err := c.GenerateConfig(ctx, []byte("{}"), nil)
+		require.NoError(t, err)
+
+		mdesc, err := c.GenerateManifest(ctx, ref, configDesc, nil, descs...)
+		require.NoError(t, err)
+		desc, err := c.Execute(context.TODO(), ref, registryclient.TypePush)
+		require.NoError(t, err)
+		require.Equal(t, mdesc.Digest.String(), desc.Digest.String())
+		require.Equal(t, expDigest, desc.Digest.String())
+		require.NoError(t, c.Destroy())
+	})
+
 	t.Run("Success/PullOneImage", func(t *testing.T) {
 		tmp := t.TempDir()
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		c, err := NewClient(WithPlainHTTP(true), WithOutputDir(tmp))
+		require.NoError(t, err)
+		desc, err := c.Execute(context.TODO(), ref, registryclient.TypePull)
+		require.NoError(t, err)
+		require.Equal(t, expDigest, desc.Digest.String())
+		require.NoError(t, c.Destroy())
+	})
+
+	t.Run("Success/PullWithCache", func(t *testing.T) {
+		tmp := t.TempDir()
+		cache := memory.New()
+
+		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		c, err := NewClient(WithPlainHTTP(true), WithOutputDir(tmp), WithCache(cache))
 		require.NoError(t, err)
 		desc, err := c.Execute(context.TODO(), ref, registryclient.TypePull)
 		require.NoError(t, err)

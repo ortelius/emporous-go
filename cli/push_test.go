@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/registry"
@@ -159,13 +160,14 @@ func TestPushRun(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			cache := filepath.Join(t.TempDir(), "cache")
+			require.NoError(t, os.MkdirAll(cache, 0750))
+			c.opts.cacheDir = cache
 			err := c.opts.Run(context.TODO())
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
 			} else {
 				require.NoError(t, err)
-				// TODO(jpower432): check image is pullable
-				// Will do after adding pulling functionality
 			}
 		})
 	}

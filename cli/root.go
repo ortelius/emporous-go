@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/util/templates"
@@ -16,6 +17,7 @@ type RootOptions struct {
 	IOStreams genericclioptions.IOStreams
 	LogLevel  string
 	Logger    log.Logger
+	cacheDir  string
 }
 
 var clientLong = templates.LongDesc(
@@ -27,6 +29,7 @@ var clientLong = templates.LongDesc(
 // NewRootCmd creates a new cobra.Command for the command root.
 func NewRootCmd() *cobra.Command {
 	o := RootOptions{}
+
 	o.IOStreams = genericclioptions.IOStreams{
 		In:     os.Stdin,
 		Out:    os.Stdout,
@@ -44,7 +47,14 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 			o.Logger = logger
-			return nil
+
+			home, err := homedir.Dir()
+			if err != nil {
+				return err
+			}
+			o.cacheDir = filepath.Join(home, ".uor")
+
+			return os.MkdirAll(o.cacheDir, 0750)
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Help()
