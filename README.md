@@ -31,6 +31,10 @@ make test-unit
 
 ## Basic Usage
 
+### Version
+
+client version
+
 ### User Workflow
 
 1. Create a directory with artifacts to publish to a registry as an OCI artifact. If the files reference each other, the client will replace the in-content linked files with the content address.

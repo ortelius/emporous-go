@@ -2,10 +2,16 @@ GO := go
 
 GO_BUILD_PACKAGES := ./cmd/...
 GO_BUILD_BINDIR :=./bin
+GIT_COMMIT := $(or $(SOURCE_GIT_COMMIT),$(shell git rev-parse --short HEAD))
+
+GO_LD_EXTRAFLAGS :=-X github.com/uor-framework/client/cli.version="$(shell git tag | sort -V | tail -1)" \
+				   -X github.com/uor-framework/client/cli.buildData="dev" \
+				   -X github.com/uor-framework/client/cli.commit="$(GIT_COMMIT)" \
+				   -X github.com/uor-framework/client/cli.buildDate="$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 build:
 	mkdir -p ${GO_BUILD_BINDIR}
-	$(GO) build -o $(GO_BUILD_BINDIR)/client $(GO_BUILD_PACKAGES)
+	$(GO) build -o $(GO_BUILD_BINDIR)/client -ldflags="$(GO_LD_EXTRAFLAGS)" $(GO_BUILD_PACKAGES)
 .PHONY: build
 
 vendor:

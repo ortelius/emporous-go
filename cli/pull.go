@@ -13,6 +13,8 @@ import (
 	"github.com/uor-framework/client/registryclient/orasclient"
 )
 
+// PullOptions describe configuration options that can
+// be set using the pull subcommand.
 type PullOptions struct {
 	*RootOptions
 	Source    string
@@ -29,6 +31,7 @@ var clientPullExamples = templates.Examples(
 	`,
 )
 
+// NewPullCmd creates a new cobra.Command for the pull subcommand.
 func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 	o := PullOptions{RootOptions: rootOpts}
 
