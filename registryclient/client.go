@@ -28,7 +28,7 @@ type ActionType int
 const (
 	// TypeInvalid is the default action.
 	// It is invalid because the action must
-	// be explicitly set
+	// be explicitly set.
 	TypeInvalid ActionType = iota
 	// TypePush action pushes from a local location
 	// to a remote location.

@@ -4,68 +4,97 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"text/template"
 
 	"github.com/opencontainers/go-digest"
 
-	"github.com/uor-framework/client/builder/graph"
 	"github.com/uor-framework/client/builder/parser"
+	"github.com/uor-framework/client/model"
+	"github.com/uor-framework/client/model/nodes/collection"
 	"github.com/uor-framework/client/util/workspace"
 )
 
-// Builder renders and writes templates from the source workspace.
-type Builder struct {
+// Builder defines methods for building UOR datasets.
+type Builder interface {
+	Run(context.Context, *collection.Collection, workspace.Workspace) error
+}
+
+// Compatibility renders and writes templates from the source workspace
+// in compatibility mode.
+// Compatibility mode renders the template for each node representing a
+// file replacing any links with the content address of the linked file.
+type Compatibility struct {
+	// Source workspace to find files
 	Source workspace.Workspace
+	// Links association with the node ID
+	Links map[string]map[string]interface{}
+	// Templates association with the node ID
+	Templates map[string]template.Template
 }
 
-// NewBuilder creates a new Builder from the source
+var _ Builder = &Compatibility{}
+
+// NewCompatibilityBuilder creates a new Builder from the source
 // workspace.
-func NewBuilder(source workspace.Workspace) Builder {
-	return Builder{source}
+func NewCompatibilityBuilder(source workspace.Workspace) Compatibility {
+	return Compatibility{
+		Source:    source,
+		Links:     map[string]map[string]interface{}{},
+		Templates: map[string]template.Template{},
+	}
 }
 
-// Run traverses the graph to render the file templates to the destination workspace.
-func (b Builder) Run(ctx context.Context, g *graph.Graph, destination workspace.Workspace) error {
-	root, err := g.Root()
+// Run traverses the graph with build nodes to render the file templates to the destination workspace.
+// All nodes are expected have an underlying concrete type of BuildNode.
+func (b Compatibility) Run(ctx context.Context, c *collection.Collection, destination workspace.Workspace) error {
+	root, err := c.Root()
 	if err != nil {
 		return fmt.Errorf("error calculating root node: %v", err)
 	}
-	// Links store the calculated sub problem (i.e. link hashes)
+
+	// Links stores the calculated result of each sub-problem (i.e. link hashes)
 	links := make(map[string]interface{})
-	return b.makeTemplates(ctx, g, root, destination, links)
+	return b.makeTemplates(ctx, c, root, destination, links)
 }
 
 // makeTemplates does recursive DFS traversal of the graph to generate digest values and template files.
-func (b Builder) makeTemplates(ctx context.Context, g *graph.Graph, start *graph.Node, destination workspace.Workspace, links map[string]interface{}) error {
+func (b Compatibility) makeTemplates(ctx context.Context, c *collection.Collection, start model.Node, destination workspace.Workspace, links map[string]interface{}) error {
 	if start == nil {
 		return nil
 	}
 
 	// Template and hash each child node to
 	// calculate parent node information
-	for _, n := range start.Nodes {
-		if _, found := links[n.Name]; found {
+	for _, n := range c.From(start.ID()) {
+		if _, found := links[n.Address()]; found {
 			continue
 		}
-		if err := b.makeTemplates(ctx, g, n, destination, links); err != nil {
+
+		if err := b.makeTemplates(ctx, c, n, destination, links); err != nil {
 			return err
 		}
 	}
 
-	start.Links = mergeLinkData(start.Links, links)
 	buf := new(bytes.Buffer)
-
-	if start.Template != (template.Template{}) {
-		if err := start.Template.Execute(buf, start.Links); err != nil {
+	if b.isBuildable(start.ID()) {
+		// Update all links data with currently accumulated
+		// digest values and render the new file from template.
+		nodeLinks, ok := b.Links[start.ID()]
+		if !ok {
+			return fmt.Errorf("buildable node %s has no values", start.Address())
+		}
+		b.Links[start.ID()] = mergeLinkData(nodeLinks, links)
+		if err := b.render(buf, start.ID()); err != nil {
 			return err
 		}
 	} else {
-		if err := b.Source.ReadObject(ctx, start.Name, buf); err != nil {
+		if err := b.Source.ReadObject(ctx, start.Address(), buf); err != nil {
 			return err
 		}
 	}
 
-	if err := destination.WriteObject(ctx, start.Name, buf.Bytes()); err != nil {
+	if err := destination.WriteObject(ctx, start.Address(), buf.Bytes()); err != nil {
 		return err
 	}
 
@@ -76,9 +105,35 @@ func (b Builder) makeTemplates(ctx context.Context, g *graph.Graph, start *graph
 		return err
 	}
 
-	templateValue := parser.ConvertFilenameForGoTemplateValue(start.Name)
+	templateValue := parser.ConvertFilenameForGoTemplateValue(start.Address())
 	links[templateValue] = dgst
 	return nil
+}
+
+// isBuildable will check the node ID able to be built with
+// the render method.
+func (b *Compatibility) isBuildable(id string) bool {
+	tmpl, ok := b.Templates[id]
+	if !ok {
+		return false
+	}
+	return tmpl != (template.Template{})
+}
+
+// render will render the template for the current state of the
+// node at the specified ID.
+func (b *Compatibility) render(w io.Writer, id string) error {
+	tmpl, ok := b.Templates[id]
+	if !ok {
+		return fmt.Errorf("no template associated with node %v", id)
+	}
+
+	values, ok := b.Links[id]
+	if !ok {
+		return fmt.Errorf("no links associated with node %v", id)
+	}
+
+	return tmpl.Execute(w, values)
 }
 
 // mergeLinkData will merge any references to in-content links with

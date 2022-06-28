@@ -11,8 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package workspace
+package nodes
 
-// This package defines the Workspace type, which can be used for local
-// or remote workspace types to allow traversal, reading, writing, and path
-// information. It allows allows for nested Workspace types.
+// This package defines node types that implement a model.Node
+// interface.

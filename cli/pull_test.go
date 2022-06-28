@@ -107,16 +107,15 @@ func TestPullRun(t *testing.T) {
 	require.NoError(t, err)
 
 	type spec struct {
-		name     string
-		opts     *PullOptions
-		expError string
+		name      string
+		opts      *PullOptions
+		fileExist bool
+		expError  string
 	}
-
-	tmp := t.TempDir()
 
 	cases := []spec{
 		{
-			name: "SuccessOneImage",
+			name: "Success/NoAttributes",
 			opts: &PullOptions{
 				RootOptions: &RootOptions{
 					IOStreams: genericclioptions.IOStreams{
@@ -126,14 +125,52 @@ func TestPullRun(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Source: fmt.Sprintf("%s/client-tworoots-test:latest", u.Host),
-				Output: tmp,
+				Source: fmt.Sprintf("%s/client-test:latest", u.Host),
 			},
+			fileExist: true,
+		},
+		{
+			name: "Success/OneMatchingAnnotation",
+			opts: &PullOptions{
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
+				},
+				Source: fmt.Sprintf("%s/client-test:latest", u.Host),
+				Attributes: map[string]string{
+					"test": "annotation",
+				},
+			},
+			fileExist: true,
+		},
+		{
+			name: "Success/NoMatchingAnnotation",
+			opts: &PullOptions{
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
+				},
+				Source: fmt.Sprintf("%s/client-test:latest", u.Host),
+				Attributes: map[string]string{
+					"test2": "annotation",
+				},
+			},
+			fileExist: false,
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			tmp := t.TempDir()
+			c.opts.Output = tmp
 			prepTestArtifact(t, c.opts.Source)
 			err := c.opts.Run(context.TODO())
 			if c.expError != "" {
@@ -142,7 +179,11 @@ func TestPullRun(t *testing.T) {
 				require.NoError(t, err)
 				actual := filepath.Join(tmp, "hello.txt")
 				_, err = os.Stat(actual)
-				require.NoError(t, err)
+				if c.fileExist {
+					require.NoError(t, err)
+				} else {
+					require.ErrorIs(t, err, os.ErrNotExist)
+				}
 			}
 		})
 	}
@@ -157,6 +198,7 @@ func prepTestArtifact(t *testing.T, ref string) {
 	// Push file(s) w custom mediatype to registry
 	memoryStore := content.NewMemory()
 	desc, err := memoryStore.Add(fileName, "", fileContent)
+	desc.Annotations["test"] = "annotation"
 	require.NoError(t, err)
 
 	manifest, manifestDesc, config, configDesc, err := content.GenerateManifestAndConfig(nil, nil, desc)

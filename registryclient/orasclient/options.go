@@ -1,11 +1,11 @@
 package orasclient
 
 import (
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/uor-framework/client/registryclient"
 	"oras.land/oras-go/pkg/content"
+	"oras.land/oras-go/pkg/oras"
 )
-
-// TODO(jpower432): Allow configuration for relevant ORAS copy options
 
 // ClientOption is a function that configures
 // options on the client config.
@@ -17,6 +17,7 @@ type ClientConfig struct {
 	configs   []string
 	plainHTTP bool
 	insecure  bool
+	copyOpts  []oras.CopyOpt
 }
 
 func (c *ClientConfig) apply(options []ClientOption) error {
@@ -42,6 +43,7 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client.registryOpts.Insecure = config.insecure
 	client.registryOpts.Configs = config.configs
 	client.registryOpts.PlainHTTP = config.plainHTTP
+	client.copyOpts = config.copyOpts
 	client.outputDir = config.output
 	return client, nil
 }
@@ -75,6 +77,16 @@ func WithPlainHTTP(plainHTTP bool) ClientOption {
 func WithOutputDir(dir string) ClientOption {
 	return func(config *ClientConfig) error {
 		config.output = dir
+		return nil
+	}
+}
+
+// WithLayerDescriptors passes the slice of Descriptors for layers to the
+// provided func. If the passed parameter is nil, returns an error.
+// This adds the oras.WithLayerDescriptors CopyOpt to the client.
+func WithLayerDescriptors(save func([]ocispec.Descriptor)) ClientOption {
+	return func(config *ClientConfig) error {
+		config.copyOpts = append(config.copyOpts, oras.WithLayerDescriptors(save))
 		return nil
 	}
 }

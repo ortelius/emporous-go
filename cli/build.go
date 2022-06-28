@@ -11,8 +11,9 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 
 	"github.com/uor-framework/client/builder"
-	"github.com/uor-framework/client/builder/graph"
 	"github.com/uor-framework/client/builder/parser"
+	"github.com/uor-framework/client/model/nodes/basic"
+	"github.com/uor-framework/client/model/nodes/collection"
 	"github.com/uor-framework/client/util/workspace"
 )
 
@@ -83,7 +84,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	g := graph.NewGraph()
+	c := collection.NewCollection(o.Output)
 
 	fileIndex := make(map[string]struct{})
 	// Do the initial walk to get an index of what is in the workspace
@@ -121,9 +122,15 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return found
 	}
 
+	templateBuilder := builder.NewCompatibilityBuilder(userSpace)
+
 	for path := range fileIndex {
 		o.Logger.Infof("Adding node %s\n", path)
-		node := graph.NewNode(path)
+
+		// Since the paths will be unique in this
+		// case, the id is set as the location.
+		node := basic.NewNode(path, nil)
+		node.Location = path
 
 		perr := &parser.ErrInvalidFormat{}
 		buf := new(bytes.Buffer)
@@ -134,19 +141,23 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		switch {
 		case err == nil:
 			p.AddFuncs(tFunc)
-			node.Template, node.Links, err = p.GetLinkableData(buf.Bytes())
+			templates, links, err := p.GetLinkableData(buf.Bytes())
 			if err != nil {
 				return err
 			}
+			templateBuilder.Links[node.ID()] = links
+			templateBuilder.Templates[node.ID()] = templates
 		case !errors.As(err, &perr):
 			return err
 		}
 
-		g.Nodes[node.Name] = node
+		if err := c.AddNode(node); err != nil {
+			return err
+		}
 	}
 
-	for _, node := range g.Nodes {
-		for link, data := range node.Links {
+	for _, node := range c.Nodes() {
+		for link, data := range templateBuilder.Links[node.ID()] {
 			// Currently with the parsing implementation
 			// all initial values are expected to represent
 			// the file string data present in the content.
@@ -156,19 +167,19 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 			if !ok {
 				return fmt.Errorf("link %q: value should be of type string", link)
 			}
-			if err := g.AddEdge(node.Name, fpath); err != nil {
+			to := c.NodeByID(fpath)
+			edge := collection.NewEdge(node, to)
+			if err := c.AddEdge(edge); err != nil {
 				return err
 			}
 		}
 	}
 
-	templateBuilder := builder.NewBuilder(userSpace)
 	renderSpace, err := workspace.NewLocalWorkspace(o.Output)
 	if err != nil {
 		return err
 	}
-
-	if err := templateBuilder.Run(ctx, g, renderSpace); err != nil {
+	if err := templateBuilder.Run(ctx, c, renderSpace); err != nil {
 		return fmt.Errorf("error building content: %v", err)
 	}
 

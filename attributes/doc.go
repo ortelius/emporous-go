@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package graph
+package attributes
 
-// This package is used to define the graph and methods
-// to get node relationship information.
+// This package defines types and methods for performing attributing matching,
+// implementation, and node searching.

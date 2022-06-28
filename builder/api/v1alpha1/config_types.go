@@ -1,6 +1,6 @@
 package v1alpha1
 
-// DataSetConfiguration object kind.
+// DataSetConfigurationKind object kind of DataSetConfiguration.
 const DataSetConfigurationKind = "DataSetConfiguration"
 
 // DataSetConfiguration configures a dataset
