@@ -24,13 +24,13 @@ import (
 const uorMediaType = "application/vnd.uor.config.v1+json"
 
 type orasClient struct {
-	insecure   bool
-	plainHTTP  bool
-	configs    []string
-	copyOpts   oras.CopyOptions
-	fileStore  *file.Store
-	destroy    func() error
-	outputDir  string
+	insecure  bool
+	plainHTTP bool
+	configs   []string
+	copyOpts  oras.CopyOptions
+	fileStore *file.Store
+	destroy   func() error
+	outputDir string
 }
 
 var _ registryclient.Client = &orasClient{}
@@ -128,7 +128,7 @@ func (c *orasClient) Destroy() error {
 // if not set to avoid panics.
 func (c *orasClient) init() {
 	if c.fileStore == nil {
-			c.fileStore = file.New("")
+		c.fileStore = file.New("")
 	}
 }
 
