@@ -1,10 +1,12 @@
 package orasclient
 
 import (
+	"context"
+	"sync"
+
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/uor-framework/client/registryclient"
-	"oras.land/oras-go/pkg/content"
-	"oras.land/oras-go/pkg/oras"
+	"oras.land/oras-go/v2"
 )
 
 // ClientOption is a function that configures
@@ -13,11 +15,11 @@ type ClientOption func(o *ClientConfig) error
 
 // ClientConfig contains configuration data for the registry client.
 type ClientConfig struct {
-	output    string
+	outputDir string
 	configs   []string
 	plainHTTP bool
 	insecure  bool
-	copyOpts  []oras.CopyOpt
+	copyOpts  oras.CopyOptions
 }
 
 func (c *ClientConfig) apply(options []ClientOption) error {
@@ -31,20 +33,31 @@ func (c *ClientConfig) apply(options []ClientOption) error {
 
 // NewClient returns a new ORAS client implementation
 func NewClient(options ...ClientOption) (registryclient.Client, error) {
-	client := &orasClient{
-		fileStore: content.NewFile(""),
-	}
+	client := &orasClient{}
 
 	config := &ClientConfig{}
+	config.copyOpts = oras.DefaultCopyOptions
 	if err := config.apply(options); err != nil {
 		return client, err
 	}
 
-	client.registryOpts.Insecure = config.insecure
-	client.registryOpts.Configs = config.configs
-	client.registryOpts.PlainHTTP = config.plainHTTP
+	var once sync.Once
+	destroy := func() (destroyErr error) {
+		once.Do(func() {
+			destroyErr = client.fileStore.Close()
+		})
+
+		return
+	}
+
+	client.init()
+	client.insecure = config.insecure
+	client.configs = config.configs
+	client.plainHTTP = config.plainHTTP
 	client.copyOpts = config.copyOpts
-	client.outputDir = config.output
+	client.outputDir = config.outputDir
+	client.destroy = destroy
+
 	return client, nil
 }
 
@@ -76,17 +89,25 @@ func WithPlainHTTP(plainHTTP bool) ClientOption {
 // WithOutputDir will copy any pulled artifact to this directory
 func WithOutputDir(dir string) ClientOption {
 	return func(config *ClientConfig) error {
-		config.output = dir
+		config.outputDir = dir
 		return nil
 	}
 }
 
-// WithLayerDescriptors passes the slice of Descriptors for layers to the
-// provided func. If the passed parameter is nil, returns an error.
-// This adds the oras.WithLayerDescriptors CopyOpt to the client.
-func WithLayerDescriptors(save func([]ocispec.Descriptor)) ClientOption {
+// WithPostCopy applies a function to a descriptor after copying it.
+// This sets the oras.CopyOptions.PostCopy function.
+func WithPostCopy(postFn func(ctx context.Context, desc ocispec.Descriptor) error) ClientOption {
 	return func(config *ClientConfig) error {
-		config.copyOpts = append(config.copyOpts, oras.WithLayerDescriptors(save))
+		config.copyOpts.PostCopy = postFn
+		return nil
+	}
+}
+
+// WithPreCopy applies a function to a descriptor before copying it.
+// This sets the oras.CopyOptions.PreCopy function.
+func WithPreCopy(preFn func(ctx context.Context, desc ocispec.Descriptor) error) ClientOption {
+	return func(config *ClientConfig) error {
+		config.copyOpts.PreCopy = preFn
 		return nil
 	}
 }

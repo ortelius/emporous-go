@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http/httptest"
@@ -11,11 +13,16 @@ import (
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/registry"
+	"github.com/opencontainers/go-digest"
+	"github.com/opencontainers/image-spec/specs-go"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/client/cli/log"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"oras.land/oras-go/pkg/content"
-	"oras.land/oras-go/pkg/oras"
+	"oras.land/oras-go/v2"
+	"oras.land/oras-go/v2/content/memory"
+	"oras.land/oras-go/v2/registry/remote"
+
+	"github.com/uor-framework/client/cli/log"
 )
 
 func TestPullComplete(t *testing.T) {
@@ -125,7 +132,8 @@ func TestPullRun(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Source: fmt.Sprintf("%s/client-test:latest", u.Host),
+				Source:    fmt.Sprintf("%s/client-test:latest", u.Host),
+				PlainHTTP: true,
 			},
 			fileExist: true,
 		},
@@ -144,6 +152,7 @@ func TestPullRun(t *testing.T) {
 				Attributes: map[string]string{
 					"test": "annotation",
 				},
+				PlainHTTP: true,
 			},
 			fileExist: true,
 		},
@@ -162,6 +171,7 @@ func TestPullRun(t *testing.T) {
 				Attributes: map[string]string{
 					"test2": "annotation",
 				},
+				PlainHTTP: true,
 			},
 			fileExist: false,
 		},
@@ -195,19 +205,50 @@ func TestPullRun(t *testing.T) {
 func prepTestArtifact(t *testing.T, ref string) {
 	fileName := "hello.txt"
 	fileContent := []byte("Hello World!\n")
+	ctx := context.TODO()
 	// Push file(s) w custom mediatype to registry
-	memoryStore := content.NewMemory()
-	desc, err := memoryStore.Add(fileName, "", fileContent)
-	desc.Annotations["test"] = "annotation"
+	memoryStore := memory.New()
+	layerDesc, err := pushBlob(ctx, ocispec.MediaTypeImageLayer, fileContent, memoryStore)
+	require.NoError(t, err)
+	if layerDesc.Annotations == nil {
+		layerDesc.Annotations = map[string]string{}
+	}
+	layerDesc.Annotations["test"] = "annotation"
+	layerDesc.Annotations[ocispec.AnnotationTitle] = fileName
+
+	config := []byte("{}")
+	configDesc, err := pushBlob(ctx, ocispec.MediaTypeImageConfig, config, memoryStore)
 	require.NoError(t, err)
 
-	manifest, manifestDesc, config, configDesc, err := content.GenerateManifestAndConfig(nil, nil, desc)
+	manifest, err := generateManifest(configDesc, layerDesc)
 	require.NoError(t, err)
-	memoryStore.Set(configDesc, config)
-	err = memoryStore.StoreManifest(ref, manifestDesc, manifest)
+
+	manifestDesc, err := pushBlob(ctx, ocispec.MediaTypeImageManifest, manifest, memoryStore)
 	require.NoError(t, err)
-	registry, err := content.NewRegistry(content.RegistryOptions{PlainHTTP: true})
+
+	require.NoError(t, memoryStore.Tag(ctx, manifestDesc, ref))
+
+	repo, err := remote.NewRepository(ref)
 	require.NoError(t, err)
-	_, err = oras.Copy(context.TODO(), memoryStore, ref, registry, "")
+	repo.PlainHTTP = true
+	_, err = oras.Copy(context.TODO(), memoryStore, ref, repo, "", oras.DefaultCopyOptions)
 	require.NoError(t, err)
+}
+
+func pushBlob(ctx context.Context, mediaType string, blob []byte, target oras.Target) (ocispec.Descriptor, error) {
+	desc := ocispec.Descriptor{
+		MediaType: mediaType,
+		Digest:    digest.FromBytes(blob),
+		Size:      int64(len(blob)),
+	}
+	return desc, target.Push(ctx, desc, bytes.NewReader(blob))
+}
+
+func generateManifest(configDesc ocispec.Descriptor, layers ...ocispec.Descriptor) ([]byte, error) {
+	manifest := ocispec.Manifest{
+		Config:    configDesc,
+		Layers:    layers,
+		Versioned: specs.Versioned{SchemaVersion: 2},
+	}
+	return json.Marshal(manifest)
 }

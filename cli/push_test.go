@@ -120,6 +120,7 @@ func TestPushRun(t *testing.T) {
 				},
 				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
 				RootDir:     "testdata/flatworkspace",
+				PlainHTTP:   true,
 			},
 		},
 		{
@@ -135,6 +136,7 @@ func TestPushRun(t *testing.T) {
 				},
 				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
 				RootDir:     "testdata/multi-level-workspace",
+				PlainHTTP:   true,
 			},
 		},
 		{
@@ -150,6 +152,7 @@ func TestPushRun(t *testing.T) {
 				},
 				Destination: fmt.Sprintf("%s/client-tworoots-test:latest", u.Host),
 				RootDir:     "testdata/tworoots",
+				PlainHTTP:   true,
 			},
 		},
 	}
