@@ -49,7 +49,7 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	var once sync.Once
 	destroy := func() (destroyErr error) {
 		once.Do(func() {
-			destroyErr = client.fileStore.Close()
+			destroyErr = client.artifactStore.Close()
 		})
 
 		return
@@ -62,7 +62,11 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client.outputDir = config.outputDir
 	client.destroy = destroy
 	client.cache = config.cache
-	client.fileStore = file.New("")
+
+	// We not allowing this to be configurable since
+	// oras file stores turn artifact into descriptors in
+	// specific way we want to honor.
+	client.artifactStore = file.New("")
 
 	return client, nil
 }
@@ -88,14 +92,6 @@ func SkipTLSVerify(insecure bool) ClientOption {
 func WithPlainHTTP(plainHTTP bool) ClientOption {
 	return func(config *ClientConfig) error {
 		config.plainHTTP = plainHTTP
-		return nil
-	}
-}
-
-// WithOutputDir copies any pulled artifact to this directory.
-func WithOutputDir(dir string) ClientOption {
-	return func(config *ClientConfig) error {
-		config.outputDir = dir
 		return nil
 	}
 }

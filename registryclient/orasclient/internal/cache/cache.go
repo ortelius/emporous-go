@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"sync"
@@ -72,25 +71,6 @@ func (p *target) Fetch(ctx context.Context, target ocispec.Descriptor) (io.ReadC
 		Reader: io.TeeReader(rc, pw),
 		Closer: c,
 	}, nil
-}
-
-// Push pushes the content, matching the expected descriptor.
-func (p *target) Push(ctx context.Context, expected ocispec.Descriptor, content io.Reader) error {
-	buf := new(bytes.Buffer)
-	tee := io.TeeReader(content, buf)
-	if err := p.Target.Push(ctx, expected, tee); err != nil {
-		return err
-	}
-
-	exists, err := p.cache.Exists(ctx, expected)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return p.cache.Push(ctx, expected, buf)
-	}
-
-	return nil
 }
 
 // Exists returns true if the described content exists.

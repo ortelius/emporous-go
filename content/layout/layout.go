@@ -112,16 +112,6 @@ func (l *Layout) Index() (ocispec.Index, error) {
 	return *l.index, nil
 }
 
-// List returns a list of descriptors contained within the file store.
-func (l *Layout) List(_ context.Context) []ocispec.Descriptor {
-	var descs []ocispec.Descriptor
-	l.descriptorLookup.Range(func(key, value interface{}) bool {
-		descs = append(descs, value.(ocispec.Descriptor))
-		return true
-	})
-	return descs
-}
-
 // SaveIndex writes the index.json to the file system
 func (l *Layout) SaveIndex() error {
 	// first need to update the index

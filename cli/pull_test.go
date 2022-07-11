@@ -37,10 +37,10 @@ func TestPullComplete(t *testing.T) {
 	cases := []spec{
 		{
 			name: "Valid/CorrectNumberOfArguments",
-			args: []string{"test-registry.com/image:latest", "test"},
+			args: []string{"test-registry.com/image:latest"},
 			expOpts: &PullOptions{
 				Source: "test-registry.com/image:latest",
-				Output: "test",
+				Output: ".",
 			},
 			opts: &PullOptions{},
 		},
@@ -49,7 +49,7 @@ func TestPullComplete(t *testing.T) {
 			args:     []string{},
 			expOpts:  &PullOptions{},
 			opts:     &PullOptions{},
-			expError: "bug: expecting two arguments",
+			expError: "bug: expecting one argument",
 		},
 	}
 

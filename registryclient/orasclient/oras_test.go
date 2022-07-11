@@ -11,9 +11,8 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/registry"
 	"github.com/stretchr/testify/require"
+	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/content/memory"
-
-	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
 func TestGatherDescriptors(t *testing.T) {
@@ -73,7 +72,10 @@ func TestExecute(t *testing.T) {
 
 		mdesc, err := c.GenerateManifest(ctx, ref, configDesc, nil, descs...)
 		require.NoError(t, err)
-		desc, err := c.Execute(context.TODO(), ref, registryclient.TypePush)
+
+		source, err := c.Store()
+		require.NoError(t, err)
+		desc, err := c.Push(context.TODO(), source, ref)
 		require.NoError(t, err)
 		require.Equal(t, mdesc.Digest.String(), desc.Digest.String())
 		require.Equal(t, expDigest, desc.Digest.String())
@@ -92,7 +94,10 @@ func TestExecute(t *testing.T) {
 
 		mdesc, err := c.GenerateManifest(ctx, ref, configDesc, nil, descs...)
 		require.NoError(t, err)
-		desc, err := c.Execute(context.TODO(), ref, registryclient.TypePush)
+		source, err := c.Store()
+		require.NoError(t, err)
+
+		desc, err := c.Push(context.TODO(), source, ref)
 		require.NoError(t, err)
 		require.Equal(t, mdesc.Digest.String(), desc.Digest.String())
 		require.Equal(t, expDigest, desc.Digest.String())
@@ -100,24 +105,22 @@ func TestExecute(t *testing.T) {
 	})
 
 	t.Run("Success/PullOneImage", func(t *testing.T) {
-		tmp := t.TempDir()
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
-		c, err := NewClient(WithPlainHTTP(true), WithOutputDir(tmp))
+		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
-		desc, err := c.Execute(context.TODO(), ref, registryclient.TypePull)
+		desc, err := c.Pull(context.TODO(), ref, memory.New())
 		require.NoError(t, err)
 		require.Equal(t, expDigest, desc.Digest.String())
 		require.NoError(t, c.Destroy())
 	})
 
 	t.Run("Success/PullWithCache", func(t *testing.T) {
-		tmp := t.TempDir()
 		cache := memory.New()
 
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
-		c, err := NewClient(WithPlainHTTP(true), WithOutputDir(tmp), WithCache(cache))
+		c, err := NewClient(WithPlainHTTP(true), WithCache(cache))
 		require.NoError(t, err)
-		desc, err := c.Execute(context.TODO(), ref, registryclient.TypePull)
+		desc, err := c.Pull(context.TODO(), ref, memory.New())
 		require.NoError(t, err)
 		require.Equal(t, expDigest, desc.Digest.String())
 		require.NoError(t, c.Destroy())
@@ -131,10 +134,13 @@ func TestExecute(t *testing.T) {
 		configDesc, err := c.GenerateConfig(ctx, []byte("{}"), nil)
 		require.NoError(t, err)
 
+		source, err := c.Store()
+		require.NoError(t, err)
+
 		for _, ref := range images {
 			mdesc, err := c.GenerateManifest(ctx, ref, configDesc, nil, descs...)
 			require.NoError(t, err)
-			desc, err := c.Execute(context.TODO(), ref, registryclient.TypePush)
+			desc, err := c.Push(context.TODO(), source, ref)
 			require.NoError(t, err)
 			require.Equal(t, mdesc.Digest.String(), desc.Digest.String())
 		}
@@ -143,10 +149,11 @@ func TestExecute(t *testing.T) {
 
 	t.Run("Success/PullMultipleImages", func(t *testing.T) {
 		tmp := t.TempDir()
-		c, err := NewClient(WithPlainHTTP(true), WithOutputDir(tmp))
+		destination := file.New(tmp)
+		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
 		for _, ref := range images {
-			_, err := c.Execute(context.TODO(), ref, registryclient.TypePull)
+			_, err := c.Pull(context.TODO(), ref, destination)
 			require.NoError(t, err)
 			_, err = os.Stat(filepath.Join(tmp, testdata))
 			require.NoError(t, err)
@@ -154,26 +161,10 @@ func TestExecute(t *testing.T) {
 		require.NoError(t, c.Destroy())
 	})
 
-	t.Run("Failure/UnsupportedAction", func(t *testing.T) {
-		c, err := NewClient(WithPlainHTTP(true))
-		require.NoError(t, err)
-		_, err = c.Execute(context.TODO(), "localhost:5001/fail", 3)
-		require.EqualError(t, err, "unsupported action type")
-		require.NoError(t, c.Destroy())
-	})
-
-	t.Run("Failure/InvalidAction", func(t *testing.T) {
-		c, err := NewClient(WithPlainHTTP(true))
-		require.NoError(t, err)
-		_, err = c.Execute(context.TODO(), "localhost:5001/fail", registryclient.TypeInvalid)
-		require.EqualError(t, err, "action type must be set")
-		require.NoError(t, c.Destroy())
-	})
-
 	t.Run("Failure/ImageDoesNotExist", func(t *testing.T) {
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
-		_, err = c.Execute(context.TODO(), notExistRef, registryclient.TypePull)
+		_, err = c.Pull(context.TODO(), notExistRef, memory.New())
 		require.EqualError(t, err, fmt.Sprintf("%s: not found", notExistTag))
 		require.NoError(t, c.Destroy())
 	})

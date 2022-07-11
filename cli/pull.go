@@ -12,13 +12,13 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
+	"oras.land/oras-go/v2/content/file"
 
 	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/content/layout"
 	"github.com/uor-framework/uor-client-go/model"
 	"github.com/uor-framework/uor-client-go/model/nodes/basic"
 	"github.com/uor-framework/uor-client-go/model/nodes/collection"
-	"github.com/uor-framework/uor-client-go/registryclient"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
 	"github.com/uor-framework/uor-client-go/util/workspace"
 )
@@ -38,7 +38,7 @@ type PullOptions struct {
 var clientPullExamples = templates.Examples(
 	`
 	# Push artifacts
-	client pull localhost:5000/myartifacts:latest my-output-directory
+	client pull localhost:5000/myartifacts:latest
 	`,
 )
 
@@ -47,12 +47,12 @@ func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 	o := PullOptions{RootOptions: rootOpts}
 
 	cmd := &cobra.Command{
-		Use:           "pull SRC DST",
+		Use:           "pull SRC",
 		Short:         "Pull a UOR collection based on content or attribute address",
 		Example:       clientPullExamples,
 		SilenceErrors: false,
 		SilenceUsage:  false,
-		Args:          cobra.ExactArgs(2),
+		Args:          cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			cobra.CheckErr(o.Complete(args))
 			cobra.CheckErr(o.Validate())
@@ -63,6 +63,7 @@ func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd.Flags().StringArrayVarP(&o.Configs, "auth-configs", "c", o.Configs, "auth config paths")
 	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to SSL registry without certs")
 	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https")
+	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "output location for artifacts")
 	cmd.Flags().StringToStringVarP(&o.Attributes, "attributes", "", o.Attributes, "list of key,value pairs (e.g. key=value) for "+
 		"retrieving artifacts by attributes")
 
@@ -70,11 +71,13 @@ func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 }
 
 func (o *PullOptions) Complete(args []string) error {
-	if len(args) < 2 {
-		return errors.New("bug: expecting two arguments")
+	if len(args) < 1 {
+		return errors.New("bug: expecting one argument")
 	}
 	o.Source = args[0]
-	o.Output = args[1]
+	if o.Output == "" {
+		o.Output = "."
+	}
 	return nil
 }
 
@@ -212,11 +215,10 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 		return ocispec.Descriptor{}, nil, err
 	}
 	client, err := orasclient.NewClient(
-		orasclient.SkipTLSVerify(o.Insecure),
-		orasclient.WithPlainHTTP(o.PlainHTTP),
-		orasclient.WithAuthConfigs(o.Configs),
-		orasclient.WithOutputDir(output),
 		orasclient.WithPostCopy(layerFn),
+		orasclient.SkipTLSVerify(o.Insecure),
+		orasclient.WithAuthConfigs(o.Configs),
+		orasclient.WithPlainHTTP(o.PlainHTTP),
 		orasclient.WithCache(cache),
 	)
 	if err != nil {
@@ -224,12 +226,19 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 	}
 	defer client.Destroy()
 
-	desc, err := client.Execute(ctx, o.Source, registryclient.TypePull)
+	desc, err := client.Pull(ctx, o.Source, cache)
 	if err != nil {
 		return ocispec.Descriptor{}, nil, err
 	}
 
-	return desc, layerDescs, cache.Tag(ctx, desc, o.Source)
+	// TODO(jpower432): Write an method to pull blobs
+	// by attribute from the cache to a content.Store.
+	_, err = client.Pull(ctx, o.Source, file.New(output))
+	if err != nil {
+		return desc, layerDescs, err
+	}
+
+	return desc, layerDescs, nil
 }
 
 // mkTempDir will make a temporary dir and return the name

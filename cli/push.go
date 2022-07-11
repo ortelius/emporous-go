@@ -4,20 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"regexp"
-	"strings"
 
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
-	load "github.com/uor-framework/uor-client-go/builder/config"
 	"github.com/uor-framework/uor-client-go/content/layout"
-	"github.com/uor-framework/uor-client-go/registryclient"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
-	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
 // PushOptions describe configuration options that can
@@ -25,7 +17,6 @@ import (
 type PushOptions struct {
 	*RootOptions
 	Destination string
-	RootDir     string
 	Insecure    bool
 	PlainHTTP   bool
 	Configs     []string
@@ -35,7 +26,7 @@ type PushOptions struct {
 var clientPushExamples = templates.Examples(
 	`
 	# Push artifacts
-	client push my-workspace localhost:5000/myartifacts:latest
+	client push localhost:5000/myartifacts:latest
 	`,
 )
 
@@ -44,12 +35,12 @@ func NewPushCmd(rootOpts *RootOptions) *cobra.Command {
 	o := PushOptions{RootOptions: rootOpts}
 
 	cmd := &cobra.Command{
-		Use:           "push SRC DST",
-		Short:         "Push a UOR collection from specified source into a registry",
+		Use:           "push DST",
+		Short:         "Push a UOR collection into a registry",
 		Example:       clientPushExamples,
 		SilenceErrors: false,
 		SilenceUsage:  false,
-		Args:          cobra.ExactArgs(2),
+		Args:          cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			cobra.CheckErr(o.Complete(args))
 			cobra.CheckErr(o.Validate())
@@ -60,150 +51,44 @@ func NewPushCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd.Flags().StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths")
 	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to SSL registry without certs")
 	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https")
-	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "", o.DSConfig, "DataSet config path")
 
 	return cmd
 }
 
 func (o *PushOptions) Complete(args []string) error {
-	if len(args) < 2 {
-		return errors.New("bug: expecting two arguments")
+	if len(args) < 1 {
+		return errors.New("bug: expecting one argument")
 	}
-	o.RootDir = args[0]
-	o.Destination = args[1]
+	o.Destination = args[0]
 	return nil
 }
 
 func (o *PushOptions) Validate() error {
-	if _, err := os.Stat(o.RootDir); err != nil {
-		return fmt.Errorf("workspace directory %q: %v", o.RootDir, err)
-	}
 	return nil
 }
 
 func (o *PushOptions) Run(ctx context.Context) error {
-	space, err := workspace.NewLocalWorkspace(o.RootDir)
+	client, err := orasclient.NewClient(
+		orasclient.SkipTLSVerify(o.Insecure),
+		orasclient.WithPlainHTTP(o.PlainHTTP),
+		orasclient.WithAuthConfigs(o.Configs),
+	)
 	if err != nil {
 		return err
 	}
+	defer client.Destroy()
 
 	cache, err := layout.New(o.cacheDir)
 	if err != nil {
 		return err
 	}
 
-	client, err := orasclient.NewClient(
-		orasclient.SkipTLSVerify(o.Insecure),
-		orasclient.WithPlainHTTP(o.PlainHTTP),
-		orasclient.WithAuthConfigs(o.Configs),
-		orasclient.WithCache(cache),
-	)
-	if err != nil {
-		return fmt.Errorf("error configuring client: %v", err)
-	}
-	defer client.Destroy()
-
-	var files []string
-	err = space.Walk(func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("traversing %s: %v", path, err)
-		}
-		if info == nil {
-			return fmt.Errorf("no file info")
-		}
-
-		if info.Mode().IsRegular() {
-			files = append(files, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	var config v1alpha1.DataSetConfiguration
-	if len(o.DSConfig) > 0 {
-		config, err = load.ReadConfig(o.DSConfig)
-		if err != nil {
-			return err
-		}
-	}
-
-	// To allow the files to be loaded relative to the render
-	// workspace, change to the render directory. This is required
-	// to get path correct in the description annotations.
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	if err := os.Chdir(space.Path()); err != nil {
-		return err
-	}
-	defer func() {
-		if err := os.Chdir(cwd); err != nil {
-			o.Logger.Errorf("%v", err)
-		}
-	}()
-
-	descs, err := client.GatherDescriptors(ctx, "", files...)
-	if err != nil {
-		return err
-	}
-
-	// Add the attributes from the config to their respective blocks
-	descs, err = AddDescriptors(descs, config)
-	if err != nil {
-		return err
-	}
-
-	configDesc, err := client.GenerateConfig(ctx, []byte("{}"), nil)
-	if err != nil {
-		return err
-	}
-
-	if _, err := client.GenerateManifest(ctx, o.Destination, configDesc, nil, descs...); err != nil {
-		return err
-	}
-
-	desc, err := client.Execute(ctx, o.Destination, registryclient.TypePush)
+	desc, err := client.Push(ctx, cache, o.Destination)
 	if err != nil {
 		return fmt.Errorf("error publishing content to %s: %v", o.Destination, err)
 	}
 
 	o.Logger.Infof("Artifact %s published to %s\n", desc.Digest, o.Destination)
 
-	return cache.Tag(ctx, desc, o.Destination)
-}
-
-// AddDescriptors adds the attributes of each file listed in the config
-// to the annotations of its respective descriptor.
-func AddDescriptors(d []ocispec.Descriptor, c v1alpha1.DataSetConfiguration) ([]ocispec.Descriptor, error) {
-	// For each descriptor
-	for i1, desc := range d {
-		// Get the filename of the block
-		filename := desc.Annotations[ocispec.AnnotationTitle]
-		// For each file in the config
-		for i2, file := range c.Files {
-			// If the config has a grouping declared, make a valid regex.
-			if strings.Contains(file.File, "*") && !strings.Contains(file.File, ".*") {
-				file.File = strings.Replace(file.File, "*", ".*", -1)
-			} else {
-				file.File = strings.Replace(file.File, file.File, "^"+file.File+"$", -1)
-			}
-			namesearch, err := regexp.Compile(file.File)
-			if err != nil {
-				return []ocispec.Descriptor{}, err
-			}
-			// Find the matching descriptor
-			if namesearch.Match([]byte(filename)) {
-				// Get the k/v pairs from the config and add them to the block's annotations.
-				for k, v := range c.Files[i2].Attributes {
-					d[i1].Annotations[k] = v
-				}
-			} else {
-				// If the block does not have a corresponding config element, skip it.
-				continue
-			}
-		}
-	}
-	return d, nil
+	return nil
 }

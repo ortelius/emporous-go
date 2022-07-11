@@ -20,27 +20,27 @@ import (
 
 	"github.com/uor-framework/uor-client-go/content"
 	"github.com/uor-framework/uor-client-go/registryclient"
-	"github.com/uor-framework/uor-client-go/registryclient/orasclient/cache"
+	"github.com/uor-framework/uor-client-go/registryclient/orasclient/internal/cache"
 )
 
 const uorMediaType = "application/vnd.uor.config.v1+json"
 
 type orasClient struct {
-	insecure  bool
-	plainHTTP bool
-	configs   []string
-	copyOpts  oras.CopyOptions
-	fileStore *file.Store
-	cache     content.Store
-	destroy   func() error
-	outputDir string
+	insecure      bool
+	plainHTTP     bool
+	configs       []string
+	copyOpts      oras.CopyOptions
+	artifactStore *file.Store
+	cache         content.Store
+	destroy       func() error
+	outputDir     string
 }
 
 var _ registryclient.Client = &orasClient{}
 
 // GatherDescriptors loads files to create OCI descriptors.
 func (c *orasClient) GatherDescriptors(ctx context.Context, mediaType string, files ...string) ([]ocispec.Descriptor, error) {
-	descs, err := loadFiles(ctx, c.fileStore, mediaType, files...)
+	descs, err := loadFiles(ctx, c.artifactStore, mediaType, files...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to load files: %w", err)
 	}
@@ -60,7 +60,7 @@ func (c *orasClient) GenerateConfig(ctx context.Context, config []byte, configAn
 		Annotations: configAnnotations,
 	}
 
-	return configDesc, c.fileStore.Push(ctx, configDesc, bytes.NewReader(config))
+	return configDesc, c.artifactStore.Push(ctx, configDesc, bytes.NewReader(config))
 }
 
 // GenerateManifest creates and stores a manifest.
@@ -82,40 +82,46 @@ func (c *orasClient) GenerateManifest(ctx context.Context, ref string, configDes
 	packOpts.ConfigDescriptor = &configDesc
 	packOpts.ManifestAnnotations = manifestAnnotations
 
-	manifestDesc, err := oras.Pack(ctx, c.fileStore, descriptors, packOpts)
+	manifestDesc, err := oras.Pack(ctx, c.artifactStore, descriptors, packOpts)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
 
-	return manifestDesc, c.fileStore.Tag(ctx, manifestDesc, ref)
+	return manifestDesc, c.artifactStore.Tag(ctx, manifestDesc, ref)
 }
 
-// Execute performs the copy of OCI artifacts.
-func (c *orasClient) Execute(ctx context.Context, ref string, typ registryclient.ActionType) (ocispec.Descriptor, error) {
-	var to, from oras.Target
+// Save save the OCI artifact to local store location (e.g. cache)
+func (c *orasClient) Save(ctx context.Context, ref string, store content.Store) (ocispec.Descriptor, error) {
+	return oras.Copy(ctx, c.artifactStore, ref, store, ref, c.copyOpts)
+}
+
+// Pull performs a copy of OCI artifacts to a local location from a remote location.
+func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) (ocispec.Descriptor, error) {
 	repo, err := c.setupRepo(ref)
 	if err != nil {
 		return ocispec.Descriptor{}, fmt.Errorf("could not create registry target: %w", err)
 	}
 
-	switch typ {
-	case registryclient.TypePush:
-		to = repo
-		from = c.fileStore
-	case registryclient.TypePull:
-		c.fileStore = file.New(c.outputDir)
-		to = c.fileStore
-		from = repo
-	case registryclient.TypeInvalid:
-		return ocispec.Descriptor{}, errors.New("action type must be set")
-	default:
-		return ocispec.Descriptor{}, errors.New("unsupported action type")
-	}
-
-	return oras.Copy(ctx, from, ref, to, ref, c.copyOpts)
+	return oras.Copy(ctx, repo, ref, store, ref, c.copyOpts)
 }
 
-// Destroy cleans up any on-disk resources used to track descriptors.
+// Push performs a copy of OCI artifacts to a remote location.
+func (c *orasClient) Push(ctx context.Context, store content.Store, ref string) (ocispec.Descriptor, error) {
+	repo, err := c.setupRepo(ref)
+	if err != nil {
+		return ocispec.Descriptor{}, fmt.Errorf("could not create registry target: %w", err)
+	}
+
+	return oras.Copy(ctx, store, ref, repo, ref, c.copyOpts)
+}
+
+// Store returns the source storage being used to stored
+// the OCI artifact.
+func (c *orasClient) Store() (content.Store, error) {
+	return c.artifactStore, nil
+}
+
+// Destroy cleans up any temporary on-disk resources used to track descriptors.
 func (c *orasClient) Destroy() error {
 	return c.destroy()
 }
@@ -123,7 +129,7 @@ func (c *orasClient) Destroy() error {
 // checkFileStore ensure that the file store
 // has been initialized.
 func (c *orasClient) checkFileStore() error {
-	if c.fileStore == nil {
+	if c.artifactStore == nil {
 		return errors.New("file store uninitialized")
 	}
 	return nil
@@ -145,6 +151,7 @@ func (c *orasClient) setupRepo(ref string) (oras.Target, error) {
 	if c.cache != nil {
 		return cache.New(repo, c.cache), nil
 	}
+
 	return repo, nil
 }
 
