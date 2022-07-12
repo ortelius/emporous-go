@@ -89,7 +89,6 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error configuring client: %v", err)
 	}
-	defer client.Destroy()
 
 	var files []string
 	err = space.Walk(func(path string, info os.FileInfo, err error) error {
@@ -148,16 +147,19 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	desc, err := client.GenerateManifest(ctx, o.Destination, configDesc, nil, descs...)
+	_, err = client.GenerateManifest(ctx, o.Destination, configDesc, nil, descs...)
 	if err != nil {
 		return err
 	}
 
-	client.Save(ctx, o.Destination, cache)
+	desc, err := client.Save(ctx, o.Destination, cache)
+	if err != nil {
+		return fmt.Errorf("client save error for reference %s: %v", o.Destination, err)
+	}
 
 	o.Logger.Infof("Artifact %s built with reference name %s\n", desc.Digest, o.Destination)
 
-	return nil
+	return client.Destroy()
 }
 
 // AddDescriptors adds the attributes of each file listed in the config

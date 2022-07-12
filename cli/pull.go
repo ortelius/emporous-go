@@ -224,21 +224,23 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 	if err != nil {
 		return ocispec.Descriptor{}, nil, fmt.Errorf("error configuring client: %v", err)
 	}
-	defer client.Destroy()
-
-	desc, err := client.Pull(ctx, o.Source, cache)
-	if err != nil {
-		return ocispec.Descriptor{}, nil, err
-	}
+	defer func() {
+		if err := client.Destroy(); err != nil {
+			o.Logger.Errorf(err.Error())
+		}
+	}()
 
 	// TODO(jpower432): Write an method to pull blobs
 	// by attribute from the cache to a content.Store.
-	_, err = client.Pull(ctx, o.Source, file.New(output))
+	desc, err := client.Pull(ctx, o.Source, file.New(output))
 	if err != nil {
-		return desc, layerDescs, err
+		return desc, layerDescs, fmt.Errorf("client pull error for reference %s: %v", o.Source, err)
 	}
 
-	return desc, layerDescs, nil
+	// The cache will be populated by the pull command
+	// Ensure the resource is captured in the index.json, but
+	// tagging the reference.
+	return desc, layerDescs, cache.Tag(ctx, desc, o.Source)
 }
 
 // mkTempDir will make a temporary dir and return the name

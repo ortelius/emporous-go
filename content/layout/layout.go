@@ -24,7 +24,7 @@ var (
 
 const indexFile = "index.json"
 
-// Local implements the storage interface by wrapping the oras
+// Layout implements the storage interface by wrapping the oras
 // content.Storage.
 // TODO(jpower432): add graph structure implementation once
 // imported collection work is completed to effectively
@@ -73,7 +73,7 @@ func (l *Layout) Exists(ctx context.Context, desc ocispec.Descriptor) (bool, err
 }
 
 // Resolve resolves a reference to a descriptor.
-func (l *Layout) Resolve(ctx context.Context, reference string) (ocispec.Descriptor, error) {
+func (l *Layout) Resolve(_ context.Context, reference string) (ocispec.Descriptor, error) {
 	desc, ok := l.descriptorLookup.Load(reference)
 	if !ok {
 		return ocispec.Descriptor{}, fmt.Errorf("descriptor for reference %s is not stored", reference)

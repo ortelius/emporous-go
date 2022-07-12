@@ -76,7 +76,6 @@ func (o *PushOptions) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer client.Destroy()
 
 	cache, err := layout.New(o.cacheDir)
 	if err != nil {
@@ -90,5 +89,5 @@ func (o *PushOptions) Run(ctx context.Context) error {
 
 	o.Logger.Infof("Artifact %s published to %s\n", desc.Digest, o.Destination)
 
-	return nil
+	return client.Destroy()
 }
