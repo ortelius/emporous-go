@@ -20,3 +20,4 @@ dataset-config.yaml
 tags
 *.swp
 .vscode
+dist

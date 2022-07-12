@@ -11,6 +11,9 @@ on:
       - main
       - 'release/**'
 
+permissions:
+  contents: write
+
 jobs:
   #
   # golangci-lint
@@ -43,47 +46,75 @@ jobs:
     name: Project Checks
     runs-on: ubuntu-latest
     timeout-minutes: 5
-
     steps:
-      - uses: actions/setup-go@v3
+      -
+        uses: actions/setup-go@v3
         with:
           go-version: 1.17
-      - uses: actions/checkout@v3
+      -
+        uses: actions/checkout@v3
         with:
           path: src/github.com/uor-framework/client
-      - name: verify go modules and vendor directory
+      -
+        name: verify go modules and vendor directory
         run: |
           make vendor
         working-directory: src/github.com/uor-framework/client
-      - name: running unit tests
+      -
+        name: running unit tests
         run: |
           make test-unit
         working-directory: src/github.com/uor-framework/client
-      - name: running sanity checks
+      -
+        name: running sanity checks
         run: |
           make sanity
         working-directory: src/github.com/uor-framework/client
 
-    # Release
+  # Release
   release:  
     needs: [linters, project]
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-    - uses: actions/checkout@v3
+    -
+      name: Checkout Repo
+      uses: actions/checkout@v3
+      id: clone
       with:
           fetch-depth: 0
-    - uses: actions/setup-go@v3
+    -
+      name: Install Cosign
+      uses: sigstore/cosign-installer@v2.4.1
+      id: cosign
+    -
+      name: Install SBOM
+      uses: anchore/sbom-action/download-syft@v0.11.0
+      id: sbom
+    -
+      name: Install QEMU
+      uses: docker/setup-qemu-action@v2
+      id: qemu
+    -
+      name: Install QEMU
+      uses: docker/setup-buildx-action@v2
+      id: buildx
+      with:
+        install: true
+    -
+      name: Install Go
+      uses: actions/setup-go@v3
+      id: go
       with:
         go-version: 1.17
-    - name: release with goreleaser
+    -
+      name: Run GoReleaser
       id: goreleaser
       uses: goreleaser/goreleaser-action@v2
       with:
-        version: latest
+        distribution: goreleaser
+        version: v1.10.2
         args: release --rm-dist
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
