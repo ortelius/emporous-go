@@ -28,6 +28,7 @@ func NewRunCmd(rootOpts *RootOptions) *cobra.Command {
 	o := RunOptions{RootOptions: rootOpts}
 
 	cmd := &cobra.Command{
+		Hidden:        true, // TODO delete after implementation
 		Use:           "run <CONFIG>",
 		Short:         "Run instructions against a UOR collection",
 		Example:       clientRunExamples,
