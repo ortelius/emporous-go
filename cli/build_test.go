@@ -165,6 +165,8 @@ func TestBuildRun(t *testing.T) {
 				require.EqualError(t, err, c.expError)
 			} else {
 				require.NoError(t, err)
+				_, err := os.Stat(filepath.Join(c.opts.cacheDir, "index.json"))
+				require.NoError(t, err)
 			}
 		})
 	}

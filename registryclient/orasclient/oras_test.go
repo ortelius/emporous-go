@@ -47,7 +47,7 @@ func TestGenerateManifest(t *testing.T) {
 	})
 }
 
-func TestExecute(t *testing.T) {
+func TestPushPull(t *testing.T) {
 	server := httptest.NewServer(registry.New())
 	t.Cleanup(server.Close)
 	u, err := url.Parse(server.URL)

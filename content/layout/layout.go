@@ -12,14 +12,15 @@ import (
 
 	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-
-	"oras.land/oras-go/v2/content"
+	orascontent "oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/content/oci"
 	"oras.land/oras-go/v2/errdef"
+
+	"github.com/uor-framework/uor-client-go/content"
 )
 
 var (
-	_ content.Storage = &Layout{}
+	_ content.Store = &Layout{}
 )
 
 const indexFile = "index.json"
@@ -32,7 +33,7 @@ const indexFile = "index.json"
 // but the edge calculations will be UOR specific because descriptor are not only linked in the OCI DAG
 // structure, but there are relationships between the each of those graph based on annotations.
 type Layout struct {
-	internal         content.Storage
+	internal         orascontent.Storage
 	descriptorLookup sync.Map // map[string]ocispec.Descriptor
 	index            *ocispec.Index
 	rootPath         string
