@@ -2,8 +2,11 @@ package layout
 
 import (
 	"context"
+	"io/fs"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -57,11 +60,52 @@ func TestExists(t *testing.T) {
 
 func TestTag(t *testing.T) {
 	cacheDir := t.TempDir()
+	source := "testdata/valid"
+	err := filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
+		// Do not copy in the index file. We are generating a new one for this test.
+		if info.Name() == indexFile {
+			return nil
+		}
+		relPath := strings.Replace(path, source, "", 1)
+		if relPath == "" {
+			return nil
+		}
+		switch m := info.Mode(); {
+		case m&fs.ModeSymlink != 0:
+			dst, err := os.Readlink(path)
+			if err != nil {
+				return err
+			}
+			id := filepath.Base(dst)
+			if err := os.Symlink(id, filepath.Join(cacheDir, relPath)); err != nil {
+				return err
+			}
+		case m.IsDir():
+			return os.Mkdir(filepath.Join(cacheDir, relPath), 0750)
+		default:
+			newSource := filepath.Join(source, relPath)
+			cleanSource := filepath.Clean(newSource)
+			data, err := ioutil.ReadFile(cleanSource)
+			if err != nil {
+				return err
+			}
+			newDest := filepath.Join(cacheDir, relPath)
+			cleanDest := filepath.Clean(newDest)
+			return ioutil.WriteFile(cleanDest, data, 0600)
+		}
+		return nil
+	})
+	require.NoError(t, err)
+
 	l, err := New(cacheDir)
 	require.NoError(t, err)
 
-	l.descriptorLookup.Store("test", ocispec.Descriptor{})
-	require.NoError(t, l.SaveIndex())
+	desc := ocispec.Descriptor{Digest: "sha256:2e30f6131ce2164ed5ef017845130727291417d60a1be6fad669bdc4473289cd"}
+
+	require.NoError(t, l.Tag(context.TODO(), desc, "test/test:tag"))
+
+	require.Error(t, l.Tag(context.TODO(), ocispec.Descriptor{}, "test"))
+	require.Error(t, l.Tag(context.TODO(), ocispec.Descriptor{}, "test/repo@sha256:2e30f6131"))
 
 	_, err = os.Stat(filepath.Join(cacheDir, indexFile))
 	require.NoError(t, err)
@@ -69,10 +113,10 @@ func TestTag(t *testing.T) {
 	ii, err := l.Index()
 	require.NoError(t, err)
 	require.Len(t, ii.Manifests, 1)
-	desc := ii.Manifests[0]
+	desc = ii.Manifests[0]
 	refName := desc.Annotations[ocispec.AnnotationRefName]
 
-	require.Equal(t, "test", refName)
+	require.Equal(t, "test/test:tag", refName)
 }
 
 func TestSaveIndex(t *testing.T) {

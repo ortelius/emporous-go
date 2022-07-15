@@ -71,6 +71,7 @@ func (o *BuildOptions) Validate() error {
 	if _, err := os.Stat(o.RootDir); err != nil {
 		return fmt.Errorf("workspace directory %q: %v", o.RootDir, err)
 	}
+
 	return nil
 }
 

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/opencontainers/image-spec/specs-go"
@@ -77,7 +78,7 @@ func (l *Layout) Exists(ctx context.Context, desc ocispec.Descriptor) (bool, err
 func (l *Layout) Resolve(_ context.Context, reference string) (ocispec.Descriptor, error) {
 	desc, ok := l.descriptorLookup.Load(reference)
 	if !ok {
-		return ocispec.Descriptor{}, fmt.Errorf("descriptor for reference %s is not stored", reference)
+		return ocispec.Descriptor{}, &content.ErrNotStored{Reference: reference}
 	}
 	return desc.(ocispec.Descriptor), nil
 }
@@ -86,8 +87,8 @@ func (l *Layout) Resolve(_ context.Context, reference string) (ocispec.Descripto
 // A reference should be either a valid tag (e.g. "latest"),
 // or a digest matching the descriptor (e.g. "@sha256:abc123").
 func (l *Layout) Tag(ctx context.Context, desc ocispec.Descriptor, reference string) error {
-	if reference == "" {
-		return fmt.Errorf("invalid reference %q", reference)
+	if err := validateReference(reference); err != nil {
+		return fmt.Errorf("invalid reference: %w", err)
 	}
 
 	exists, err := l.Exists(ctx, desc)
@@ -135,6 +136,7 @@ func (l *Layout) SaveIndex() error {
 	return ioutil.WriteFile(path, indexJSON, 0640)
 }
 
+//
 func (l *Layout) loadIndex() error {
 	path := filepath.Join(l.rootPath, indexFile)
 	indexFile, err := os.Open(path)
@@ -196,4 +198,23 @@ func (l *Layout) validateOCILayoutFile() error {
 	}
 
 	return nil
+}
+
+// validateReference ensures the build reference
+// contains a tag component.
+func validateReference(name string) error {
+	parts := strings.SplitN(name, "/", 2)
+	if len(parts) == 1 {
+		return fmt.Errorf("reference %q: missing repository", name)
+	}
+	path := parts[1]
+	if index := strings.Index(path, "@"); index != -1 {
+		return fmt.Errorf("%w: ", errdef.ErrInvalidReference)
+	} else if index := strings.Index(path, ":"); index != -1 {
+		// tag found
+		return nil
+	} else {
+		// empty reference
+		return fmt.Errorf("reference %q: missing tag component", name)
+	}
 }
