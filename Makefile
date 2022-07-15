@@ -11,7 +11,7 @@ GO_LD_EXTRAFLAGS :=-X github.com/uor-framework/client/cli.version="$(shell git t
 				   -X github.com/uor-framework/client/cli.buildDate="$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 build: prep-build-dir
-	env GOOS=linux  GOARCH=amd64	$(GO) build -o $(GO_BUILD_BINDIR)/client  -ldflags="$(GO_LD_EXTRAFLAGS)" $(GO_BUILD_PACKAGES)
+	$(GO) build -o $(GO_BUILD_BINDIR)/client  -ldflags="$(GO_LD_EXTRAFLAGS)" $(GO_BUILD_PACKAGES)
 .PHONY: build
 
 cross-build-darwin-amd64:
