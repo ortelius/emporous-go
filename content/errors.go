@@ -2,6 +2,7 @@ package content
 
 import "fmt"
 
+// ErrNotStored denotes that a reference is not stored on the content store.
 type ErrNotStored struct {
 	Reference string
 }
