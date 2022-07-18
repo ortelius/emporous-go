@@ -48,11 +48,16 @@ func NewRootCmd() *cobra.Command {
 			}
 			o.Logger = logger
 
-			home, err := homedir.Dir()
-			if err != nil {
-				return err
+			cacheEnv := os.Getenv("UOR_CACHE")
+			if cacheEnv != "" {
+				o.cacheDir = cacheEnv
+			} else {
+				home, err := homedir.Dir()
+				if err != nil {
+					return err
+				}
+				o.cacheDir = filepath.Join(home, ".uor", "cache")
 			}
-			o.cacheDir = filepath.Join(home, ".uor")
 
 			return os.MkdirAll(o.cacheDir, 0750)
 		},
