@@ -53,18 +53,18 @@ func (c *orasClient) AddFiles(ctx context.Context, mediaType string, files ...st
 
 // AddBytes creates and stores a descriptor from content in bytes, a media type, and
 // annotations.
-func (c *orasClient) AddBytes(ctx context.Context, mediaType string, config []byte, configAnnotations map[string]string) (ocispec.Descriptor, error) {
+func (c *orasClient) AddBytes(ctx context.Context, mediaType string, content []byte, annotations map[string]string) (ocispec.Descriptor, error) {
 	if err := c.checkFileStore(); err != nil {
 		return ocispec.Descriptor{}, err
 	}
 	configDesc := ocispec.Descriptor{
 		MediaType:   mediaType,
-		Digest:      digest.FromBytes(config),
-		Size:        int64(len(config)),
-		Annotations: configAnnotations,
+		Digest:      digest.FromBytes(content),
+		Size:        int64(len(content)),
+		Annotations: annotations,
 	}
 
-	return configDesc, c.artifactStore.Push(ctx, configDesc, bytes.NewReader(config))
+	return configDesc, c.artifactStore.Push(ctx, configDesc, bytes.NewReader(content))
 }
 
 // AddManifest creates and stores a manifest.
