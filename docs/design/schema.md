@@ -39,11 +39,11 @@ Schema Collections MAY contain Default Attribute Mappings. The Default Attribute
 
 ### Default Content Declaration
 
-Schema Collections MAY contain a Default Content Declaration. The Default Content Declaration in a schema is referenced by an algorithm linked to a collection when the algorithm is rum. This Declaration is expressed by assigning the `uor.dcd={{ dictionary }}` attribute to the Manifest Annotations of the Schema Collection.  
+Schema Collections MAY contain a Default Content Declaration. The Default Content Declaration in a schema is referenced by an algorithm linked to a collection when the algorithm is run. This Declaration is expressed by assigning the `uor.dcd={{ dictionary }}` attribute to the Manifest Annotations of the Schema Collection.  
 
 ## Design
 
-Collections import Schema via an annotated Linked Collection. A Schema Collection imports an Algorithm into the Schema's calling collection. 
+Collections import Schema via an annotated Linked Collection. A Schema Collection imports an Algorithm into the Schema's calling collection. A Collection can only have one Schema and a Schema can have only one Algorithm Reference.  
 
 When the UOR Client retrieves a Collection, it first retrieves the OCI manifest of the referenced collection. The UOR Client then searches the manifest for a reference to an imported schema. If a schema is found, the UOR client retrieves the OCI Manifest of the imported schema. The UOR Client then searches the Schema Collection's OCI Manifest for an Algorithm Reference. If an Algorithm Reference is found, The UOR Client will first check its cache and if needed, download the Referenced Algorithm for further operations. 
 
