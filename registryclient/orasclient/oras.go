@@ -23,7 +23,7 @@ import (
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient/internal/cache"
 )
 
-const uorMediaType = "application/vnd.uor.config.v1+json"
+const UorConfigMediaType = "application/vnd.uor.config.v1+json"
 
 type orasClient struct {
 	insecure      bool
@@ -38,8 +38,12 @@ type orasClient struct {
 
 var _ registryclient.Client = &orasClient{}
 
-// GatherDescriptors loads files to create OCI descriptors.
-func (c *orasClient) GatherDescriptors(ctx context.Context, mediaType string, files ...string) ([]ocispec.Descriptor, error) {
+// AddFiles loads one or more files to create OCI descriptors with a specific
+// media type and pushes them into underlying storage.
+func (c *orasClient) AddFiles(ctx context.Context, mediaType string, files ...string) ([]ocispec.Descriptor, error) {
+	if err := c.checkFileStore(); err != nil {
+		return nil, err
+	}
 	descs, err := loadFiles(ctx, c.artifactStore, mediaType, files...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to load files: %w", err)
@@ -47,14 +51,14 @@ func (c *orasClient) GatherDescriptors(ctx context.Context, mediaType string, fi
 	return descs, nil
 }
 
-// GenerateConfig creates and stores a config.
-// The config descriptor is returned for manifest generation.
-func (c *orasClient) GenerateConfig(ctx context.Context, config []byte, configAnnotations map[string]string) (ocispec.Descriptor, error) {
+// AddBytes creates and stores a descriptor from content in bytes, a media type, and
+// annotations.
+func (c *orasClient) AddBytes(ctx context.Context, mediaType string, config []byte, configAnnotations map[string]string) (ocispec.Descriptor, error) {
 	if err := c.checkFileStore(); err != nil {
 		return ocispec.Descriptor{}, err
 	}
 	configDesc := ocispec.Descriptor{
-		MediaType:   uorMediaType,
+		MediaType:   mediaType,
 		Digest:      digest.FromBytes(config),
 		Size:        int64(len(config)),
 		Annotations: configAnnotations,
@@ -63,9 +67,9 @@ func (c *orasClient) GenerateConfig(ctx context.Context, config []byte, configAn
 	return configDesc, c.artifactStore.Push(ctx, configDesc, bytes.NewReader(config))
 }
 
-// GenerateManifest creates and stores a manifest.
+// AddManifest creates and stores a manifest.
 // This is generated from the config descriptor and artifact descriptors.
-func (c *orasClient) GenerateManifest(ctx context.Context, ref string, configDesc ocispec.Descriptor, manifestAnnotations map[string]string, descriptors ...ocispec.Descriptor) (ocispec.Descriptor, error) {
+func (c *orasClient) AddManifest(ctx context.Context, ref string, configDesc ocispec.Descriptor, manifestAnnotations map[string]string, descriptors ...ocispec.Descriptor) (ocispec.Descriptor, error) {
 	if err := c.checkFileStore(); err != nil {
 		return ocispec.Descriptor{}, err
 	}

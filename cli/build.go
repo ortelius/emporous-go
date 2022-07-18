@@ -132,7 +132,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		}
 	}()
 
-	descs, err := client.GatherDescriptors(ctx, "", files...)
+	descs, err := client.AddFiles(ctx, "", files...)
 	if err != nil {
 		return err
 	}
@@ -143,12 +143,12 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	configDesc, err := client.GenerateConfig(ctx, []byte("{}"), nil)
+	configDesc, err := client.AddBytes(ctx, orasclient.UorConfigMediaType, []byte("{}"), nil)
 	if err != nil {
 		return err
 	}
 
-	_, err = client.GenerateManifest(ctx, o.Destination, configDesc, nil, descs...)
+	_, err = client.AddManifest(ctx, o.Destination, configDesc, nil, descs...)
 	if err != nil {
 		return err
 	}

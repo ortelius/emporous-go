@@ -15,14 +15,14 @@ import (
 	"oras.land/oras-go/v2/content/memory"
 )
 
-func TestGatherDescriptors(t *testing.T) {
+func TestAddFiles(t *testing.T) {
 	t.Run("Success/OneArtifact", func(t *testing.T) {
 		ctx := context.TODO()
 		expDigest := "sha256:2e30f6131ce2164ed5ef017845130727291417d60a1be6fad669bdc4473289cd"
 		testdata := filepath.Join("testdata", "workspace", "fish.jpg")
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
-		desc, err := c.GatherDescriptors(ctx, "", testdata)
+		desc, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
 		require.Len(t, desc, 1)
 		require.Equal(t, expDigest, desc[0].Digest.String())
@@ -30,18 +30,18 @@ func TestGatherDescriptors(t *testing.T) {
 }
 
 // TODO(jpower432): Create a mock client to mock non-tested actions
-func TestGenerateManifest(t *testing.T) {
+func TestAddManifest(t *testing.T) {
 	t.Run("Success/OneArtifact", func(t *testing.T) {
 		ctx := context.TODO()
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		testdata := filepath.Join("testdata", "workspace", "fish.jpg")
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
-		desc, err := c.GatherDescriptors(ctx, "", testdata)
+		desc, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.GenerateConfig(ctx, []byte("{}"), nil)
+		configDesc, err := c.AddBytes(ctx, UorConfigMediaType, []byte("{}"), nil)
 		require.NoError(t, err)
-		mdesc, err := c.GenerateManifest(ctx, "localhost:5000/test:latest", configDesc, nil, desc...)
+		mdesc, err := c.AddManifest(ctx, "localhost:5000/test:latest", configDesc, nil, desc...)
 		require.NoError(t, err)
 		require.Equal(t, expDigest, mdesc.Digest.String())
 	})
@@ -65,12 +65,12 @@ func TestPushPull(t *testing.T) {
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
-		descs, err := c.GatherDescriptors(ctx, "", testdata)
+		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.GenerateConfig(ctx, []byte("{}"), nil)
+		configDesc, err := c.AddBytes(ctx, UorConfigMediaType, []byte("{}"), nil)
 		require.NoError(t, err)
 
-		mdesc, err := c.GenerateManifest(ctx, ref, configDesc, nil, descs...)
+		mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
 		require.NoError(t, err)
 
 		source, err := c.Store()
@@ -87,12 +87,12 @@ func TestPushPull(t *testing.T) {
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		c, err := NewClient(WithPlainHTTP(true), WithCache(cache))
 		require.NoError(t, err)
-		descs, err := c.GatherDescriptors(ctx, "", testdata)
+		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.GenerateConfig(ctx, []byte("{}"), nil)
+		configDesc, err := c.AddBytes(ctx, UorConfigMediaType, []byte("{}"), nil)
 		require.NoError(t, err)
 
-		mdesc, err := c.GenerateManifest(ctx, ref, configDesc, nil, descs...)
+		mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
 		require.NoError(t, err)
 		source, err := c.Store()
 		require.NoError(t, err)
@@ -129,16 +129,16 @@ func TestPushPull(t *testing.T) {
 	t.Run("Success/PushMultipleImages", func(t *testing.T) {
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
-		descs, err := c.GatherDescriptors(ctx, "", testdata)
+		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.GenerateConfig(ctx, []byte("{}"), nil)
+		configDesc, err := c.AddBytes(ctx, UorConfigMediaType, []byte("{}"), nil)
 		require.NoError(t, err)
 
 		source, err := c.Store()
 		require.NoError(t, err)
 
 		for _, ref := range images {
-			mdesc, err := c.GenerateManifest(ctx, ref, configDesc, nil, descs...)
+			mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
 			require.NoError(t, err)
 			desc, err := c.Push(context.TODO(), source, ref)
 			require.NoError(t, err)

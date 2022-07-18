@@ -31,15 +31,7 @@ type Remote interface {
 // each descriptor and is return in the Store method for use with
 // Push and Pull operations or oras Copy operations.
 type Local interface {
-	// GatherDescriptors loads files to create OCI descriptors with a specific
-	// media type.
-	GatherDescriptors(context.Context, string, ...string) ([]ocispec.Descriptor, error)
-	// GenerateConfig creates and stores a config.
-	// The config descriptor is returned for manifest generation.
-	GenerateConfig(context.Context, []byte, map[string]string) (ocispec.Descriptor, error)
-	// GenerateManifest creates and stores a manifest for an image reference.
-	// This is generated from the config descriptor and artifact descriptors.
-	GenerateManifest(context.Context, string, ocispec.Descriptor, map[string]string, ...ocispec.Descriptor) (ocispec.Descriptor, error)
+	DescriptorAdder
 	// Save saves a built artifact to local store.
 	Save(context.Context, string, content.Store) (ocispec.Descriptor, error)
 	// Store returns the underlying content store
@@ -48,4 +40,18 @@ type Local interface {
 	// Destroy cleans up temporary files on-disk
 	// for tracking descriptors
 	Destroy() error
+}
+
+// DescriptorAdder defines methods to add OCI descriptors to an
+// underlying storage type.
+type DescriptorAdder interface {
+	// AddFiles loads one or more files to create OCI descriptors with a specific
+	// media type and pushes them into underlying storage.
+	AddFiles(context.Context, string, ...string) ([]ocispec.Descriptor, error)
+	// AddBytes creates and stores a descriptor from content in bytes, a media type, and
+	// annotations.
+	AddBytes(context.Context, string, []byte, map[string]string) (ocispec.Descriptor, error)
+	// AddManifest creates and stores a manifest for an image reference.
+	// This is generated from the config descriptor and artifact descriptors.
+	AddManifest(context.Context, string, ocispec.Descriptor, map[string]string, ...ocispec.Descriptor) (ocispec.Descriptor, error)
 }
