@@ -1,12 +1,12 @@
 # Schema
 
-UOR Schema is the attribute type declaration for a UOR Collection. Schema also links application logic to a importing UOR Collection.
+UOR Schema is the attribute type declaration for a UOR Collection. Schema also links application logic to a importing UOR Collection. Schema can also be used for things like validating a Collection's links and attribute declarations.
 
 This document explains UOR Schema and the relationship of a UOR Collection with its imported Schema. 
 
 ## Schema Elements
 
-There are three elements within a schema:
+There are four elements within a schema:
 
 1. Attribute Type Declarations
 2. Algorithm Reference
@@ -15,20 +15,23 @@ There are three elements within a schema:
 
 ### Attribute Type Declarations
 
-Attribute type declarations MUST be written to the manifest annotations of the Schema Collection manifest. Attribute type declarations MUST follow the following syntax and guidelines:
+Attribute type declarations MUST reside within a node of the Schema Collection as a JSON formatted document. Attribute type declarations MUST follow the following syntax and guidelines:
 
-**Key Formatting** - Attribute type declarations expressed via manifest annotation keys MUST follow reverse domain syntax, where the top level domain is the schema short name. 
+**Key Formatting** - Attributes expressed via manifest annotation keys MUST follow reverse domain notation, where the top level domain is the schema name; tag or digest. The Schema JSON does not declare the top level domain within. The top level domain is implicitly prepended as the top level domain by the UOR Client. 
+
+**Example key name:** `quay.io/exampleOrg/exampleSchema:versionTag.category1.attribute1`
 
 **Values** - Attribute type declarations expressed via manifest annotation values MUST be one of the following:
   - a string
   - a number
   - a boolean
   - a dictionary 
+  - an array
   - null
 
 ### Algorithm Reference
 
-Schema Collections MAY contain Algorithm References. The Algorithm Reference in a Schema Collection is the link to the algorithm imported into a calling Collection. This reference is expressed by assigning the `uor.algorithm=true` attribute to the node annotations of the Algorithm's Linked Collection. 
+Schema Collections MAY contain Algorithm References. A Collection's Algorithm Reference can be thought of as the "application logic" of the Collection. The Algorithm Reference in a Schema Collection is the link to the algorithm imported into a calling Collection. This reference is expressed by assigning the `uor.algorithm=true` attribute to the node annotations of the Algorithm's Linked Collection. 
 
 ### Default Attribute Mappings
 
