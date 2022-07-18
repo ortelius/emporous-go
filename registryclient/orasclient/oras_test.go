@@ -39,7 +39,7 @@ func TestAddManifest(t *testing.T) {
 		require.NoError(t, err)
 		desc, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddBytes(ctx, UorConfigMediaType, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, UorConfigMediaType, []byte("{}"), nil)
 		require.NoError(t, err)
 		mdesc, err := c.AddManifest(ctx, "localhost:5000/test:latest", configDesc, nil, desc...)
 		require.NoError(t, err)
@@ -67,7 +67,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddBytes(ctx, UorConfigMediaType, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, UorConfigMediaType, []byte("{}"), nil)
 		require.NoError(t, err)
 
 		mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
@@ -89,7 +89,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddBytes(ctx, UorConfigMediaType, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, UorConfigMediaType, []byte("{}"), nil)
 		require.NoError(t, err)
 
 		mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
@@ -131,7 +131,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddBytes(ctx, UorConfigMediaType, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, UorConfigMediaType, []byte("{}"), nil)
 		require.NoError(t, err)
 
 		source, err := c.Store()

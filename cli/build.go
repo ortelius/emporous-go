@@ -143,7 +143,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	configDesc, err := client.AddBytes(ctx, orasclient.UorConfigMediaType, []byte("{}"), nil)
+	configDesc, err := client.AddContent(ctx, orasclient.UorConfigMediaType, []byte("{}"), nil)
 	if err != nil {
 		return err
 	}

@@ -195,7 +195,7 @@ func TestLoadIndex(t *testing.T) {
 	require.Equal(t, "sha256:473f7d69dbc51105aff4bb2f7ec80e27402d2f40c3e9a076e8c773b15969eadf", ii.Manifests[0].Digest.String())
 }
 
-func TestValidateOCILayoutfile(t *testing.T) {
+func TestValidateOCILayoutFile(t *testing.T) {
 	type spec struct {
 		name     string
 		cacheDir string

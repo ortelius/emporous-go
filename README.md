@@ -46,7 +46,7 @@ uor-client-go version
 
 1. Create a directory with artifacts to publish to a registry as an OCI artifact. If the files reference each other, the client will replace the in-content linked files with the content address.
 > WARNING: Currently, only JSON is supported for link replacement.
-2. Use the `uor-client-go build` command to build the workspace as an OCI artifact in build cache `default is (homedir/.uor/cache). Can be set with UOR_CACHE environment variables`.
+2. Use the `uor-client-go build` command to build the workspace as an OCI artifact in build-cache `default is (homedir/.uor/cache). Can be set with UOR_CACHE environment variable`.
 3. Use the `uor-client-go push` command to publish to a registry as an OCI artifact.
 4. Use the `uor-client-go pull` command to pull the artifact back to a local workspace.
 

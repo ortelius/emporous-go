@@ -29,7 +29,7 @@ type Remote interface {
 // Local defines methods to interact with OCI artifacts
 // in a local context. An underlying store can be used to store
 // each descriptor and is return in the Store method for use with
-// Push and Pull operations or oras Copy operations.
+// Push and Pull operations.
 type Local interface {
 	DescriptorAdder
 	// Save saves a built artifact to local store.
@@ -48,9 +48,9 @@ type DescriptorAdder interface {
 	// AddFiles loads one or more files to create OCI descriptors with a specific
 	// media type and pushes them into underlying storage.
 	AddFiles(context.Context, string, ...string) ([]ocispec.Descriptor, error)
-	// AddBytes creates and stores a descriptor from content in bytes, a media type, and
+	// AddContent creates and stores a descriptor from content in bytes, a media type, and
 	// annotations.
-	AddBytes(context.Context, string, []byte, map[string]string) (ocispec.Descriptor, error)
+	AddContent(context.Context, string, []byte, map[string]string) (ocispec.Descriptor, error)
 	// AddManifest creates and stores a manifest for an image reference.
 	// This is generated from the config descriptor and artifact descriptors.
 	AddManifest(context.Context, string, ocispec.Descriptor, map[string]string, ...ocispec.Descriptor) (ocispec.Descriptor, error)

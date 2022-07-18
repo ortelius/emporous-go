@@ -41,6 +41,8 @@ func NewRenderCmd(rootOpts *RootOptions) *cobra.Command {
 	o := RenderOptions{RootOptions: rootOpts}
 
 	cmd := &cobra.Command{
+		// TODO(sabre1041) Reenable/remove once build capability strategy determined
+		Hidden:        true,
 		Use:           "render SRC",
 		Short:         "Template and build files from a local directory into a UOR dataset",
 		Example:       clientRenderExamples,

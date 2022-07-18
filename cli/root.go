@@ -70,8 +70,7 @@ func NewRootCmd() *cobra.Command {
 	f.StringVarP(&o.LogLevel, "loglevel", "l", "info",
 		"Log level (debug, info, warn, error, fatal)")
 
-	// TODO(sabre1041) Reenable/remove once build capability strategy determined
-	//cmd.AddCommand(NewRenderCmd(&o))
+	cmd.AddCommand(NewRenderCmd(&o))
 	cmd.AddCommand(NewBuildCmd(&o))
 	cmd.AddCommand(NewPushCmd(&o))
 	cmd.AddCommand(NewPullCmd(&o))

@@ -65,8 +65,8 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client.cache = config.cache
 
 	// We not allowing this to be configurable since
-	// oras file stores turn artifact into descriptors in
-	// specific way we want to honor.
+	// oras file stores turn artifacts into descriptors in
+	// specific way we want to reuse.
 	client.artifactStore = file.NewWithFallbackStorage("", memory.New())
 
 	return client, nil

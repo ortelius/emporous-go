@@ -51,9 +51,9 @@ func (c *orasClient) AddFiles(ctx context.Context, mediaType string, files ...st
 	return descs, nil
 }
 
-// AddBytes creates and stores a descriptor from content in bytes, a media type, and
+// AddContent creates and stores a descriptor from content in bytes, a media type, and
 // annotations.
-func (c *orasClient) AddBytes(ctx context.Context, mediaType string, content []byte, annotations map[string]string) (ocispec.Descriptor, error) {
+func (c *orasClient) AddContent(ctx context.Context, mediaType string, content []byte, annotations map[string]string) (ocispec.Descriptor, error) {
 	if err := c.checkFileStore(); err != nil {
 		return ocispec.Descriptor{}, err
 	}
