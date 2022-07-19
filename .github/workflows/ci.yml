@@ -16,9 +16,9 @@ permissions:
   id-token: write
 
 jobs:
-
- golangci-lint
-
+  #
+  # golangci-lint
+  #
   linters:
     name: Linters
     runs-on: ${{ matrix.os }}
