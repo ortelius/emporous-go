@@ -86,6 +86,7 @@ dockers:
     use: buildx
     build_flag_templates:
     - --platform=linux/amd64
+    - --build-arg TARGETARCH=amd64
     - --label=org.opencontainers.image.title={{ .ProjectName }}
     - --label=org.opencontainers.image.description={{ .ProjectName }}
     - --label=org.opencontainers.image.url=https://github.com/uor-framework/{{ .ProjectName }}
