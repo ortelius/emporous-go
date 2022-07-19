@@ -13,7 +13,6 @@ ARG DNF_PACKAGES="\
   glibc-minimal-langpack \
 "
 ARG ROOTFS="/rootfs"
-ARG TARGETARCH=${TARGETARCH}
 
 RUN set -ex \
      && mkdir -p ${ROOTFS} \
@@ -23,6 +22,7 @@ RUN set -ex \
     && echo
 
 FROM scratch
+ARG TARGETARCH
 COPY --from=builder /rootfs/ /
 COPY ./client-linux-${TARGETARCH} /usr/local/bin/client
 ENTRYPOINT ["/usr/local/bin/client"]
