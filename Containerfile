@@ -13,7 +13,7 @@ ARG DNF_PACKAGES="\
   glibc-minimal-langpack \
 "
 ARG ROOTFS="/rootfs"
-ARG TARGETARCH
+ARG TARGETARCH=${TARGETARCH}
 
 RUN set -ex \
      && mkdir -p ${ROOTFS} \
