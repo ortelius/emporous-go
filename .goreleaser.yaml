@@ -19,14 +19,14 @@ builds:
     mod_timestamp: "{{ .CommitTimestamp }}"
     goos:
       - linux
-#     - darwin
-#     - windows
+      - darwin
+      - windows
     goarch:
       - amd64
       - arm64
-#     - arm
-#     - s390x
-#     - ppc64le
+      - arm
+      - s390x
+      - ppc64le
     goarm:
       - "7"
     ignore:
@@ -94,28 +94,12 @@ dockers:
     - --label=org.opencontainers.image.created={{ .Date }}
     - --label=org.opencontainers.image.revision={{ .FullCommit }}
     - --label=org.opencontainers.image.licenses=APACHE2.0
-  - image_templates: 
-      - ghcr.io/uor-framework/{{ .ProjectName }}:{{ .Tag }}-arm64
-    dockerfile: Containerfile
-    use: buildx
-    build_flag_templates:
-    - --platform=linux/arm64
-    - --label=org.opencontainers.image.title={{ .ProjectName }}
-    - --label=org.opencontainers.image.description={{ .ProjectName }}
-    - --label=org.opencontainers.image.url=https://github.com/uor-framework/{{ .ProjectName }}
-    - --label=org.opencontainers.image.source=https://github.com/uor-framework/{{ .ProjectName }}
-    - --label=org.opencontainers.image.version={{ .Tag }}
-    - --label=org.opencontainers.image.created={{ .Date }}
-    - --label=org.opencontainers.image.revision={{ .FullCommit }}
-    - --label=org.opencontainers.image.licenses=APACHE2.0
 docker_manifests:
   - name_template: uor-framework/client:{{ .Tag }}
     image_templates:
-      - uor-framework/client:{{ .Tag }}-arm64
       - uor-framework/client:{{ .Tag }}-amd64
   - name_template: uor-framework/client:latest
     image_templates:
-      - uor-framework/client:{{ .Tag }}-arm64
       - uor-framework/client:{{ .Tag }}-amd64
 
 checksum:
