@@ -62,6 +62,9 @@ func TestTag(t *testing.T) {
 	cacheDir := t.TempDir()
 	source := "testdata/valid"
 	err := filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 		// Do not copy in the index file. We are generating a new one for this test.
 		if info.Name() == indexFile {
 			return nil
