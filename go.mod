@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	k8s.io/cli-runtime v0.24.0
 	k8s.io/kubectl v0.24.0
-	oras.land/oras-go/v2 v2.0.0-rc.1
+	oras.land/oras-go/v2 v2.0.0-rc.1.0.20220720102610-b898737f6fb5
 )
 
 require (
