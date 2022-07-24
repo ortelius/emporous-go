@@ -81,7 +81,7 @@ sboms:
 
 dockers:
   - image_templates: 
-      - ghcr.io/uor-framework/{{ .ProjectName }}:{{ .Tag }}-amd64
+      - ghcr.io/usrbinkat/{{ .ProjectName }}:{{ .Tag }}-amd64
     dockerfile: Containerfile
     use: buildx
     build_flag_templates:
