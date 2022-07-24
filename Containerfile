@@ -27,7 +27,7 @@ FROM registry.access.redhat.com/ubi9/ubi as builder
 #COPY --from=builder /rootfs/ /
 
 ARG TARGETARCH
-COPY ./client-linux-${TARGETARCH} /usr/local/bin/client
+COPY ../client-linux-${TARGETARCH} /usr/local/bin/client
 RUN /usr/local/bin/client version
 
 ENTRYPOINT ["/usr/local/bin/client"]
