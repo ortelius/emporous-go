@@ -98,7 +98,7 @@ docker_manifests:
   - name_template: ghcr.io/usrbinkat/client:{{ .Tag }}
     image_templates:
       - ghcr.io/usrbinkat/client:{{ .Tag }}-amd64
-  - name_template: usrbinkat/client:latest
+  - name_template: ghcr.io/usrbinkat/client:latest
     image_templates:
       - ghcr.io/usrbinkat/client:{{ .Tag }}-amd64
 
