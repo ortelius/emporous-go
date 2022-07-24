@@ -1,4 +1,5 @@
 project_name: client
+
 env:
 - GO111MODULE=on
 - COSIGN_EXPERIMENTAL=true
@@ -112,6 +113,7 @@ dockers:
     - --label=org.opencontainers.image.created={{ .Date }}
     - --label=org.opencontainers.image.revision={{ .FullCommit }}
     - --label=org.opencontainers.image.licenses=APACHE2.0
+
 docker_manifests:
   - name_template: ghcr.io/usrbinkat/client:{{ .Tag }}
     image_templates:
@@ -139,19 +141,16 @@ snapshot:
   name_template: SNAPSHOT-{{ .ShortCommit }}
 
 release:
-
-  prerelease: allow
   draft: true
+  prerelease: allow
   github:
     owner: usrbinkat
     name: client
-
+  name_template: "{{.ProjectName}}-{{ .Tag }}"
   header: |
 
-    ## UOR Client ({{ .Version }})
+    ## UOR Client {{ .Version }}
 
   footer: |
 
-    ### Thanks to all contributors!
-
-  name_template: "{{.ProjectName}}-{{ .Tag }}"
+    ### Thank you to all contributors!

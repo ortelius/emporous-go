@@ -1,5 +1,6 @@
 ## Build a UBI micro rootfs from UBI repositories
-FROM registry.access.redhat.com/ubi9/ubi as builder
+#FROM registry.access.redhat.com/ubi9/ubi-micro as builder
+FROM registry.access.redhat.com/ubi9/ubi-micro
 
 #ARG DNF_FLAGS="\
 #  -y \
