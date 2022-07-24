@@ -95,7 +95,7 @@ dockers:
     - --label=org.opencontainers.image.created={{ .Date }}
     - --label=org.opencontainers.image.revision={{ .FullCommit }}
     - --label=org.opencontainers.image.licenses=APACHE2.0
-  - id: arm64 
+  - id: amd64 
     use: buildx
     goos: linux
     goarch: amd64
