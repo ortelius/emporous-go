@@ -78,9 +78,12 @@ sboms:
 - artifacts: binary
 
 dockers:
-  - image_templates: 
-      - ghcr.io/usrbinkat/{{ .ProjectName }}:{{ .Tag }}-arm64
+  - id: arm64 
+    goos: linux
+    goarch: arm64
     dockerfile: Containerfile
+    image_templates: 
+      - ghcr.io/usrbinkat/{{ .ProjectName }}:{{ .Tag }}-arm64
     use: buildx
     build_flag_templates:
     - --platform=linux/arm64
@@ -92,10 +95,13 @@ dockers:
     - --label=org.opencontainers.image.created={{ .Date }}
     - --label=org.opencontainers.image.revision={{ .FullCommit }}
     - --label=org.opencontainers.image.licenses=APACHE2.0
-  - image_templates: 
-      - ghcr.io/usrbinkat/{{ .ProjectName }}:{{ .Tag }}-amd64
-    dockerfile: Containerfile
+  - id: arm64 
     use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: Containerfile
+    image_templates: 
+      - ghcr.io/usrbinkat/{{ .ProjectName }}:{{ .Tag }}-amd64
     build_flag_templates:
     - --platform=linux/amd64
     - --label=org.opencontainers.image.title={{ .ProjectName }}
