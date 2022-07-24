@@ -1,5 +1,5 @@
 project_name: client
-
+dist: .
 env:
 - GO111MODULE=on
 - COSIGN_EXPERIMENTAL=true
@@ -8,7 +8,6 @@ before:
   hooks:
     - go mod tidy
     - go mod vendor
-
 builds:
   -
     binary: client-{{ .Os }}-{{ .Arch }}
