@@ -1,4 +1,4 @@
-project_name: client
+project_name: uor-client-go
 
 env:
 - GO111MODULE=on
@@ -123,6 +123,16 @@ docker_manifests:
     image_templates:
       - ghcr.io/usrbinkat/client:{{ .Tag }}-amd64
       - ghcr.io/usrbinkat/client:{{ .Tag }}-arm64
+
+docker_signs:
+- cmd: cosign
+  artifacts: manifests
+  output: true
+  env:
+  - COSIGN_EXPERIMENTAL=1
+  args:
+  - 'sign'
+  - '${artifact}'
 
 checksum:
   name_template: 'checksums.txt'
