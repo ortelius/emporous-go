@@ -11,7 +11,7 @@ before:
 builds:
   -
     binary: client-{{ .Os }}-{{ .Arch }}
-    no_unique_dist_dir: true
+#   no_unique_dist_dir: true
     main: ./cmd/client
     flags:
       - -trimpath
