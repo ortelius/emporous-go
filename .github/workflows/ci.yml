@@ -22,8 +22,7 @@ jobs:
   #
   linters:
     name: Linters
-#   runs-on: ${{ matrix.os }}
-    runs-on: self-hosted
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
 
     strategy:
@@ -47,8 +46,7 @@ jobs:
   #
   project:
     name: Project Checks
-#   runs-on: ubuntu-latest
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       -
@@ -78,8 +76,7 @@ jobs:
   # Release
   release:  
     needs: [linters, project]
-#   runs-on: ubuntu-latest
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     if: startsWith(github.ref, 'refs/tags/')
     steps:
