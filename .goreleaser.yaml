@@ -1,4 +1,4 @@
-project_name: uor-client-go
+project_name: client
 
 env:
 - GO111MODULE=on
