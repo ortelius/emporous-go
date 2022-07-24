@@ -95,12 +95,12 @@ dockers:
     - --label=org.opencontainers.image.revision={{ .FullCommit }}
     - --label=org.opencontainers.image.licenses=APACHE2.0
 docker_manifests:
-  - name_template: usrbinkat/client:{{ .Tag }}
+  - name_template: ghcr.io/usrbinkat/client:{{ .Tag }}
     image_templates:
-      - usrbinkat/client:{{ .Tag }}-amd64
+      - ghcr.io/usrbinkat/client:{{ .Tag }}-amd64
   - name_template: usrbinkat/client:latest
     image_templates:
-      - usrbinkat/client:{{ .Tag }}-amd64
+      - ghcr.io/usrbinkat/client:{{ .Tag }}-amd64
 
 checksum:
   name_template: 'checksums.txt'
