@@ -1,5 +1,4 @@
 project_name: client
-dist: .
 env:
 - GO111MODULE=on
 - COSIGN_EXPERIMENTAL=true
@@ -11,7 +10,7 @@ before:
 builds:
   -
     binary: client-{{ .Os }}-{{ .Arch }}
-#   no_unique_dist_dir: true
+    no_unique_dist_dir: true
     main: ./cmd/client
     flags:
       - -trimpath
