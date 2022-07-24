@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sync"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -197,15 +198,19 @@ func (o *PullOptions) moveToResults(itr model.Iterator, matcher attributes.Parti
 
 func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispec.Descriptor, []ocispec.Descriptor, error) {
 	var layerDescs []ocispec.Descriptor
-	layerFn := func(descs []ocispec.Descriptor) {
-		layerDescs = append(layerDescs, descs...)
+	var mu sync.Mutex
+	layerFn := func(_ context.Context, desc ocispec.Descriptor) error {
+		mu.Lock()
+		defer mu.Unlock()
+		layerDescs = append(layerDescs, desc)
+		return nil
 	}
 	client, err := orasclient.NewClient(
 		orasclient.SkipTLSVerify(o.Insecure),
 		orasclient.WithPlainHTTP(o.PlainHTTP),
 		orasclient.WithAuthConfigs(o.Configs),
 		orasclient.WithOutputDir(output),
-		orasclient.WithLayerDescriptors(layerFn),
+		orasclient.WithPostCopy(layerFn),
 	)
 	if err != nil {
 		return ocispec.Descriptor{}, nil, fmt.Errorf("error configuring client: %v", err)
@@ -215,7 +220,7 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 	if err != nil {
 		return ocispec.Descriptor{}, nil, err
 	}
-	return desc, layerDescs, nil
+	return desc, layerDescs, client.Destroy()
 }
 
 // mkTempDir will make a temporary dir and return the name

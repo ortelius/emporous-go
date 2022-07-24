@@ -57,6 +57,7 @@ func TestCLIE2E(t *testing.T) {
 					Logger: testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
+				PlainHTTP:   true,
 			},
 			pullOpts: &PullOptions{
 				RootOptions: &RootOptions{
@@ -67,7 +68,8 @@ func TestCLIE2E(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Output: t.TempDir(),
+				PlainHTTP: true,
+				Output:    t.TempDir(),
 			},
 		},
 		{
@@ -93,6 +95,7 @@ func TestCLIE2E(t *testing.T) {
 					Logger: testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
+				PlainHTTP:   true,
 			},
 			pullOpts: &PullOptions{
 				RootOptions: &RootOptions{
@@ -103,7 +106,8 @@ func TestCLIE2E(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Output: t.TempDir(),
+				Output:    t.TempDir(),
+				PlainHTTP: true,
 			},
 		},
 		{
@@ -129,6 +133,7 @@ func TestCLIE2E(t *testing.T) {
 					Logger: testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-uor-test:latest", u.Host),
+				PlainHTTP:   true,
 			},
 			pullOpts: &PullOptions{
 				RootOptions: &RootOptions{
@@ -139,7 +144,8 @@ func TestCLIE2E(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Output: t.TempDir(),
+				Output:    t.TempDir(),
+				PlainHTTP: true,
 			},
 		},
 	}

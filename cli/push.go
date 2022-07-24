@@ -138,7 +138,7 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		}
 	}()
 
-	descs, err := client.GatherDescriptors("", files...)
+	descs, err := client.GatherDescriptors(ctx, "", files...)
 	if err != nil {
 		return err
 	}
@@ -149,12 +149,12 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	configDesc, err := client.GenerateConfig(nil)
+	configDesc, err := client.GenerateConfig(ctx, []byte("{}"), nil)
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.GenerateManifest(o.Destination, configDesc, nil, descs...); err != nil {
+	if _, err := client.GenerateManifest(ctx, o.Destination, configDesc, nil, descs...); err != nil {
 		return err
 	}
 
@@ -165,7 +165,7 @@ func (o *PushOptions) Run(ctx context.Context) error {
 
 	o.Logger.Infof("Artifact %s published to %s\n", desc.Digest, o.Destination)
 
-	return nil
+	return client.Destroy()
 }
 
 // AddDescriptors adds the attributes of each file listed in the config
