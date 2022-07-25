@@ -9,6 +9,7 @@ ARG DNF_FLAGS="\
   --installroot \
 "
 ARG DNF_PACKAGES="\
+  openssl \
   coreutils-single \
   glibc-minimal-langpack \
 "
