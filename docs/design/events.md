@@ -23,18 +23,13 @@ When the UOR Client pushes or pulls (an object), it performs a routing action. T
 
 
 ### Router API
-1. Route object to Collection Control Message
+| Control Message   |
 |-------------------|
-| attributes (map)  | {The attributes of the object}
-|-------------------|
+| attributes (map)  | {The attributes of the object}|
 | digest            | {The digest of the object}
-|-------------------|
 | source            | {The source address of the object}
-|-------------------|
 | destination       | {The destination address of the object}
-|-------------------|
 | payload (bool)    | {If no payload, the object is only attributes}
-|-------------------|
 
 # Event Engine Design
 
