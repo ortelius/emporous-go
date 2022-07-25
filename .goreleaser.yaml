@@ -1,32 +1,138 @@
 project_name: client
 
+env:
+- GO111MODULE=on
+- COSIGN_EXPERIMENTAL=true
+
 before:
   hooks:
     - go mod tidy
     - go mod vendor
-
 builds:
-  - id: linux-amd64
-    binary: client-linux-{{ .Arch }}
+  -
+    binary: client-{{ .Os }}-{{ .Arch }}
+    no_unique_dist_dir: true
     main: ./cmd/client
-    ldflags:
-      - "-X github.com/uor-framework/client/cli.version={{ .Version }}"
-      - "-X github.com/uor-framework/client/cli.commit={{ .ShortCommit }}"
-      - "-X github.com/uor-framework/client/cli.buildDate={{ .Date }}"
+    flags:
+      - -trimpath
+    mod_timestamp: "{{ .CommitTimestamp }}"
     goos:
       - linux
-    goarch:
-      - amd64
-    no_unique_dist_dir: true
-  
-  - id: darwin-amd64
-    binary: client-darwin-{{ .Arch }}
-    main: ./cmd/client
-    goos:
       - darwin
+      - windows
     goarch:
       - amd64
-    no_unique_dist_dir: true
+      - arm64
+      - arm
+      - s390x
+      - ppc64le
+    goarm:
+      - "7"
+    ignore:
+      - goos: windows
+        goarch: arm64
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: s390x
+      - goos: windows
+        goarch: ppc64le
+      - goos: darwin
+        goarch: arm
+      - goos: darwin
+        goarch: s390x
+      - goos: darwin
+        goarch: ppc64le
+    ldflags:
+      - "-X github.com/uor-framework/client/cli.version={{ .Tag }}"
+      - "-X github.com/uor-framework/client/cli.commit={{ .ShortCommit }}"
+      - "-X github.com/uor-framework/client/cli.buildDate={{ .Date }}"
+    env:
+      - CGO_ENABLED=0
+  
+signs:
+- id: client-keyless
+  signature: "${artifact}.sig"
+  certificate: "${artifact}.pem"
+  env:
+  - COSIGN_EXPERIMENTAL=1
+  cmd: cosign
+  args:
+    - sign-blob
+    - "--output-certificate=${certificate}"
+    - "--output-signature=${signature}"
+    - "${artifact}"
+  artifacts: binary
+  output: true
+
+archives:
+  - format: binary
+    name_template: "{{ .Binary }}"
+    allow_different_binary_count: true
+    replacements:
+      linux: Linux
+      darwin: Darwin
+      windows: Windows
+      amd64: x86_64
+
+sboms:
+- artifacts: binary
+
+dockers:
+  - id: arm64 
+    goos: linux
+    goarch: arm64
+    dockerfile: Containerfile
+    image_templates: 
+      - ghcr.io/uor-framework/{{ .ProjectName }}:{{ .Tag }}-arm64
+    use: buildx
+    build_flag_templates:
+    - --platform=linux/arm64
+    - --label=org.opencontainers.image.title={{ .ProjectName }}
+    - --label=org.opencontainers.image.description={{ .ProjectName }}
+    - --label=org.opencontainers.image.url=https://github.com/uor-framework/{{ .ProjectName }}
+    - --label=org.opencontainers.image.source=https://github.com/uor-framework/{{ .ProjectName }}
+    - --label=org.opencontainers.image.version={{ .Tag }}
+    - --label=org.opencontainers.image.created={{ .Date }}
+    - --label=org.opencontainers.image.revision={{ .FullCommit }}
+    - --label=org.opencontainers.image.licenses=APACHE2.0
+  - id: amd64 
+    use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: Containerfile
+    image_templates: 
+      - ghcr.io/uor-framework/{{ .ProjectName }}:{{ .Tag }}-amd64
+    build_flag_templates:
+    - --platform=linux/amd64
+    - --label=org.opencontainers.image.title={{ .ProjectName }}
+    - --label=org.opencontainers.image.description={{ .ProjectName }}
+    - --label=org.opencontainers.image.url=https://github.com/uor-framework/{{ .ProjectName }}
+    - --label=org.opencontainers.image.source=https://github.com/uor-framework/{{ .ProjectName }}
+    - --label=org.opencontainers.image.version={{ .Tag }}
+    - --label=org.opencontainers.image.created={{ .Date }}
+    - --label=org.opencontainers.image.revision={{ .FullCommit }}
+    - --label=org.opencontainers.image.licenses=APACHE2.0
+
+docker_manifests:
+  - name_template: ghcr.io/uor-framework/client:{{ .Tag }}
+    image_templates:
+      - ghcr.io/uor-framework/client:{{ .Tag }}-amd64
+      - ghcr.io/uor-framework/client:{{ .Tag }}-arm64
+  - name_template: ghcr.io/uor-framework/client:latest
+    image_templates:
+      - ghcr.io/uor-framework/client:{{ .Tag }}-amd64
+      - ghcr.io/uor-framework/client:{{ .Tag }}-arm64
+
+docker_signs:
+- cmd: cosign
+  artifacts: manifests
+  output: true
+  env:
+  - COSIGN_EXPERIMENTAL=1
+  args:
+  - 'sign'
+  - '${artifact}'
 
 checksum:
   name_template: 'checksums.txt'
@@ -41,18 +147,20 @@ changelog:
     - Merge branch
     - go mod tidy
 
+snapshot:
+  name_template: SNAPSHOT-{{ .ShortCommit }}
+
 release:
-
-  prerelease: auto
-
+  draft: true
+  prerelease: allow
+  github:
+    owner: uor-framework
+    name: client
+  name_template: "{{.ProjectName}}-{{ .Tag }}"
   header: |
-    ## UOR Client ({{ .Date }})
 
-    Welcome to this new release!
+    ## UOR Client {{ .Version }}
 
   footer: |
-    ## Thanks!
 
-    Those were the changes on {{ .Tag }}!
-
-  name_template: "{{.ProjectName}}-v{{.Version}}"
+    ### Thank you to all contributors!
