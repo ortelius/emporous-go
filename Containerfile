@@ -1,3 +1,4 @@
+## Build a UBI micro rootfs from UBI repositories
 FROM registry.access.redhat.com/ubi9/ubi as builder
 
 ARG DNF_FLAGS="\
@@ -12,8 +13,8 @@ ARG DNF_PACKAGES="\
   coreutils-single \
   glibc-minimal-langpack \
 "
-
 ARG ROOTFS="/rootfs"
+
 RUN set -ex \
      && mkdir -p ${ROOTFS} \
      && dnf install ${DNF_FLAGS} ${ROOTFS} ${DNF_PACKAGES} \
@@ -21,14 +22,13 @@ RUN set -ex \
      && rm -rf ${ROOTFS}/var/cache/* \
     && echo
 
+## Build a container from UBI micro rootfs and load platform specific artifact
 FROM scratch
 COPY --from=builder /rootfs/ /
 
 ARG TARGETARCH
-COPY ./bin/client-linux-${TARGETARCH} /usr/local/bin/client
-RUN set -ex \
-     && /usr/local/bin/client version \
-    && echo
+COPY ../client-linux-${TARGETARCH} /usr/local/bin/client
+RUN set -ex && /usr/local/bin/client version
 
 ENTRYPOINT ["/usr/local/bin/client"]
 CMD ["version"]
