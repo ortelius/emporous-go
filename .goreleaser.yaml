@@ -84,14 +84,14 @@ dockers:
     goarch: arm64
     dockerfile: Containerfile
     image_templates: 
-      - ghcr.io/uor-framework/{{ .ProjectName }}:{{ .Tag }}-arm64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:{{ .Tag }}-arm64
     use: buildx
     build_flag_templates:
     - --platform=linux/arm64
     - --label=org.opencontainers.image.title={{ .ProjectName }}
     - --label=org.opencontainers.image.description={{ .ProjectName }}
-    - --label=org.opencontainers.image.url=https://github.com/uor-framework/{{ .ProjectName }}
-    - --label=org.opencontainers.image.source=https://github.com/uor-framework/{{ .ProjectName }}
+    - --label=org.opencontainers.image.url=https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}
+    - --label=org.opencontainers.image.source=https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}
     - --label=org.opencontainers.image.version={{ .Tag }}
     - --label=org.opencontainers.image.created={{ .Date }}
     - --label=org.opencontainers.image.revision={{ .FullCommit }}
@@ -102,27 +102,27 @@ dockers:
     goarch: amd64
     dockerfile: Containerfile
     image_templates: 
-      - ghcr.io/uor-framework/{{ .ProjectName }}:{{ .Tag }}-amd64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:{{ .Tag }}-amd64
     build_flag_templates:
     - --platform=linux/amd64
     - --label=org.opencontainers.image.title={{ .ProjectName }}
     - --label=org.opencontainers.image.description={{ .ProjectName }}
-    - --label=org.opencontainers.image.url=https://github.com/uor-framework/{{ .ProjectName }}
-    - --label=org.opencontainers.image.source=https://github.com/uor-framework/{{ .ProjectName }}
+    - --label=org.opencontainers.image.url=https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}
+    - --label=org.opencontainers.image.source=https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}
     - --label=org.opencontainers.image.version={{ .Tag }}
     - --label=org.opencontainers.image.created={{ .Date }}
     - --label=org.opencontainers.image.revision={{ .FullCommit }}
     - --label=org.opencontainers.image.licenses=APACHE2.0
 
 docker_manifests:
-  - name_template: ghcr.io/uor-framework/client:{{ .Tag }}
+  - name_template: ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:{{ .Tag }}
     image_templates:
-      - ghcr.io/uor-framework/client:{{ .Tag }}-amd64
-      - ghcr.io/uor-framework/client:{{ .Tag }}-arm64
-  - name_template: ghcr.io/uor-framework/client:latest
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:{{ .Tag }}-amd64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:{{ .Tag }}-arm64
+  - name_template: ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:latest
     image_templates:
-      - ghcr.io/uor-framework/client:{{ .Tag }}-amd64
-      - ghcr.io/uor-framework/client:{{ .Tag }}-arm64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:{{ .Tag }}-amd64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:{{ .Tag }}-arm64
 
 docker_signs:
 - cmd: cosign
@@ -154,7 +154,7 @@ release:
   draft: true
   prerelease: allow
   github:
-    owner: uor-framework
+    owner: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
     name: client
   name_template: "{{.ProjectName}}-{{ .Tag }}"
   header: |
