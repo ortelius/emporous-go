@@ -1,6 +1,6 @@
 package collection
 
-import "github.com/uor-framework/client/model"
+import "github.com/uor-framework/uor-client-go/model"
 
 // Edge defines a relationship
 // between two Nodes.

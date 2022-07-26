@@ -22,7 +22,7 @@ import (
 	"oras.land/oras-go/v2/content/memory"
 	"oras.land/oras-go/v2/registry/remote"
 
-	"github.com/uor-framework/client/cli/log"
+	"github.com/uor-framework/uor-client-go/cli/log"
 )
 
 func TestPullComplete(t *testing.T) {

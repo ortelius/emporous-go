@@ -1,4 +1,4 @@
-project_name: client
+project_name: uor-client-go
 
 env:
 - GO111MODULE=on
@@ -10,9 +10,9 @@ before:
     - go mod vendor
 builds:
   -
-    binary: client-{{ .Os }}-{{ .Arch }}
+    binary: uor-client-go-{{ .Os }}-{{ .Arch }}
     no_unique_dist_dir: true
-    main: ./cmd/client
+    main: ./cmd/uor-client-go
     flags:
       - -trimpath
     mod_timestamp: "{{ .CommitTimestamp }}"
@@ -44,14 +44,14 @@ builds:
       - goos: darwin
         goarch: ppc64le
     ldflags:
-      - "-X github.com/uor-framework/client/cli.version={{ .Tag }}"
-      - "-X github.com/uor-framework/client/cli.commit={{ .ShortCommit }}"
-      - "-X github.com/uor-framework/client/cli.buildDate={{ .Date }}"
+      - "-X github.com/uor-framework/uor-client-go/cli.version={{ .Tag }}"
+      - "-X github.com/uor-framework/uor-client-go/cli.commit={{ .ShortCommit }}"
+      - "-X github.com/uor-framework/uor-client-go/cli.buildDate={{ .Date }}"
     env:
       - CGO_ENABLED=0
   
 signs:
-- id: client-keyless
+- id: uor-client-go-keyless
   signature: "${artifact}.sig"
   certificate: "${artifact}.pem"
   env:
@@ -115,14 +115,14 @@ dockers:
     - --label=org.opencontainers.image.licenses=APACHE2.0
 
 docker_manifests:
-  - name_template: ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:{{ .Tag }}
+  - name_template: ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:{{ .Tag }}
     image_templates:
-      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:{{ .Tag }}-amd64
-      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:{{ .Tag }}-arm64
-  - name_template: ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:latest
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:{{ .Tag }}-amd64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:{{ .Tag }}-arm64
+  - name_template: ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:latest
     image_templates:
-      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:{{ .Tag }}-amd64
-      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/client:{{ .Tag }}-arm64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:{{ .Tag }}-amd64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:{{ .Tag }}-arm64
 
 docker_signs:
 - cmd: cosign
@@ -155,11 +155,11 @@ release:
   prerelease: allow
   github:
     owner: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
-    name: client
+    name: uor-client-go
   name_template: "{{.ProjectName}}-{{ .Tag }}"
   header: |
 
-    ## UOR Client {{ .Version }}
+    ## UOR Go Client {{ .Version }}
 
   footer: |
 

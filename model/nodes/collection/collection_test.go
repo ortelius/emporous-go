@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/client/model"
-	"github.com/uor-framework/client/util/testutils"
+	"github.com/uor-framework/uor-client-go/model"
+	"github.com/uor-framework/uor-client-go/util/testutils"
 )
 
 func TestCollection_Root(t *testing.T) {

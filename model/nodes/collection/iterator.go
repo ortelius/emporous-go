@@ -3,7 +3,7 @@ package collection
 import (
 	"sort"
 
-	"github.com/uor-framework/client/model"
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 var (

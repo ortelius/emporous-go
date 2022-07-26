@@ -1,6 +1,6 @@
 package testutils
 
-import "github.com/uor-framework/client/model"
+import "github.com/uor-framework/uor-client-go/model"
 
 var (
 	_ model.Node       = &MockNode{}

@@ -25,7 +25,7 @@ To learn more about Universal Runtime visit the UOR Framework website at <https:
 
 ```
 make
-./bin/client -h
+./bin/uor-client-go -h
 ```
 
 ### Test
@@ -40,31 +40,31 @@ make test-unit
 
 ### Version
 
-client version
+uor-client-go version
 
 ### User Workflow
 
 1. Create a directory with artifacts to publish to a registry as an OCI artifact. If the files reference each other, the client will replace the in-content linked files with the content address.
    > WARNING: Currently, only JSON is supported for link replacement.
-2. Use the `client push` command to publish the workspace to a registry as an OCI artifact.
-3. Use the `client pull` command to pull the artifact back to a local workspace.
+2. Use the `uor-client-go push` command to publish the workspace to a registry as an OCI artifact.
+3. Use the `uor-client-go pull` command to pull the artifact back to a local workspace.
 
 ### Push workspace to a registry location
 
 ```
-client push my-workspace localhost:5000/myartifacts:latest
+uor-client-go push my-workspace localhost:5000/myartifacts:latest
 ```
 
 ### Pull UOR collection to a location
 
 ```
-client pull localhost:5000/myartifacts:latest my-output-directory
+uor-client-go pull localhost:5000/myartifacts:latest my-output-directory
 ```
 
 ### Pull subsets of a UOR collection to a location by attribute
 
 ```
-client pull localhost:5000/myartifacts:latest my-output-directory --attributes key=value
+uor-client-go pull localhost:5000/myartifacts:latest my-output-directory --attributes key=value
 ```
 
 ## Getting Started
@@ -110,17 +110,17 @@ files:
 5. Run the UOR client push command referencing the dataset config, the content directory, and the destination registry location.
 
 ```
-client push my-workspace localhost:5000/test/dataset:latest --dsconfig dataset-config.yaml 
+uor-client-go push my-workspace localhost:5000/test/dataset:latest --dsconfig dataset-config.yaml 
 ```
 
 6. Optionally inspect the OCI manifest of the dataset:
   `curl -H "Accept: application/vnd.oci.image.manifest.v1+json" <servername>:<port>/v2/<namespace>/<repo>/manifests/<digest or tag>`
 
-7. Optionally pull the collection back down to verify the content with `client pull`:
-  `client pull localhost:5000/test/dataset:latest my-output-directory`
+7. Optionally pull the collection back down to verify the content with `uor-client-go pull`:
+  `uor-client-go pull localhost:5000/test/dataset:latest my-output-directory`
 
-8. Optionally pull a subset of the collection back down to verify the content with `client pull`:
-  `client pull localhost:5000/test/dataset:latest my-output-directory --attributes "fiction=true"`
+8. Optionally pull a subset of the collection back down to verify the content with `uor-client-go pull`:
+  `uor-client-go pull localhost:5000/test/dataset:latest my-output-directory --attributes "fiction=true"`
 
 # Glossary
 

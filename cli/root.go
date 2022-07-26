@@ -8,7 +8,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	"github.com/uor-framework/client/cli/log"
+	"github.com/uor-framework/uor-client-go/cli/log"
 )
 
 // RootOptions describe global configuration options that can be set.

@@ -9,10 +9,10 @@ import (
 
 	"github.com/opencontainers/go-digest"
 
-	"github.com/uor-framework/client/builder/parser"
-	"github.com/uor-framework/client/model"
-	"github.com/uor-framework/client/model/nodes/collection"
-	"github.com/uor-framework/client/util/workspace"
+	"github.com/uor-framework/uor-client-go/builder/parser"
+	"github.com/uor-framework/uor-client-go/model"
+	"github.com/uor-framework/uor-client-go/model/nodes/collection"
+	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
 // Builder defines methods for building UOR datasets.

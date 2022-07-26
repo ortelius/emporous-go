@@ -12,11 +12,11 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	"github.com/uor-framework/client/builder/api/v1alpha1"
-	load "github.com/uor-framework/client/builder/config"
-	"github.com/uor-framework/client/registryclient"
-	"github.com/uor-framework/client/registryclient/orasclient"
-	"github.com/uor-framework/client/util/workspace"
+	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
+	load "github.com/uor-framework/uor-client-go/builder/config"
+	"github.com/uor-framework/uor-client-go/registryclient"
+	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
+	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
 // PushOptions describe configuration options that can

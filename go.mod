@@ -1,4 +1,4 @@
-module github.com/uor-framework/client
+module github.com/uor-framework/uor-client-go
 
 go 1.17
 

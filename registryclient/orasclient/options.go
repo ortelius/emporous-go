@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/uor-framework/client/registryclient"
+	"github.com/uor-framework/uor-client-go/registryclient"
 	"oras.land/oras-go/v2"
 )
 
