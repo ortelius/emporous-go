@@ -39,7 +39,6 @@ jobs:
         with:
           version: v1.46
           args: --timeout=5m
-          skip-go-installation: true
 
   #
   # Project checks
