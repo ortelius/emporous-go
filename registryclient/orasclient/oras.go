@@ -18,7 +18,7 @@ import (
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 
-	"github.com/uor-framework/client/registryclient"
+	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
 const uorMediaType = "application/vnd.uor.config.v1+json"

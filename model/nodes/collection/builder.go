@@ -1,7 +1,7 @@
 package collection
 
 import (
-	"github.com/uor-framework/client/model"
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 var _ model.NodeBuilder = &collectionBuilder{}

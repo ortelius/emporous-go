@@ -10,11 +10,11 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	"github.com/uor-framework/client/builder"
-	"github.com/uor-framework/client/builder/parser"
-	"github.com/uor-framework/client/model/nodes/basic"
-	"github.com/uor-framework/client/model/nodes/collection"
-	"github.com/uor-framework/client/util/workspace"
+	"github.com/uor-framework/uor-client-go/builder"
+	"github.com/uor-framework/uor-client-go/builder/parser"
+	"github.com/uor-framework/uor-client-go/model/nodes/basic"
+	"github.com/uor-framework/uor-client-go/model/nodes/collection"
+	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
 // BuildOptions describe configuration options that can
@@ -29,10 +29,10 @@ var clientBuildExamples = templates.Examples(
 	`
 	# Template content in a directory
 	# The default workspace is "client-workspace" in the current working directory.
-	client build my-directory
+	uor-client-go build my-directory
 
 	# Template content into a specified output directory.
-	client build my-directory --output my-workspace
+	uor-client-go build my-directory --output my-workspace
 	`,
 )
 

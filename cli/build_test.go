@@ -10,7 +10,7 @@ import (
 
 	"github.com/opencontainers/go-digest"
 	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/client/cli/log"
+	"github.com/uor-framework/uor-client-go/cli/log"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 

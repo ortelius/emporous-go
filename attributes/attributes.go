@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/uor-framework/client/model"
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 // Attributes implements the model.Attributes interface

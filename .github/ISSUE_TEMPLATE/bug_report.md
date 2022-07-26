@@ -26,11 +26,9 @@ Briefly describe the problem you are having in a few paragraphs.
 
 **Describe the results you received:**
 
-
 **Describe the results you expected:**
-
 
 **What version of the UOR client are you using:**
 <!--
-Output of "client version"
+Output of "uor-client-go version"
 -->

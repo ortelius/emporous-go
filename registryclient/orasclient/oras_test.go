@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/registry"
 	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/client/registryclient"
+	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
 func TestGatherDescriptors(t *testing.T) {

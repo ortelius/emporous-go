@@ -13,13 +13,13 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	"github.com/uor-framework/client/attributes"
-	"github.com/uor-framework/client/model"
-	"github.com/uor-framework/client/model/nodes/basic"
-	"github.com/uor-framework/client/model/nodes/collection"
-	"github.com/uor-framework/client/registryclient"
-	"github.com/uor-framework/client/registryclient/orasclient"
-	"github.com/uor-framework/client/util/workspace"
+	"github.com/uor-framework/uor-client-go/attributes"
+	"github.com/uor-framework/uor-client-go/model"
+	"github.com/uor-framework/uor-client-go/model/nodes/basic"
+	"github.com/uor-framework/uor-client-go/model/nodes/collection"
+	"github.com/uor-framework/uor-client-go/registryclient"
+	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
+	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
 // PullOptions describe configuration options that can

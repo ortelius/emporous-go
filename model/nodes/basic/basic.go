@@ -1,7 +1,7 @@
 package basic
 
 import (
-	"github.com/uor-framework/client/model"
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 // Node defines a single unit containing information about a UOR dataset node.

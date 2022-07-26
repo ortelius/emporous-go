@@ -28,7 +28,7 @@ COPY --from=builder /rootfs/ /
 
 ARG TARGETARCH
 COPY ../client-linux-${TARGETARCH} /usr/local/bin/client
-RUN set -ex && /usr/local/bin/client version
+RUN set -ex && /usr/local/bin/uor-client-go version
 
-ENTRYPOINT ["/usr/local/bin/client"]
+ENTRYPOINT ["/usr/local/bin/uor-client-go"]
 CMD ["version"]
