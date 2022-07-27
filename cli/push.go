@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"k8s.io/kubectl/pkg/util/templates"
 
 	"github.com/uor-framework/uor-client-go/content/layout"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
+	"github.com/uor-framework/uor-client-go/util/examples"
 )
 
 // PushOptions describe configuration options that can
@@ -23,12 +25,11 @@ type PushOptions struct {
 	DSConfig    string
 }
 
-var clientPushExamples = templates.Examples(
-	`
-	# Push artifacts
-	client push localhost:5000/myartifacts:latest
-	`,
-)
+var clientPushExamples = examples.Example{
+	RootCommand:   filepath.Base(os.Args[0]),
+	Descriptions:  []string{"Push artifacts."},
+	CommandString: "push localhost:5000/myartifacts:latest",
+}
 
 // NewPushCmd creates a new cobra.Command for the push subcommand.
 func NewPushCmd(rootOpts *RootOptions) *cobra.Command {
@@ -37,7 +38,7 @@ func NewPushCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "push DST",
 		Short:         "Push a UOR collection into a registry",
-		Example:       clientPushExamples,
+		Example:       examples.FormatExamples(clientPushExamples),
 		SilenceErrors: false,
 		SilenceUsage:  false,
 		Args:          cobra.ExactArgs(1),

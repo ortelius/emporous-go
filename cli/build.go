@@ -5,17 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
-	"k8s.io/kubectl/pkg/util/templates"
 
 	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
 	load "github.com/uor-framework/uor-client-go/builder/config"
 	"github.com/uor-framework/uor-client-go/content/layout"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
+	"github.com/uor-framework/uor-client-go/util/examples"
 	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
@@ -28,12 +29,18 @@ type BuildOptions struct {
 	Destination string
 }
 
-var clientBuildExamples = templates.Examples(
-	`
-	# Build artifact
-	uor-client-go build my-directory localhost:5000/myartifacts:latest
-	`,
-)
+var clientBuildExamples = []examples.Example{
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		Descriptions:  []string{"Build artifacts."},
+		CommandString: "build my-directory localhost:5000/myartifacts:latest",
+	},
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		Descriptions:  []string{"Build artifacts with custom annotations."},
+		CommandString: "build my-directory localhost:5000/myartifacts:latest --dsconfig dataset-config.yaml",
+	},
+}
 
 // NewBuildCmd creates a new cobra.Command for the build subcommand.
 func NewBuildCmd(rootOpts *RootOptions) *cobra.Command {
@@ -42,7 +49,7 @@ func NewBuildCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "build SRC DST",
 		Short:         "Build and save an OCI artifact from files",
-		Example:       clientBuildExamples,
+		Example:       examples.FormatExamples(clientBuildExamples...),
 		SilenceErrors: false,
 		SilenceUsage:  false,
 		Args:          cobra.ExactArgs(2),
