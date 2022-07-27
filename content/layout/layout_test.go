@@ -11,11 +11,14 @@ import (
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
+
+	"github.com/uor-framework/uor-client-go/attributes"
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 func TestExists(t *testing.T) {
 	cacheDir := "testdata/valid"
-	l, err := New(cacheDir)
+	l, err := NewWithContext(context.TODO(), cacheDir)
 	require.NoError(t, err)
 	type spec struct {
 		name     string
@@ -100,7 +103,7 @@ func TestTag(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	l, err := New(cacheDir)
+	l, err := NewWithContext(context.TODO(), cacheDir)
 	require.NoError(t, err)
 
 	desc := ocispec.Descriptor{Digest: "sha256:2e30f6131ce2164ed5ef017845130727291417d60a1be6fad669bdc4473289cd"}
@@ -125,7 +128,8 @@ func TestTag(t *testing.T) {
 func TestSaveIndex(t *testing.T) {
 	cacheDir := t.TempDir()
 
-	l, err := New(cacheDir)
+	ctx := context.TODO()
+	l, err := NewWithContext(ctx, cacheDir)
 	require.NoError(t, err)
 
 	l.resolver.Store("test", ocispec.Descriptor{})
@@ -145,7 +149,7 @@ func TestSaveIndex(t *testing.T) {
 
 func TestResolve(t *testing.T) {
 	cacheDir := "testdata/valid"
-	l, err := New(cacheDir)
+	l, err := NewWithContext(context.TODO(), cacheDir)
 	require.NoError(t, err)
 
 	type spec struct {
@@ -189,7 +193,7 @@ func TestResolve(t *testing.T) {
 func TestLoadIndex(t *testing.T) {
 	cacheDir := "testdata/valid"
 	ctx := context.TODO()
-	l, err := New(cacheDir)
+	l, err := NewWithContext(ctx, cacheDir)
 	require.NoError(t, err)
 
 	require.NoError(t, l.loadIndex(ctx))
@@ -242,7 +246,7 @@ func TestPredecessors(t *testing.T) {
 		Annotations: map[string]string{"org.opencontainers.image.ref.name": "localhost:5001/test:latest"},
 	}}
 	ctx := context.TODO()
-	l, err := New(cacheDir)
+	l, err := NewWithContext(ctx, cacheDir)
 	require.NoError(t, err)
 
 	desc := ocispec.Descriptor{
@@ -254,6 +258,65 @@ func TestPredecessors(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expected, pre)
 
+}
+
+func TestResolveByAttribute(t *testing.T) {
+	type spec struct {
+		name     string
+		cacheDir string
+		matcher  model.Matcher
+		ref      string
+		expRes   []ocispec.Descriptor
+		expError string
+	}
+
+	cases := []spec{
+		{
+			name:     "Success/MatchFound",
+			cacheDir: "testdata/attributes",
+			ref:      "localhost:5001/test1:latest",
+			matcher: &attributes.PartialAttributeMatcher{
+				"type": "jpg",
+			},
+			expRes: []ocispec.Descriptor{
+				{
+					MediaType:   "image/jpeg",
+					Digest:      "sha256:2e30f6131ce2164ed5ef017845130727291417d60a1be6fad669bdc4473289cd",
+					Size:        5536,
+					Annotations: map[string]string{"org.opencontainers.image.title": "images/fish.jpg", "type": "jpg"},
+				},
+			},
+		},
+		{
+			name:     "Success/NoMatchingAttributes",
+			cacheDir: "testdata/valid",
+			ref:      "localhost:5001/test:latest",
+			matcher: &attributes.ExactAttributeMatcher{
+				"type": "jpg",
+			},
+		},
+		{
+			name:     "Success/MatcherIsNil",
+			cacheDir: "testdata/valid",
+			ref:      "localhost:5001/test:latest",
+			matcher:  nil,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			ctx := context.TODO()
+			l, err := NewWithContext(ctx, c.cacheDir)
+			require.NoError(t, err)
+			res, err := l.ResolveByAttribute(ctx, c.ref, c.matcher)
+			if c.expError != "" {
+				require.EqualError(t, err, c.expError)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, c.expRes, res)
+			}
+		})
+	}
 }
 
 func TestResolveLinks(t *testing.T) {
