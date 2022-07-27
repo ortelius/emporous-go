@@ -115,7 +115,7 @@ func TestPushRun(t *testing.T) {
 
 			if c.opts.cacheDir == "" {
 				c.opts.cacheDir = cache
-				prepCache(c.opts.Destination, cache, nil)
+				err := prepCache(c.opts.Destination, cache, nil)
 				require.NoError(t, err)
 			}
 
