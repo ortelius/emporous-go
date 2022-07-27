@@ -38,7 +38,7 @@ type Layout struct {
 	graph    *collection.Collection
 	index    *ocispec.Index
 	rootPath string
-	mu       *sync.Mutex
+	mu       sync.Mutex
 }
 
 // New initializes a new local file store in an OCI layout format.
@@ -48,7 +48,6 @@ func New(ctx context.Context, rootPath string) (*Layout, error) {
 		resolver: sync.Map{},
 		graph:    collection.New(rootPath),
 		rootPath: filepath.Clean(rootPath),
-		mu:       new(sync.Mutex),
 	}
 
 	return l, l.init(ctx)
