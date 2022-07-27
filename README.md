@@ -46,19 +46,19 @@ uor-client-go version
 
 1. Create a directory with artifacts to publish to a registry as an OCI artifact. If the files reference each other, the client will replace the in-content linked files with the content address.
 > WARNING: Currently, only JSON is supported for link replacement.
-2. Use the `uor-client-go build` command to build the workspace as an OCI artifact in build-cache `default is (homedir/.uor/cache). Can be set with UOR_CACHE environment variable`.
+2. Use the `uor-client-go build` command to build the workspace as an OCI artifact in build-cache The default location is ~/.uor/cache. It an be set with the `UOR_CACHE` environment variable`.
 3. Use the `uor-client-go push` command to publish to a registry as an OCI artifact.
 4. Use the `uor-client-go pull` command to pull the artifact back to a local workspace.
 
 ### Build workspace into an artifact
 
 ```
-client build my-workspace localhost:5000/myartifacts:latest
+uor-client-go build my-workspace localhost:5000/myartifacts:latest
 ```
 
 ```
 # Optionally with dsconfig
-client build my-workspace localhost:5000/myartifacts:latest --dsconfig dataset-config.yaml
+uor-client-go build my-workspace localhost:5000/myartifacts:latest --dsconfig dataset-config.yaml
 ```
 ### Push workspace to a registry location
 
@@ -119,7 +119,7 @@ files:
 ```
 
 5. Run the UOR client build command referencing the dataset config, the content directory, and the destination registry location.
-   ```
+```
 uor-client-go build my-workspace localhost:5000/test/dataset:latest --dsconfig dataset-config.yaml 
 ```
 6. Run the UOR push command to publish
