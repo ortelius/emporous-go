@@ -1,19 +1,21 @@
 package cli
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	"github.com/uor-framework/uor-client-go/builder"
-	"github.com/uor-framework/uor-client-go/builder/parser"
-	"github.com/uor-framework/uor-client-go/model/nodes/basic"
-	"github.com/uor-framework/uor-client-go/model/nodes/collection"
+	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
+	load "github.com/uor-framework/uor-client-go/builder/config"
+	"github.com/uor-framework/uor-client-go/content/layout"
+	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
 	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
@@ -21,18 +23,15 @@ import (
 // be set using the build subcommand.
 type BuildOptions struct {
 	*RootOptions
-	RootDir string
-	Output  string
+	RootDir     string
+	DSConfig    string
+	Destination string
 }
 
 var clientBuildExamples = templates.Examples(
 	`
-	# Template content in a directory
-	# The default workspace is "client-workspace" in the current working directory.
-	uor-client-go build my-directory
-
-	# Template content into a specified output directory.
-	uor-client-go build my-directory --output my-workspace
+	# Build artifact
+	uor-client-go build my-directory localhost:5000/myartifacts:latest
 	`,
 )
 
@@ -41,12 +40,12 @@ func NewBuildCmd(rootOpts *RootOptions) *cobra.Command {
 	o := BuildOptions{RootOptions: rootOpts}
 
 	cmd := &cobra.Command{
-		Use:           "build SRC",
-		Short:         "Template and build files from a local directory into a UOR dataset",
+		Use:           "build SRC DST",
+		Short:         "Build and save an OCI artifact from files",
 		Example:       clientBuildExamples,
 		SilenceErrors: false,
 		SilenceUsage:  false,
-		Args:          cobra.ExactArgs(1),
+		Args:          cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			cobra.CheckErr(o.Complete(args))
 			cobra.CheckErr(o.Validate())
@@ -54,19 +53,17 @@ func NewBuildCmd(rootOpts *RootOptions) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "location to stored templated files")
+	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "", o.DSConfig, "DataSet config path")
 
 	return cmd
 }
 
 func (o *BuildOptions) Complete(args []string) error {
-	if len(args) < 1 {
-		return errors.New("bug: expecting one argument")
+	if len(args) < 2 {
+		return errors.New("bug: expecting two arguments")
 	}
 	o.RootDir = args[0]
-	if o.Output == "" {
-		o.Output = "client-workspace"
-	}
+	o.Destination = args[1]
 	return nil
 }
 
@@ -74,21 +71,28 @@ func (o *BuildOptions) Validate() error {
 	if _, err := os.Stat(o.RootDir); err != nil {
 		return fmt.Errorf("workspace directory %q: %v", o.RootDir, err)
 	}
+
 	return nil
 }
 
 func (o *BuildOptions) Run(ctx context.Context) error {
-	o.Logger.Infof("Using output directory %q", o.Output)
-	userSpace, err := workspace.NewLocalWorkspace(o.RootDir)
+	space, err := workspace.NewLocalWorkspace(o.RootDir)
 	if err != nil {
 		return err
 	}
 
-	c := collection.NewCollection(o.Output)
+	cache, err := layout.New(o.cacheDir)
+	if err != nil {
+		return err
+	}
 
-	fileIndex := make(map[string]struct{})
-	// Do the initial walk to get an index of what is in the workspace
-	err = userSpace.Walk(func(path string, info os.FileInfo, err error) error {
+	client, err := orasclient.NewClient()
+	if err != nil {
+		return fmt.Errorf("error configuring client: %v", err)
+	}
+
+	var files []string
+	err = space.Walk(func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("traversing %s: %v", path, err)
 		}
@@ -96,95 +100,99 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 			return fmt.Errorf("no file info")
 		}
 
-		if info.IsDir() {
-			return nil
+		if info.Mode().IsRegular() {
+			files = append(files, path)
 		}
-
-		fileIndex[path] = struct{}{}
-
 		return nil
 	})
 	if err != nil {
 		return err
 	}
-
-	// Function to determine whether the
-	// data should be replaced in the template
-	tFunc := func(value interface{}) bool {
-		stringValue, ok := value.(string)
-		if !ok {
-			return false
-		}
-
-		// If the file is found in the workspace
-		// return true
-		_, found := fileIndex[stringValue]
-		return found
-	}
-
-	templateBuilder := builder.NewCompatibilityBuilder(userSpace)
-
-	for path := range fileIndex {
-		o.Logger.Infof("Adding node %s\n", path)
-
-		// Since the paths will be unique in this
-		// case, the id is set as the location.
-		node := basic.NewNode(path, nil)
-		node.Location = path
-
-		perr := &parser.ErrInvalidFormat{}
-		buf := new(bytes.Buffer)
-		if err := userSpace.ReadObject(ctx, path, buf); err != nil {
-			return err
-		}
-		p, err := parser.ByContentType(path, buf.Bytes())
-		switch {
-		case err == nil:
-			p.AddFuncs(tFunc)
-			templates, links, err := p.GetLinkableData(buf.Bytes())
-			if err != nil {
-				return err
-			}
-			templateBuilder.Links[node.ID()] = links
-			templateBuilder.Templates[node.ID()] = templates
-		case !errors.As(err, &perr):
-			return err
-		}
-
-		if err := c.AddNode(node); err != nil {
+	var config v1alpha1.DataSetConfiguration
+	if len(o.DSConfig) > 0 {
+		config, err = load.ReadConfig(o.DSConfig)
+		if err != nil {
 			return err
 		}
 	}
 
-	for _, node := range c.Nodes() {
-		for link, data := range templateBuilder.Links[node.ID()] {
-			// Currently with the parsing implementation
-			// all initial values are expected to represent
-			// the file string data present in the content.
-			// FIXME(jpower432): Making this assumption could lead
-			// to bug when trying to translate links to a graph.
-			fpath, ok := data.(string)
-			if !ok {
-				return fmt.Errorf("link %q: value should be of type string", link)
-			}
-			to := c.NodeByID(fpath)
-			edge := collection.NewEdge(node, to)
-			if err := c.AddEdge(edge); err != nil {
-				return err
-			}
-		}
-	}
-
-	renderSpace, err := workspace.NewLocalWorkspace(o.Output)
+	// To allow the files to be loaded relative to the render
+	// workspace, change to the render directory. This is required
+	// to get path correct in the description annotations.
+	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	if err := templateBuilder.Run(ctx, c, renderSpace); err != nil {
-		return fmt.Errorf("error building content: %v", err)
+	if err := os.Chdir(space.Path()); err != nil {
+		return err
+	}
+	defer func() {
+		if err := os.Chdir(cwd); err != nil {
+			o.Logger.Errorf("%v", err)
+		}
+	}()
+
+	descs, err := client.AddFiles(ctx, "", files...)
+	if err != nil {
+		return err
 	}
 
-	_, _ = fmt.Fprintf(o.IOStreams.Out, "\nTo publish this content, run the following command:")
-	_, _ = fmt.Fprintf(o.IOStreams.Out, "\nclient push %s IMAGE\n", o.Output)
+	// Add the attributes from the config to their respective blocks
+	descs, err = AddDescriptors(descs, config)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	configDesc, err := client.AddContent(ctx, orasclient.UorConfigMediaType, []byte("{}"), nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = client.AddManifest(ctx, o.Destination, configDesc, nil, descs...)
+	if err != nil {
+		return err
+	}
+
+	desc, err := client.Save(ctx, o.Destination, cache)
+	if err != nil {
+		return fmt.Errorf("client save error for reference %s: %v", o.Destination, err)
+	}
+
+	o.Logger.Infof("Artifact %s built with reference name %s\n", desc.Digest, o.Destination)
+
+	return client.Destroy()
+}
+
+// AddDescriptors adds the attributes of each file listed in the config
+// to the annotations of its respective descriptor.
+func AddDescriptors(d []ocispec.Descriptor, c v1alpha1.DataSetConfiguration) ([]ocispec.Descriptor, error) {
+	// For each descriptor
+	for i1, desc := range d {
+		// Get the filename of the block
+		filename := desc.Annotations[ocispec.AnnotationTitle]
+		// For each file in the config
+		for i2, file := range c.Files {
+			// If the config has a grouping declared, make a valid regex.
+			if strings.Contains(file.File, "*") && !strings.Contains(file.File, ".*") {
+				file.File = strings.Replace(file.File, "*", ".*", -1)
+			} else {
+				file.File = strings.Replace(file.File, file.File, "^"+file.File+"$", -1)
+			}
+			namesearch, err := regexp.Compile(file.File)
+			if err != nil {
+				return []ocispec.Descriptor{}, err
+			}
+			// Find the matching descriptor
+			if namesearch.Match([]byte(filename)) {
+				// Get the k/v pairs from the config and add them to the block's annotations.
+				for k, v := range c.Files[i2].Attributes {
+					d[i1].Annotations[k] = v
+				}
+			} else {
+				// If the block does not have a corresponding config element, skip it.
+				continue
+			}
+		}
+	}
+	return d, nil
 }

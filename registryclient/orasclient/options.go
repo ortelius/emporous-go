@@ -5,8 +5,13 @@ import (
 	"sync"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/uor-framework/uor-client-go/registryclient"
+
 	"oras.land/oras-go/v2"
+	"oras.land/oras-go/v2/content/file"
+	"oras.land/oras-go/v2/content/memory"
+
+	"github.com/uor-framework/uor-client-go/content"
+	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
 // ClientOption is a function that configures
@@ -19,6 +24,7 @@ type ClientConfig struct {
 	configs   []string
 	plainHTTP bool
 	insecure  bool
+	cache     content.Store
 	copyOpts  oras.CopyOptions
 }
 
@@ -44,19 +50,24 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	var once sync.Once
 	destroy := func() (destroyErr error) {
 		once.Do(func() {
-			destroyErr = client.fileStore.Close()
+			destroyErr = client.artifactStore.Close()
 		})
 
 		return
 	}
 
-	client.init()
 	client.insecure = config.insecure
 	client.configs = config.configs
 	client.plainHTTP = config.plainHTTP
 	client.copyOpts = config.copyOpts
 	client.outputDir = config.outputDir
 	client.destroy = destroy
+	client.cache = config.cache
+
+	// We not allowing this to be configurable since
+	// oras file stores turn artifacts into descriptors in
+	// specific way we want to reuse.
+	client.artifactStore = file.NewWithFallbackStorage("", memory.New())
 
 	return client, nil
 }
@@ -86,10 +97,12 @@ func WithPlainHTTP(plainHTTP bool) ClientOption {
 	}
 }
 
-// WithOutputDir will copy any pulled artifact to this directory
-func WithOutputDir(dir string) ClientOption {
+// WithCache uses the provided storage a cache to be used
+// with remote resources. It is the responsibility of the caller
+// to perform any clean up actions.
+func WithCache(store content.Store) ClientOption {
 	return func(config *ClientConfig) error {
-		config.outputDir = dir
+		config.cache = store
 		return nil
 	}
 }

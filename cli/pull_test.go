@@ -1,9 +1,7 @@
 package cli
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http/httptest"
@@ -13,8 +11,6 @@ import (
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/registry"
-	"github.com/opencontainers/go-digest"
-	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -37,10 +33,10 @@ func TestPullComplete(t *testing.T) {
 	cases := []spec{
 		{
 			name: "Valid/CorrectNumberOfArguments",
-			args: []string{"test-registry.com/image:latest", "test"},
+			args: []string{"test-registry.com/image:latest"},
 			expOpts: &PullOptions{
 				Source: "test-registry.com/image:latest",
-				Output: "test",
+				Output: ".",
 			},
 			opts: &PullOptions{},
 		},
@@ -49,7 +45,7 @@ func TestPullComplete(t *testing.T) {
 			args:     []string{},
 			expOpts:  &PullOptions{},
 			opts:     &PullOptions{},
-			expError: "bug: expecting two arguments",
+			expError: "bug: expecting one argument",
 		},
 	}
 
@@ -182,6 +178,11 @@ func TestPullRun(t *testing.T) {
 			tmp := t.TempDir()
 			c.opts.Output = tmp
 			prepTestArtifact(t, c.opts.Source)
+
+			cache := filepath.Join(t.TempDir(), "cache")
+			require.NoError(t, os.MkdirAll(cache, 0750))
+			c.opts.cacheDir = cache
+
 			err := c.opts.Run(context.TODO())
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
@@ -233,22 +234,4 @@ func prepTestArtifact(t *testing.T, ref string) {
 	repo.PlainHTTP = true
 	_, err = oras.Copy(context.TODO(), memoryStore, ref, repo, "", oras.DefaultCopyOptions)
 	require.NoError(t, err)
-}
-
-func pushBlob(ctx context.Context, mediaType string, blob []byte, target oras.Target) (ocispec.Descriptor, error) {
-	desc := ocispec.Descriptor{
-		MediaType: mediaType,
-		Digest:    digest.FromBytes(blob),
-		Size:      int64(len(blob)),
-	}
-	return desc, target.Push(ctx, desc, bytes.NewReader(blob))
-}
-
-func generateManifest(configDesc ocispec.Descriptor, layers ...ocispec.Descriptor) ([]byte, error) {
-	manifest := ocispec.Manifest{
-		Config:    configDesc,
-		Layers:    layers,
-		Versioned: specs.Versioned{SchemaVersion: 2},
-	}
-	return json.Marshal(manifest)
 }

@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/opencontainers/go-digest"
+	"github.com/google/go-containerregistry/pkg/registry"
 	"github.com/stretchr/testify/require"
 	"github.com/uor-framework/uor-client-go/cli/log"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -26,10 +28,10 @@ func TestBuildComplete(t *testing.T) {
 	cases := []spec{
 		{
 			name: "Valid/CorrectNumberOfArguments",
-			args: []string{"testdata"},
+			args: []string{"testdata", "test-registry.com/image:latest"},
 			expOpts: &BuildOptions{
-				Output:  "client-workspace",
-				RootDir: "testdata",
+				RootDir:     "testdata",
+				Destination: "test-registry.com/image:latest",
 			},
 			opts: &BuildOptions{},
 		},
@@ -38,7 +40,7 @@ func TestBuildComplete(t *testing.T) {
 			args:     []string{},
 			expOpts:  &BuildOptions{},
 			opts:     &BuildOptions{},
-			expError: "bug: expecting one argument",
+			expError: "bug: expecting two arguments",
 		},
 	}
 
@@ -91,14 +93,17 @@ func TestBuildValidate(t *testing.T) {
 }
 
 func TestBuildRun(t *testing.T) {
-
 	testlogr, err := log.NewLogger(ioutil.Discard, "debug")
+	require.NoError(t, err)
+
+	server := httptest.NewServer(registry.New())
+	t.Cleanup(server.Close)
+	u, err := url.Parse(server.URL)
 	require.NoError(t, err)
 
 	type spec struct {
 		name     string
 		opts     *BuildOptions
-		expected string
 		expError string
 	}
 
@@ -114,9 +119,9 @@ func TestBuildRun(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				RootDir: "testdata/flatworkspace",
+				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
+				RootDir:     "testdata/flatworkspace",
 			},
-			expected: "testdata/expected/flatworkspace",
 		},
 		{
 			name: "Success/MultiLevelWorkspace",
@@ -129,12 +134,12 @@ func TestBuildRun(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				RootDir: "testdata/multi-level-workspace",
+				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
+				RootDir:     "testdata/multi-level-workspace",
 			},
-			expected: "testdata/expected/multi-level-workspace",
 		},
 		{
-			name: "Success/UORParsing",
+			name: "SuccessTwoRoots",
 			opts: &BuildOptions{
 				RootOptions: &RootOptions{
 					IOStreams: genericclioptions.IOStreams{
@@ -144,71 +149,25 @@ func TestBuildRun(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				RootDir: "testdata/uor-template",
+				Destination: fmt.Sprintf("%s/client-tworoots-test:latest", u.Host),
+				RootDir:     "testdata/tworoots",
 			},
-			expected: "testdata/expected/uor-template",
-		},
-		{
-			name: "Failure/TwoRoots",
-			opts: &BuildOptions{
-				RootOptions: &RootOptions{
-					IOStreams: genericclioptions.IOStreams{
-						Out:    os.Stdout,
-						In:     os.Stdin,
-						ErrOut: os.Stderr,
-					},
-					Logger: testlogr,
-				},
-				RootDir: "testdata/tworoots",
-			},
-			expError: "error building content: error calculating root node: multiple roots found in graph: fish.jpg, fish2.jpg",
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			c.opts.Output = t.TempDir()
+			cache := filepath.Join(t.TempDir(), "cache")
+			require.NoError(t, os.MkdirAll(cache, 0750))
+			c.opts.cacheDir = cache
 			err := c.opts.Run(context.TODO())
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
 			} else {
 				require.NoError(t, err)
-				actual := walkDir(t, c.opts.Output)
-				expected := walkDir(t, c.expected)
-
-				for path, data1 := range actual {
-					t.Log("checking path " + path)
-					data2, ok := expected[path]
-					require.True(t, ok)
-					require.Equal(t, digest.FromBytes(data2).String(), digest.FromBytes(data1).String())
-				}
+				_, err := os.Stat(filepath.Join(c.opts.cacheDir, "index.json"))
+				require.NoError(t, err)
 			}
 		})
 	}
-}
-
-func walkDir(t *testing.T, dir string) map[string][]byte {
-	files := map[string][]byte{}
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("traversing %s: %v", path, err)
-		}
-		if info == nil {
-			return fmt.Errorf("no file info")
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		data, err := ioutil.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		files[filepath.Base(path)] = data
-
-		return nil
-	})
-	require.NoError(t, err)
-	return files
 }

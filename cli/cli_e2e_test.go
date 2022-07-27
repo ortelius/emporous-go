@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/registry"
@@ -45,7 +46,8 @@ func TestCLIE2E(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				RootDir: "testdata/flatworkspace",
+				RootDir:     "testdata/flatworkspace",
+				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
 			},
 			pushOpts: &PushOptions{
 				RootOptions: &RootOptions{
@@ -83,7 +85,8 @@ func TestCLIE2E(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				RootDir: "testdata/multi-level-workspace",
+				RootDir:     "testdata/multi-level-workspace",
+				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
 			},
 			pushOpts: &PushOptions{
 				RootOptions: &RootOptions{
@@ -121,7 +124,8 @@ func TestCLIE2E(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				RootDir: "testdata/uor-template",
+				RootDir:     "testdata/uor-template",
+				Destination: fmt.Sprintf("%s/client-uor-test:latest", u.Host),
 			},
 			pushOpts: &PushOptions{
 				RootOptions: &RootOptions{
@@ -152,7 +156,13 @@ func TestCLIE2E(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			c.buildOpts.Output = t.TempDir()
+
+			cache := filepath.Join(t.TempDir(), "cache")
+			require.NoError(t, os.MkdirAll(cache, 0750))
+			c.pushOpts.cacheDir = cache
+			c.pullOpts.cacheDir = cache
+			c.buildOpts.cacheDir = cache
+
 			err := c.buildOpts.Run(context.TODO())
 			if c.expBuildError != "" {
 				require.EqualError(t, err, c.expBuildError)
@@ -160,7 +170,6 @@ func TestCLIE2E(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			c.pushOpts.RootDir = c.buildOpts.Output
 			err = c.pushOpts.Run(context.TODO())
 			if c.expPushError != "" {
 				require.EqualError(t, err, c.expBuildError)
