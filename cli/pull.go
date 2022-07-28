@@ -11,7 +11,6 @@ import (
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
-	"k8s.io/kubectl/pkg/util/templates"
 	"oras.land/oras-go/v2/content/file"
 
 	"github.com/uor-framework/uor-client-go/attributes"
@@ -20,6 +19,7 @@ import (
 	"github.com/uor-framework/uor-client-go/model/nodes/basic"
 	"github.com/uor-framework/uor-client-go/model/nodes/collection"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
+	"github.com/uor-framework/uor-client-go/util/examples"
 	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
@@ -35,12 +35,11 @@ type PullOptions struct {
 	Attributes map[string]string
 }
 
-var clientPullExamples = templates.Examples(
-	`
-	# Push artifacts
-	client pull localhost:5000/myartifacts:latest
-	`,
-)
+var clientPullExamples = examples.Example{
+	RootCommand:   filepath.Base(os.Args[0]),
+	Descriptions:  []string{"Pull artifacts."},
+	CommandString: "pull localhost:5000/myartifacts:latest",
+}
 
 // NewPullCmd creates a new cobra.Command for the pull subcommand.
 func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
@@ -49,7 +48,7 @@ func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "pull SRC",
 		Short:         "Pull a UOR collection based on content or attribute address",
-		Example:       clientPullExamples,
+		Example:       examples.FormatExamples(clientPullExamples),
 		SilenceErrors: false,
 		SilenceUsage:  false,
 		Args:          cobra.ExactArgs(1),

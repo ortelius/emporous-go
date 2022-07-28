@@ -6,14 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"k8s.io/kubectl/pkg/util/templates"
 
 	"github.com/uor-framework/uor-client-go/builder"
 	"github.com/uor-framework/uor-client-go/builder/parser"
 	"github.com/uor-framework/uor-client-go/model/nodes/basic"
 	"github.com/uor-framework/uor-client-go/model/nodes/collection"
+	"github.com/uor-framework/uor-client-go/util/examples"
 	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
@@ -25,16 +26,21 @@ type RenderOptions struct {
 	Output  string
 }
 
-var clientRenderExamples = templates.Examples(
-	`
-	# Template content in a directory
-	# The default workspace is "client-workspace" in the current working directory.
-	client build my-directory
-
-	# Template content into a specified output directory.
-	client build my-directory --output my-workspace
-	`,
-)
+var clientRenderExamples = []examples.Example{
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		CommandString: "render my-directory",
+		Descriptions: []string{
+			"Template content in a directory.",
+			"The default workspace is \"client-workspace\" in the current working directory.",
+		},
+	},
+	{
+		Descriptions:  []string{"Template content into a specified output directory."},
+		CommandString: "build my-directory --output my-workspace",
+		RootCommand:   filepath.Base(os.Args[0]),
+	},
+}
 
 // NewRenderCmd creates a new cobra.Command for the build subcommand.
 func NewRenderCmd(rootOpts *RootOptions) *cobra.Command {
@@ -45,7 +51,7 @@ func NewRenderCmd(rootOpts *RootOptions) *cobra.Command {
 		Hidden:        true,
 		Use:           "render SRC",
 		Short:         "Template and build files from a local directory into a UOR dataset",
-		Example:       clientRenderExamples,
+		Example:       examples.FormatExamples(clientRenderExamples...),
 		SilenceErrors: false,
 		SilenceUsage:  false,
 		Args:          cobra.ExactArgs(1),

@@ -22,7 +22,19 @@ type RootOptions struct {
 
 var clientLong = templates.LongDesc(
 	`
-	This client helps you build and publish UOR collections as an OCI artifact.
+	The UOR client helps you build, publish, and retrieve UOR collections as an OCI artifact.
+
+	The workflow to publish a collection is to gather files for a collection in a directory workspace 
+	and use the build sub-command. During the build process, the tag for the
+	remote destination is specified. 
+	
+	This build action will store the collection in a build cache. This location can be specified with the UOR_CACHE environment 
+	variable. The default location is ~/.uor/cache. 
+	
+	After the collection has been stored, it can be retrieved and pushed the to registry with the push sub-command.
+
+	Collections can be retrieved from the cache or the remote location (if not stored) with the pull sub-command. The pull sub-command also
+	allows for filtering of the collection with the attributes flag.
 	`,
 )
 
