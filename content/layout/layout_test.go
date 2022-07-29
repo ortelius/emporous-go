@@ -15,7 +15,7 @@ import (
 
 func TestExists(t *testing.T) {
 	cacheDir := "testdata/valid"
-	l, err := New(context.TODO(), cacheDir)
+	l, err := New(cacheDir)
 	require.NoError(t, err)
 	type spec struct {
 		name     string
@@ -100,7 +100,7 @@ func TestTag(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	l, err := New(context.TODO(), cacheDir)
+	l, err := New(cacheDir)
 	require.NoError(t, err)
 
 	desc := ocispec.Descriptor{Digest: "sha256:2e30f6131ce2164ed5ef017845130727291417d60a1be6fad669bdc4473289cd"}
@@ -125,8 +125,7 @@ func TestTag(t *testing.T) {
 func TestSaveIndex(t *testing.T) {
 	cacheDir := t.TempDir()
 
-	ctx := context.TODO()
-	l, err := New(ctx, cacheDir)
+	l, err := New(cacheDir)
 	require.NoError(t, err)
 
 	l.resolver.Store("test", ocispec.Descriptor{})
@@ -146,7 +145,7 @@ func TestSaveIndex(t *testing.T) {
 
 func TestResolve(t *testing.T) {
 	cacheDir := "testdata/valid"
-	l, err := New(context.TODO(), cacheDir)
+	l, err := New(cacheDir)
 	require.NoError(t, err)
 
 	type spec struct {
@@ -190,7 +189,7 @@ func TestResolve(t *testing.T) {
 func TestLoadIndex(t *testing.T) {
 	cacheDir := "testdata/valid"
 	ctx := context.TODO()
-	l, err := New(ctx, cacheDir)
+	l, err := New(cacheDir)
 	require.NoError(t, err)
 
 	require.NoError(t, l.loadIndex(ctx))
@@ -243,7 +242,7 @@ func TestPredecessors(t *testing.T) {
 		Annotations: map[string]string{"org.opencontainers.image.ref.name": "localhost:5001/test:latest"},
 	}}
 	ctx := context.TODO()
-	l, err := New(ctx, cacheDir)
+	l, err := New(cacheDir)
 	require.NoError(t, err)
 
 	desc := ocispec.Descriptor{
@@ -284,7 +283,7 @@ func TestResolveLinks(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			ctx := context.TODO()
-			l, err := New(ctx, c.cacheDir)
+			l, err := NewWithContext(ctx, c.cacheDir)
 			require.NoError(t, err)
 			res, err := l.ResolveLinks(ctx, c.ref)
 			if c.expError != "" {

@@ -7,7 +7,7 @@ import (
 )
 
 // Store defines the methods for adding, inspecting, and removing
-// OCI content from a storage location. The interface wraps oras
+// OCI content from a storage location. The interface wraps `oras``
 // Storage and TagResolver interfaces for use with `oras` Copy methods.
 type Store interface {
 	// Storage represents a content-addressable storage where contents are
@@ -18,8 +18,8 @@ type Store interface {
 }
 
 // GraphStore defines the methods for adding, inspecting, and removing
-// OCI content from a storage location. The interface wraps oras
-// Storage, TagResolver, and PredecessorFinder interfaces for use with `oras` extended copy methods.
+// OCI content from a storage location. The interface wraps `oras`
+// Storage, TagResolver, and PredecessorFinder interfaces for use with `oras` extended Copy methods.
 type GraphStore interface {
 	Store
 	// PredecessorFinder returns the nodes directly pointing to the current node.

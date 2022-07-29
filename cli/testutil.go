@@ -38,7 +38,7 @@ func prepCache(ref string, cacheDir string, fileAnnotations map[string]string) e
 	fileContent := []byte("Hello World!\n")
 	ctx := context.TODO()
 
-	ociStore, err := layout.New(ctx, cacheDir)
+	ociStore, err := layout.NewWithContext(ctx, cacheDir)
 	if err != nil {
 		return err
 	}

@@ -78,7 +78,7 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	cache, err := layout.New(ctx, o.cacheDir)
+	cache, err := layout.NewWithContext(ctx, o.cacheDir)
 	if err != nil {
 		return err
 	}
