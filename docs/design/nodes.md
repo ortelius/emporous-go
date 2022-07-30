@@ -57,13 +57,15 @@ The reference implementation has the concept of linked collections. This is a wa
 uor.schema
 ```
 ```
-# Address of default schema in linked collections.
-# Can be used for validation or cross-link traversal.
+# Schemas aggregated from all linked collections to the leaf nodes.
+# This allows for attribute aggregation to guide
+# cross-link traversal.
 uor.schema.linked
 ```
 
 ```
 # Address of linked collections
+# This is only the address of direct links
 uor.collections.linked
 ```
 
