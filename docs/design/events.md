@@ -17,7 +17,7 @@ Collections have embedded Event Engines. An Event Engine contains the applicatio
 
 ## Router
 
-When the UOR Client pushes or pulls (an object), it performs a routing action. The UOR Client can perform 2 routing actions:
+The UOR Client can perform 2 routing actions:
 
 1. Route object to Collection
 2. Route object to Event Engine
@@ -34,11 +34,11 @@ When the UOR Client pushes or pulls (an object), it performs a routing action. T
 
 # Event Engine Design
 
-Event Engines are designed as follows:
-1. Event Engines can be UOR native applications or legacy applications ported to UOR.
-2. An application becomes an Event Engine when it implements the UOR Router API and performs tasks pertinent to a UOR Collection. 
-3. Event Engines receive application control signalling encoded in attributes. 
-4. UOR Native Applications implement the UOR local cache structure, while UOR ported applications rely on URL encoded attribute maps to reference resources.
+- Event Engines can be UOR native applications or legacy applications ported to UOR.
+- An application becomes an Event Engine when it implements the UOR Router API and performs tasks pertinent to a UOR Collection. 
+- UOR Native Applications implement the UOR local cache structure, while UOR ported applications rely on URL encoded attribute maps to reference resources.
+- Event Engines add additional attributes when they query Collections. These additional attributes can contain credentials, encoded application signalling instructions, or any other variables that are needed. 
+
 
 Event Engine's follow the following workflow:
 1. Event Engine process spawned by the UOR Client
@@ -51,6 +51,10 @@ Event Engine's follow the following workflow:
 Additionally; 
 - Event Engines may be called without passing an object payload to an Event Engine.
 - The user context is considered to be a Collection with an Event Engine. Objects are output to the user's context by the UOR Router when signaled. 
+
+Notes:
+
+Need to address how an object is passed from one engine to another. (how does the ee know where to send an object after processing?)
 
 
 

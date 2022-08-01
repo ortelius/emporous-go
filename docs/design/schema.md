@@ -31,7 +31,7 @@ Attribute type declarations MUST reside within a node of the Schema Collection a
 
 ### Algorithm Reference
 
-Schema Collections MAY contain Algorithm References. A Collection's Algorithm Reference can be thought of as the "application logic" of the Collection. The Algorithm Reference in a Schema Collection is the link to the algorithm imported into a calling Collection. This reference is expressed by assigning the `uor.algorithm=true` attribute to the node annotations of the Algorithm's Linked Collection. 
+Schema Collections MAY contain Event Engine References. A Collection's Event Engine can be thought of as the "application logic" of the Collection. The Event Engine reference in a Schema Collection is the link to the Event Engine imported into a calling Collection. This reference is expressed by assigning the `uor.event=true` attribute to the node annotations of the Event Engine's Linked Collection. 
 
 ### Default Attribute Mappings
 
@@ -43,9 +43,9 @@ Schema Collections MAY contain a Default Content Declaration. The Default Conten
 
 ## Design
 
-Collections import Schema via an annotated Linked Collection. A Schema Collection imports an Algorithm into the Schema's calling collection. A Collection can only have one Schema and a Schema can have only one Algorithm Reference.  
+Collections import Schema via an annotated Linked Collection. A Schema Collection imports an Event Engine into the Schema's calling collection. A Collection can only have one Schema and a Schema can have only one Event Engine Reference.  
 
-When the UOR Client retrieves a Collection, it first retrieves the OCI manifest of the referenced collection. The UOR Client then searches the manifest for a reference to an imported schema. If a schema is found, the UOR client retrieves the OCI Manifest of the imported schema. The UOR Client then searches the Schema Collection's OCI Manifest for an Algorithm Reference. If an Algorithm Reference is found, The UOR Client will first check its cache and if needed, download the Referenced Algorithm for further operations. 
+When the UOR Client retrieves a Collection, it first retrieves the OCI manifest of the referenced collection. The UOR Client then searches the manifest for a reference to an imported schema. If a schema is found, the UOR client retrieves the OCI Manifest of the imported schema. The UOR Client then searches the Schema Collection's OCI Manifest for an Event Engine reference. If an Event Engine reference is found, The UOR Client will first check its cache and if needed, download the referenced Event Engine for further operations. 
 
 A Collection can only import a single schema. However, a Collection may link to another collection with a different schema. There are two types of schema declarations in a Collection's OCI Manifest. Those are: `uor.schema={{ Schema Collection address (Full URI or just the digest of the referenced Schema Collection's OCI manifest) }}` and `uor.schema.linked={{ The digest of all Schema Collection OCI Manifest References inherited through Collection links}}`. When a collection links to another collection, all linked schemas of the Referenced Linked Collection are inherited by the linking Collection and written to the value of the `uor.schema.linked` attribute.
 
