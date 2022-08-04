@@ -18,6 +18,8 @@ import (
 	"github.com/uor-framework/uor-client-go/model"
 	"github.com/uor-framework/uor-client-go/model/nodes/basic"
 	"github.com/uor-framework/uor-client-go/model/nodes/collection"
+	"github.com/uor-framework/uor-client-go/model/nodes/descriptor"
+	"github.com/uor-framework/uor-client-go/ocimanifest"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
 	"github.com/uor-framework/uor-client-go/util/examples"
 	"github.com/uor-framework/uor-client-go/util/workspace"
@@ -30,6 +32,7 @@ type PullOptions struct {
 	Source     string
 	Output     string
 	Insecure   bool
+	PullAll    bool
 	PlainHTTP  bool
 	Configs    []string
 	Attributes map[string]string
@@ -59,12 +62,13 @@ func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringArrayVarP(&o.Configs, "auth-configs", "c", o.Configs, "auth config paths")
+	cmd.Flags().StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths when contacting registries")
 	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to SSL registry without certs")
-	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https")
+	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https when contacting registries")
 	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "output location for artifacts")
 	cmd.Flags().StringToStringVarP(&o.Attributes, "attributes", "", o.Attributes, "list of key,value pairs (e.g. key=value) for "+
 		"retrieving artifacts by attributes")
+	cmd.Flags().BoolVar(&o.PullAll, "pull-all", o.PullAll, "pull all linked collections")
 
 	return cmd
 }
@@ -94,35 +98,40 @@ func (o *PullOptions) Run(ctx context.Context) error {
 	if o.Attributes != nil {
 		pullFn = withAttributes
 	} else {
-		pullFn = func(ctx context.Context, po PullOptions) (ocispec.Descriptor, error) {
-			desc, _, err := o.pullCollection(ctx, o.Output)
-			return desc, err
+		pullFn = func(ctx context.Context, _ PullOptions) ([]ocispec.Descriptor, error) {
+			manifestDescs, _, err := o.pullCollection(ctx, o.Output)
+			return manifestDescs, err
 		}
 	}
 	return o.run(ctx, pullFn)
 }
 
 func (o *PullOptions) run(ctx context.Context, pullFn pullFunc) error {
-	desc, err := pullFn(ctx, *o)
+	o.Logger.Infof("Resolving artifacts for reference %s", o.Source)
+	manifestDescs, err := pullFn(ctx, *o)
 	if err != nil {
 		return err
 	}
-	o.Logger.Infof("Artifact %s from %s pulled to %s\n", desc.Digest, o.Source, o.Output)
+
+	for _, desc := range manifestDescs {
+		o.Logger.Infof("Artifact %s pulled to %s\n", desc.Digest, o.Output)
+	}
+
 	return nil
 }
 
-type pullFunc func(context.Context, PullOptions) (ocispec.Descriptor, error)
+type pullFunc func(context.Context, PullOptions) ([]ocispec.Descriptor, error)
 
-func withAttributes(ctx context.Context, o PullOptions) (ocispec.Descriptor, error) {
+func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, error) {
 	cleanup, dir, err := o.mktempDir(o.Output)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return nil, err
 	}
 	defer cleanup()
 
-	desc, layerDescs, err := o.pullCollection(ctx, dir)
+	manifestDescs, layerDescs, err := o.pullCollection(ctx, dir)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return nil, err
 	}
 
 	// Convert descriptor annotations to type Attribute.
@@ -132,14 +141,14 @@ func withAttributes(ctx context.Context, o PullOptions) (ocispec.Descriptor, err
 		if !ok {
 			continue
 		}
-		attr := attributes.AnnotationsToAttributes(ldesc.Annotations)
+		attr := descriptor.AnnotationsToAttributes(ldesc.Annotations)
 		o.Logger.Debugf("Adding attributes %s for file %s", attr.String(), filename)
 		attributesByFile[filename] = attr
 	}
 
 	space, err := workspace.NewLocalWorkspace(dir)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return nil, err
 	}
 
 	var nodes []model.Node
@@ -169,7 +178,7 @@ func withAttributes(ctx context.Context, o PullOptions) (ocispec.Descriptor, err
 		return nil
 	})
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return nil, err
 	}
 
 	// Iterator through the collection using an iterator instead
@@ -177,11 +186,25 @@ func withAttributes(ctx context.Context, o PullOptions) (ocispec.Descriptor, err
 	// we are handling one collection at first.
 	itr := collection.NewByAttributesIterator(nodes)
 
-	return desc, o.moveToResults(itr, o.Attributes)
+	moved, err := o.moveToResults(itr, o.Attributes)
+	if err != nil {
+		return nil, err
+	}
+
+	if moved == 0 {
+		o.Logger.Infof("No matching artifacts found")
+		// Do not return the manifest descriptors if not matches are found.
+		// Anything pulled into the temporary directory will be deleted.
+		return nil, nil
+	}
+
+	return manifestDescs, nil
+
 }
 
-// moveToResult will iterate through the collection
-func (o *PullOptions) moveToResults(itr model.Iterator, matcher attributes.PartialAttributeMatcher) error {
+// moveToResult will iterate through the collection and moved any nodes with matching artifacts to the
+// output directory.
+func (o *PullOptions) moveToResults(itr model.Iterator, matcher attributes.PartialAttributeMatcher) (total int, err error) {
 	for itr.Next() {
 		node := itr.Node()
 		if matcher.Matches(node) {
@@ -189,18 +212,21 @@ func (o *PullOptions) moveToResults(itr model.Iterator, matcher attributes.Parti
 			newLoc := filepath.Join(o.Output, node.ID())
 			cleanLoc := filepath.Clean(newLoc)
 			if err := os.MkdirAll(filepath.Dir(cleanLoc), 0750); err != nil {
-				return err
+				return total, err
 			}
 			if err := os.Rename(node.Address(), cleanLoc); err != nil {
-				return err
+				return total, err
 			}
+			total++
 		}
 	}
-	return nil
+	return total, nil
 }
 
-func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispec.Descriptor, []ocispec.Descriptor, error) {
+// pullCollection will pull one or more collections and return the manifest descriptors, layer descriptors, and an error.
+func (o *PullOptions) pullCollection(ctx context.Context, output string) ([]ocispec.Descriptor, []ocispec.Descriptor, error) {
 	var layerDescs []ocispec.Descriptor
+	var manifestDescs []ocispec.Descriptor
 	var mu sync.Mutex
 	layerFn := func(_ context.Context, desc ocispec.Descriptor) error {
 		mu.Lock()
@@ -209,9 +235,9 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 		return nil
 	}
 
-	cache, err := layout.New(o.cacheDir)
+	cache, err := layout.NewWithContext(ctx, o.cacheDir)
 	if err != nil {
-		return ocispec.Descriptor{}, nil, err
+		return manifestDescs, layerDescs, err
 	}
 	client, err := orasclient.NewClient(
 		orasclient.WithPostCopy(layerFn),
@@ -221,7 +247,7 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 		orasclient.WithCache(cache),
 	)
 	if err != nil {
-		return ocispec.Descriptor{}, nil, fmt.Errorf("error configuring client: %v", err)
+		return manifestDescs, layerDescs, fmt.Errorf("error configuring client: %v", err)
 	}
 	defer func() {
 		if err := client.Destroy(); err != nil {
@@ -229,21 +255,80 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 		}
 	}()
 
-	// TODO(jpower432): Write an method to pull blobs
-	// by attribute from the cache to a content.Store.
-	desc, err := client.Pull(ctx, o.Source, file.New(output))
-	if err != nil {
-		return desc, layerDescs, fmt.Errorf("client pull error for reference %s: %v", o.Source, err)
+	pullSource := func(source string) (ocispec.Descriptor, error) {
+		// TODO(jpower432): Write an method to pull blobs
+		// by attribute from the cache to a content.Store.
+		desc, err := client.Pull(ctx, source, file.New(output))
+		if err != nil {
+			return desc, fmt.Errorf("client pull error for reference %s: %v", o.Source, err)
+		}
+
+		o.Logger.Debugf("Pulled down %s for reference %s", desc.Digest, source)
+
+		// The cache will be populated by the pull command
+		// Ensure the resource is captured in the index.json by
+		// tagging the reference.
+		if err := cache.Tag(ctx, desc, source); err != nil {
+			return desc, err
+		}
+		return desc, nil
 	}
 
-	// The cache will be populated by the pull command
-	// Ensure the resource is captured in the index.json, but
-	// tagging the reference.
-	return desc, layerDescs, cache.Tag(ctx, desc, o.Source)
+	desc, err := pullSource(o.Source)
+	if err != nil {
+		return manifestDescs, layerDescs, err
+	}
+	manifestDescs = append(manifestDescs, desc)
+
+	// Resolve source links and all linked collections by BFS.
+	if o.PullAll {
+		o.Logger.Infof("Resolving linked collections for reference %s", o.Source)
+		visitedRefs := map[string]struct{}{o.Source: {}}
+		linkedRefs, err := cache.ResolveLinks(ctx, o.Source)
+		if err := o.checkResolvedLinksError(o.Source, err); err != nil {
+			return manifestDescs, layerDescs, err
+		}
+
+		for len(linkedRefs) != 0 {
+			currRef := linkedRefs[0]
+			linkedRefs = linkedRefs[1:]
+			if _, ok := visitedRefs[currRef]; ok {
+				continue
+			}
+			visitedRefs[currRef] = struct{}{}
+
+			desc, err := pullSource(currRef)
+			if err != nil {
+				return manifestDescs, layerDescs, err
+			}
+			manifestDescs = append(manifestDescs, desc)
+			o.Logger.Infof("Resolving linked collections for reference %s", currRef)
+			currLinks, err := cache.ResolveLinks(ctx, currRef)
+			if err := o.checkResolvedLinksError(currRef, err); err != nil {
+				return manifestDescs, layerDescs, err
+			}
+			linkedRefs = append(linkedRefs, currLinks...)
+		}
+	}
+
+	return manifestDescs, layerDescs, nil
+}
+
+// checkResolvedLinksError logs errors when no collection is
+// found.
+func (o *PullOptions) checkResolvedLinksError(ref string, err error) error {
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, ocimanifest.ErrNoCollectionLinks) {
+		return err
+	}
+	o.Logger.Infof("No linked collections found for %s", ref)
+	return nil
 }
 
 // mkTempDir will make a temporary dir and return the name
-// and cleanup method
+// and cleanup method.
 func (o *PullOptions) mktempDir(parent string) (func(), string, error) {
 	dir, err := ioutil.TempDir(parent, "collection.*")
 	return func() {
