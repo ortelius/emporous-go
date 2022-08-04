@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -124,11 +123,6 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(filepath.Join(o.RootDir, "dsc.json"), mconfig, 0644)
-	if err != nil {
-		return fmt.Errorf("unable to write dataset-config to collection")
-	}
-
 	var files []string
 	err = space.Walk(func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -181,7 +175,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 	descs = append(descs, linkedDescs...)
 
 	// Add the attributes from the config to their respective blocks
-	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, []byte("{}"), nil)
+	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, mconfig, nil)
 	if err != nil {
 		return err
 	}
