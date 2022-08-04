@@ -129,7 +129,7 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 	}
 	defer cleanup()
 
-	descs, layerDescs, err := o.pullCollection(ctx, dir)
+	manifestDescs, layerDescs, err := o.pullCollection(ctx, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -193,14 +193,17 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 
 	if moved == 0 {
 		o.Logger.Infof("No matching artifacts found")
+		// Do not return the manifest descriptors if not matches are found.
+		// Anything pulled into the temporary directory will be deleted.
 		return nil, nil
 	}
 
-	return descs, nil
+	return manifestDescs, nil
 
 }
 
-// moveToResult will iterate through the collection
+// moveToResult will iterate through the collection and moved any nodes with matching artifacts to the
+// output directory.
 func (o *PullOptions) moveToResults(itr model.Iterator, matcher attributes.PartialAttributeMatcher) (total int, err error) {
 	for itr.Next() {
 		node := itr.Node()
@@ -220,7 +223,7 @@ func (o *PullOptions) moveToResults(itr model.Iterator, matcher attributes.Parti
 	return total, nil
 }
 
-// pullCollection will pull one or more collections and returns the manifest descriptors, layer descriptors, and an error.
+// pullCollection will pull one or more collections and return the manifest descriptors, layer descriptors, and an error.
 func (o *PullOptions) pullCollection(ctx context.Context, output string) ([]ocispec.Descriptor, []ocispec.Descriptor, error) {
 	var layerDescs []ocispec.Descriptor
 	var manifestDescs []ocispec.Descriptor
