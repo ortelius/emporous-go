@@ -98,36 +98,40 @@ func (o *PullOptions) Run(ctx context.Context) error {
 	if o.Attributes != nil {
 		pullFn = withAttributes
 	} else {
-		pullFn = func(ctx context.Context, _ PullOptions) (ocispec.Descriptor, error) {
-			desc, _, err := o.pullCollection(ctx, o.Output)
-			return desc, err
+		pullFn = func(ctx context.Context, _ PullOptions) ([]ocispec.Descriptor, error) {
+			manifestDescs, _, err := o.pullCollection(ctx, o.Output)
+			return manifestDescs, err
 		}
 	}
 	return o.run(ctx, pullFn)
 }
 
 func (o *PullOptions) run(ctx context.Context, pullFn pullFunc) error {
-	desc, err := pullFn(ctx, *o)
+	o.Logger.Infof("Resolving artifacts for reference %s", o.Source)
+	manifestDescs, err := pullFn(ctx, *o)
 	if err != nil {
 		return err
 	}
 
-	o.Logger.Infof("Artifact %s from %s pulled to %s\n", desc.Digest, o.Source, o.Output)
+	for _, desc := range manifestDescs {
+		o.Logger.Infof("Artifact %s pulled to %s\n", desc.Digest, o.Output)
+	}
+
 	return nil
 }
 
-type pullFunc func(context.Context, PullOptions) (ocispec.Descriptor, error)
+type pullFunc func(context.Context, PullOptions) ([]ocispec.Descriptor, error)
 
-func withAttributes(ctx context.Context, o PullOptions) (ocispec.Descriptor, error) {
+func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, error) {
 	cleanup, dir, err := o.mktempDir(o.Output)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return nil, err
 	}
 	defer cleanup()
 
-	desc, layerDescs, err := o.pullCollection(ctx, dir)
+	descs, layerDescs, err := o.pullCollection(ctx, dir)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return nil, err
 	}
 
 	// Convert descriptor annotations to type Attribute.
@@ -144,7 +148,7 @@ func withAttributes(ctx context.Context, o PullOptions) (ocispec.Descriptor, err
 
 	space, err := workspace.NewLocalWorkspace(dir)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return nil, err
 	}
 
 	var nodes []model.Node
@@ -174,7 +178,7 @@ func withAttributes(ctx context.Context, o PullOptions) (ocispec.Descriptor, err
 		return nil
 	})
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return nil, err
 	}
 
 	// Iterator through the collection using an iterator instead
@@ -182,11 +186,22 @@ func withAttributes(ctx context.Context, o PullOptions) (ocispec.Descriptor, err
 	// we are handling one collection at first.
 	itr := collection.NewByAttributesIterator(nodes)
 
-	return desc, o.moveToResults(itr, o.Attributes)
+	moved, err := o.moveToResults(itr, o.Attributes)
+	if err != nil {
+		return nil, err
+	}
+
+	if moved == 0 {
+		o.Logger.Infof("No matching artifacts found")
+		return nil, nil
+	}
+
+	return descs, nil
+
 }
 
 // moveToResult will iterate through the collection
-func (o *PullOptions) moveToResults(itr model.Iterator, matcher attributes.PartialAttributeMatcher) error {
+func (o *PullOptions) moveToResults(itr model.Iterator, matcher attributes.PartialAttributeMatcher) (total int, err error) {
 	for itr.Next() {
 		node := itr.Node()
 		if matcher.Matches(node) {
@@ -194,18 +209,21 @@ func (o *PullOptions) moveToResults(itr model.Iterator, matcher attributes.Parti
 			newLoc := filepath.Join(o.Output, node.ID())
 			cleanLoc := filepath.Clean(newLoc)
 			if err := os.MkdirAll(filepath.Dir(cleanLoc), 0750); err != nil {
-				return err
+				return total, err
 			}
 			if err := os.Rename(node.Address(), cleanLoc); err != nil {
-				return err
+				return total, err
 			}
+			total++
 		}
 	}
-	return nil
+	return total, nil
 }
 
-func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispec.Descriptor, []ocispec.Descriptor, error) {
+// pullCollection will pull one or more collections and returns the manifest descriptors, layer descriptors, and an error.
+func (o *PullOptions) pullCollection(ctx context.Context, output string) ([]ocispec.Descriptor, []ocispec.Descriptor, error) {
 	var layerDescs []ocispec.Descriptor
+	var manifestDescs []ocispec.Descriptor
 	var mu sync.Mutex
 	layerFn := func(_ context.Context, desc ocispec.Descriptor) error {
 		mu.Lock()
@@ -216,7 +234,7 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 
 	cache, err := layout.NewWithContext(ctx, o.cacheDir)
 	if err != nil {
-		return ocispec.Descriptor{}, nil, err
+		return manifestDescs, layerDescs, err
 	}
 	client, err := orasclient.NewClient(
 		orasclient.WithPostCopy(layerFn),
@@ -226,7 +244,7 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 		orasclient.WithCache(cache),
 	)
 	if err != nil {
-		return ocispec.Descriptor{}, nil, fmt.Errorf("error configuring client: %v", err)
+		return manifestDescs, layerDescs, fmt.Errorf("error configuring client: %v", err)
 	}
 	defer func() {
 		if err := client.Destroy(); err != nil {
@@ -255,8 +273,9 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 
 	desc, err := pullSource(o.Source)
 	if err != nil {
-		return desc, layerDescs, err
+		return manifestDescs, layerDescs, err
 	}
+	manifestDescs = append(manifestDescs, desc)
 
 	// Resolve source links and all linked collections by BFS.
 	if o.PullAll {
@@ -264,7 +283,7 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 		visitedRefs := map[string]struct{}{o.Source: {}}
 		linkedRefs, err := cache.ResolveLinks(ctx, o.Source)
 		if err := o.checkResolvedLinksError(o.Source, err); err != nil {
-			return desc, layerDescs, err
+			return manifestDescs, layerDescs, err
 		}
 
 		for len(linkedRefs) != 0 {
@@ -275,22 +294,21 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) (ocispe
 			}
 			visitedRefs[currRef] = struct{}{}
 
-			// No need to log this descriptor digest
-			// since it will be logged when pulled.
-			_, err := pullSource(currRef)
+			desc, err := pullSource(currRef)
 			if err != nil {
-				return desc, layerDescs, err
+				return manifestDescs, layerDescs, err
 			}
+			manifestDescs = append(manifestDescs, desc)
 			o.Logger.Infof("Resolving linked collections for reference %s", currRef)
 			currLinks, err := cache.ResolveLinks(ctx, currRef)
 			if err := o.checkResolvedLinksError(currRef, err); err != nil {
-				return desc, layerDescs, err
+				return manifestDescs, layerDescs, err
 			}
 			linkedRefs = append(linkedRefs, currLinks...)
 		}
 	}
 
-	return desc, layerDescs, nil
+	return manifestDescs, layerDescs, nil
 }
 
 // checkResolvedLinksError logs errors when no collection is
