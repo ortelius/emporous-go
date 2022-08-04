@@ -2,8 +2,10 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -109,6 +111,24 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return fmt.Errorf("error configuring client: %v", err)
 	}
 
+	var config v1alpha1.DataSetConfiguration
+	if len(o.DSConfig) > 0 {
+		config, err = load.ReadConfig(o.DSConfig)
+		if err != nil {
+			return err
+		}
+	}
+
+	mconfig, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(filepath.Join(o.RootDir, "dsc.json"), mconfig, 0644)
+	if err != nil {
+		return fmt.Errorf("unable to write dataset-config to collection")
+	}
+
 	var files []string
 	err = space.Walk(func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -125,14 +145,6 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 	})
 	if err != nil {
 		return err
-	}
-
-	var config v1alpha1.DataSetConfiguration
-	if len(o.DSConfig) > 0 {
-		config, err = load.ReadConfig(o.DSConfig)
-		if err != nil {
-			return err
-		}
 	}
 
 	// To allow the files to be loaded relative to the render
