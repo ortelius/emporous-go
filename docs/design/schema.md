@@ -38,11 +38,12 @@ node annotations of the Algorithm's Linked Collection.
 
 Schema Collections MAY contain Common Attribute Mappings. The Common Attribute Mappings in a schema instruct the UOR
 Client to add preset attributes to a Collection while being built. This reference is expressed by assigning
-the `uor.attribute.mapping=true` attribute to the node annotations of the Default Attribute Mappings.
+the `uor.attribute` key to a value with a JSON serialized dictionary with mapping information.
 
 ### Default Content Declaration
 
-Schema Collections MAY contain a Default Content Declaration. The Default Content Declaration in a schema is referenced by an algorithm linked to a collection when the algorithm is run. This Declaration is expressed by assigning the `uor.dcd={{ dictionary }}` attribute to the Manifest Annotations of the Schema Collection.  
+Schema Collections MAY contain a Default Content Declaration. The Default Content Declaration in a schema is referenced by an algorithm linked to a collection when the algorithm is run.
+This Declaration is stored in the manifest configuration of the Schema Collection.  
 
 ## Design
 

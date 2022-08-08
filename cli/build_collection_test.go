@@ -17,30 +17,30 @@ import (
 	"github.com/uor-framework/uor-client-go/cli/log"
 )
 
-func TestBuildComplete(t *testing.T) {
+func TestBuildCollectionComplete(t *testing.T) {
 	type spec struct {
-		name     string
-		args     []string
-		opts     *BuildOptions
-		expOpts  *BuildOptions
-		expError string
+		name       string
+		args       []string
+		opts       *BuildCollectionOptions
+		assertFunc func(config *BuildCollectionOptions) bool
+		expError   string
 	}
 
 	cases := []spec{
 		{
 			name: "Valid/CorrectNumberOfArguments",
 			args: []string{"testdata", "test-registry.com/image:latest"},
-			expOpts: &BuildOptions{
-				RootDir:     "testdata",
-				Destination: "test-registry.com/image:latest",
+			assertFunc: func(config *BuildCollectionOptions) bool {
+				return config.RootDir == "testdata" && config.Destination == "test-registry.com/image:latest"
 			},
-			opts: &BuildOptions{},
+			opts: &BuildCollectionOptions{
+				BuildOptions: &BuildOptions{},
+			},
 		},
 		{
 			name:     "Invalid/NotEnoughArguments",
 			args:     []string{},
-			expOpts:  &BuildOptions{},
-			opts:     &BuildOptions{},
+			opts:     &BuildCollectionOptions{},
 			expError: "bug: expecting two arguments",
 		},
 	}
@@ -52,29 +52,29 @@ func TestBuildComplete(t *testing.T) {
 				require.EqualError(t, err, c.expError)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, c.expOpts, c.opts)
+				require.True(t, c.assertFunc(c.opts))
 			}
 		})
 	}
 }
 
-func TestBuildValidate(t *testing.T) {
+func TestBuildCollectionValidate(t *testing.T) {
 	type spec struct {
 		name     string
-		opts     *BuildOptions
+		opts     *BuildCollectionOptions
 		expError string
 	}
 
 	cases := []spec{
 		{
 			name: "Valid/RootDirExists",
-			opts: &BuildOptions{
+			opts: &BuildCollectionOptions{
 				RootDir: "testdata",
 			},
 		},
 		{
 			name: "Invalid/RootDirDoesNotExist",
-			opts: &BuildOptions{
+			opts: &BuildCollectionOptions{
 				RootDir: "fake",
 			},
 			expError: "workspace directory \"fake\": stat fake: no such file or directory",
@@ -93,7 +93,7 @@ func TestBuildValidate(t *testing.T) {
 	}
 }
 
-func TestBuildRun(t *testing.T) {
+func TestBuildCollectionRun(t *testing.T) {
 	testlogr, err := log.NewLogger(ioutil.Discard, "debug")
 	require.NoError(t, err)
 
@@ -104,54 +104,61 @@ func TestBuildRun(t *testing.T) {
 
 	type spec struct {
 		name     string
-		opts     *BuildOptions
+		opts     *BuildCollectionOptions
 		expError string
 	}
 
 	cases := []spec{
 		{
 			name: "Success/FlatWorkspace",
-			opts: &BuildOptions{
-				RootOptions: &RootOptions{
-					IOStreams: genericclioptions.IOStreams{
-						Out:    os.Stdout,
-						In:     os.Stdin,
-						ErrOut: os.Stderr,
+			opts: &BuildCollectionOptions{
+				BuildOptions: &BuildOptions{
+					Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
+					RootOptions: &RootOptions{
+						IOStreams: genericclioptions.IOStreams{
+							Out:    os.Stdout,
+							In:     os.Stdin,
+							ErrOut: os.Stderr,
+						},
+						Logger: testlogr,
 					},
-					Logger: testlogr,
 				},
-				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
-				RootDir:     "testdata/flatworkspace",
+				RootDir: "testdata/flatworkspace",
 			},
 		},
 		{
 			name: "Success/MultiLevelWorkspace",
-			opts: &BuildOptions{
-				RootOptions: &RootOptions{
-					IOStreams: genericclioptions.IOStreams{
-						Out:    os.Stdout,
-						In:     os.Stdin,
-						ErrOut: os.Stderr,
+			opts: &BuildCollectionOptions{
+				BuildOptions: &BuildOptions{
+					Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
+					RootOptions: &RootOptions{
+						IOStreams: genericclioptions.IOStreams{
+							Out:    os.Stdout,
+							In:     os.Stdin,
+							ErrOut: os.Stderr,
+						},
+						Logger: testlogr,
 					},
-					Logger: testlogr,
 				},
-				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
-				RootDir:     "testdata/multi-level-workspace",
+				RootDir: "testdata/multi-level-workspace",
 			},
 		},
 		{
 			name: "SuccessTwoRoots",
-			opts: &BuildOptions{
-				RootOptions: &RootOptions{
-					IOStreams: genericclioptions.IOStreams{
-						Out:    os.Stdout,
-						In:     os.Stdin,
-						ErrOut: os.Stderr,
+
+			opts: &BuildCollectionOptions{
+				BuildOptions: &BuildOptions{
+					Destination: fmt.Sprintf("%s/client-tworoot-test:latest", u.Host),
+					RootOptions: &RootOptions{
+						IOStreams: genericclioptions.IOStreams{
+							Out:    os.Stdout,
+							In:     os.Stdin,
+							ErrOut: os.Stderr,
+						},
+						Logger: testlogr,
 					},
-					Logger: testlogr,
 				},
-				Destination: fmt.Sprintf("%s/client-tworoots-test:latest", u.Host),
-				RootDir:     "testdata/tworoots",
+				RootDir: "testdata/tworoots",
 			},
 		},
 	}
