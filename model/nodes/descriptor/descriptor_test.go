@@ -7,13 +7,10 @@ import (
 )
 
 func TestAnnotationsToAttributes(t *testing.T) {
-	expList := map[string][]string{
-		"kind": {"jpg"},
-		"name": {"fish.jpg"},
-	}
+	expJSON := `{"kind":"jpg","name":"fish.jpg"}`
 	annotations := map[string]string{
 		"kind": "jpg",
 		"name": "fish.jpg",
 	}
-	require.Equal(t, expList, AnnotationsToAttributes(annotations).List())
+	require.Equal(t, expJSON, string(AnnotationsToAttributes(annotations).AsJSON()))
 }

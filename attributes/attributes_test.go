@@ -1,51 +1,54 @@
 package attributes
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/require"
+	"github.com/uor-framework/uor-client-go/model"
+	"testing"
 )
 
-func TestExists(t *testing.T) {
-	attributes := Attributes{
-		"kind": map[string]struct{}{
-			"jpg": {},
-			"txt": {},
-		},
-		"name": map[string]struct{}{
-			"fish.jpg": {},
-		},
+func TestAttributes_AsJSON(t *testing.T) {
+	expString := `{"name":"test","size":2}`
+	test := Attributes{
+		"name": NewString("name", "test"),
+		"size": NewNumber("size", 2),
 	}
-	require.True(t, attributes.Exists("kind", "jpg"))
-	require.False(t, attributes.Exists("kind", "png"))
+	require.Equal(t, expString, string(test.AsJSON()))
 }
 
-func TestFind(t *testing.T) {
-	attributes := Attributes{
-		"kind": map[string]struct{}{
-			"jpg": {},
-			"txt": {},
-		},
-		"name": map[string]struct{}{
-			"fish.jpg": {},
-		},
+func TestAttributes_Exists(t *testing.T) {
+	test := Attributes{
+		"name": NewString("name", "test"),
+		"size": NewNumber("size", 2),
 	}
-	result := attributes.Find("kind")
-	require.Len(t, result, 2)
-	require.Contains(t, result, "jpg")
-	require.Contains(t, result, "txt")
+	require.True(t, test.Exists("name", model.KindString, "test"))
 }
 
-func TestAttributes_String(t *testing.T) {
-	expString := `kind=jpg,kind=txt,name=fish.jpg`
-	attributes := Attributes{
-		"kind": map[string]struct{}{
-			"jpg": {},
-			"txt": {},
-		},
-		"name": map[string]struct{}{
-			"fish.jpg": {},
-		},
+func TestAttributes_Find(t *testing.T) {
+	test := Attributes{
+		"name": NewString("name", "test"),
+		"size": NewNumber("size", 2),
 	}
-	require.Equal(t, expString, attributes.String())
+	val := test.Find("name")
+	require.Equal(t, "name", val.Key())
+	require.Equal(t, model.KindString, val.Kind())
+	s, err := val.AsString()
+	require.NoError(t, err)
+	require.Equal(t, "test", s)
+}
+
+func TestAttributes_Len(t *testing.T) {
+	test := Attributes{
+		"name": NewString("name", "test"),
+		"size": NewNumber("size", 2),
+	}
+	require.Equal(t, 2, test.Len())
+}
+
+func TestAttributes_List(t *testing.T) {
+	test := Attributes{
+		"name": NewString("name", "test"),
+		"size": NewNumber("size", 2),
+	}
+	list := test.List()
+	require.Len(t, list, 2)
 }

@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"github.com/uor-framework/uor-client-go/attributes"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,18 +18,18 @@ var iteratorTests = []struct {
 		nodes: []model.Node{
 			&testutils.MockNode{
 				I: "node1",
-				A: testutils.MockAttributes{
-					"kind": "txt",
-					"name": "test",
+				A: attributes.Attributes{
+					"kind": attributes.NewString("kind", "txt"),
+					"name": attributes.NewString("name", "test"),
 				},
 			},
 		},
 		want: []model.Node{
 			&testutils.MockNode{
 				I: "node1",
-				A: testutils.MockAttributes{
-					"kind": "txt",
-					"name": "test",
+				A: attributes.Attributes{
+					"kind": attributes.NewString("kind", "txt"),
+					"name": attributes.NewString("name", "test"),
 				},
 			},
 		},
@@ -37,30 +38,30 @@ var iteratorTests = []struct {
 		nodes: []model.Node{
 			&testutils.MockNode{
 				I: "node1",
-				A: testutils.MockAttributes{
-					"kind": "txt",
-					"name": "test",
+				A: attributes.Attributes{
+					"kind": attributes.NewString("kind", "txt"),
+					"name": attributes.NewString("name", "test"),
 				},
 			},
 			&testutils.MockNode{
 				I: "node2",
-				A: testutils.MockAttributes{
-					"kind": "txt",
+				A: attributes.Attributes{
+					"kind": attributes.NewString("kind", "txt"),
 				},
 			},
 		},
 		want: []model.Node{
 			&testutils.MockNode{
 				I: "node2",
-				A: testutils.MockAttributes{
-					"kind": "txt",
+				A: attributes.Attributes{
+					"kind": attributes.NewString("kind", "txt"),
 				},
 			},
 			&testutils.MockNode{
 				I: "node1",
-				A: testutils.MockAttributes{
-					"kind": "txt",
-					"name": "test",
+				A: attributes.Attributes{
+					"kind": attributes.NewString("kind", "txt"),
+					"name": attributes.NewString("name", "test"),
 				},
 			},
 		},

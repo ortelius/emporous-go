@@ -112,7 +112,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 
 	var config v1alpha1.DataSetConfiguration
 	if len(o.DSConfig) > 0 {
-		config, err = load.ReadConfig(o.DSConfig)
+		config, err = load.ReadCollectionConfig(o.DSConfig)
 		if err != nil {
 			return err
 		}
@@ -182,8 +182,8 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 
 	// Write the root collection attributes
 	manifestAnnotations := map[string]string{}
-	if config.SchemaAddress != "" {
-		manifestAnnotations[ocimanifest.AnnotationSchema] = config.SchemaAddress
+	if config.Collection.SchemaAddress != "" {
+		manifestAnnotations[ocimanifest.AnnotationSchema] = config.Collection.SchemaAddress
 	}
 
 	if len(linkedDescs) > 0 {

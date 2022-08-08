@@ -2,6 +2,7 @@ package layout
 
 import (
 	"context"
+	"github.com/uor-framework/uor-client-go/attributes/matchers"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -275,8 +276,8 @@ func TestResolveByAttribute(t *testing.T) {
 			name:     "Success/MatchFound",
 			cacheDir: "testdata/attributes",
 			ref:      "localhost:5001/test1:latest",
-			matcher: &attributes.PartialAttributeMatcher{
-				"type": "jpg",
+			matcher: matchers.PartialAttributeMatcher{
+				"type": attributes.NewString("type", "jpg"),
 			},
 			expRes: []ocispec.Descriptor{
 				{
@@ -291,8 +292,8 @@ func TestResolveByAttribute(t *testing.T) {
 			name:     "Success/NoMatchingAttributes",
 			cacheDir: "testdata/valid",
 			ref:      "localhost:5001/test:latest",
-			matcher: &attributes.ExactAttributeMatcher{
-				"type": "jpg",
+			matcher: matchers.PartialAttributeMatcher{
+				"type": attributes.NewString("type", "png"),
 			},
 		},
 		{

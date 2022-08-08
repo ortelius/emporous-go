@@ -1,11 +1,12 @@
 package testutils
 
-import "github.com/uor-framework/uor-client-go/model"
+import (
+	"github.com/uor-framework/uor-client-go/model"
+)
 
 var (
-	_ model.Node       = &MockNode{}
-	_ model.Attributes = &MockAttributes{}
-	_ model.Node       = &MockIterableNode{}
+	_ model.Node = &MockNode{}
+	_ model.Node = &MockIterableNode{}
 )
 
 // MockNode implements the model.Node interface for testing.
@@ -13,7 +14,7 @@ type MockNode struct {
 	// Node ID
 	I string
 	// Node Attributes
-	A model.Attributes
+	A model.AttributeSet
 }
 
 func (m *MockNode) ID() string {
@@ -24,43 +25,8 @@ func (m *MockNode) Address() string {
 	return "address"
 }
 
-func (m *MockNode) Attributes() model.Attributes {
+func (m *MockNode) Attributes() model.AttributeSet {
 	return m.A
-}
-
-// MockAttributes implements the model.Attributes interface for testing.
-type MockAttributes map[string]string
-
-func (m MockAttributes) Find(key string) []string {
-	val, exists := m[key]
-	if !exists {
-		return nil
-	}
-	return []string{val}
-}
-
-func (m MockAttributes) Exists(key, value string) bool {
-	val, exists := m[key]
-	if !exists {
-		return false
-	}
-	return val == value
-}
-
-func (m MockAttributes) String() string {
-	return ""
-}
-
-func (m MockAttributes) Len() int {
-	return len(m)
-}
-
-func (m MockAttributes) Merge(_ model.Attributes) {
-	// Not implemented
-}
-
-func (m MockAttributes) List() map[string][]string {
-	return nil
 }
 
 // MockIterableNode implements the model.Node and model.Iterator interface for testing.
@@ -70,7 +36,7 @@ type MockIterableNode struct {
 	// Iterator Index
 	Index int
 	// Node Attributes
-	A model.Attributes
+	A model.AttributeSet
 	// Iterable nodes list
 	Nodes []model.Node
 }
@@ -83,7 +49,7 @@ func (m *MockIterableNode) Address() string {
 	return "address"
 }
 
-func (m *MockIterableNode) Attributes() model.Attributes {
+func (m *MockIterableNode) Attributes() model.AttributeSet {
 	return m.A
 }
 

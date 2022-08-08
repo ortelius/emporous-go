@@ -78,7 +78,7 @@ func UpdateLayerDescriptors(descs []ocispec.Descriptor, cfg v1alpha1.DataSetConf
 			// skip any descriptor with no name attached
 			continue
 		}
-		for _, file := range cfg.Files {
+		for _, file := range cfg.Collection.Files {
 			// If the config has a grouping declared, make a valid regex.
 			if strings.Contains(file.File, "*") && !strings.Contains(file.File, ".*") {
 				file.File = strings.Replace(file.File, "*", ".*", -1)
@@ -93,7 +93,11 @@ func UpdateLayerDescriptors(descs []ocispec.Descriptor, cfg v1alpha1.DataSetConf
 			if namesearch.Match([]byte(filename)) {
 				// Get the k/v pairs from the config and add them to the descriptor annotations.
 				for k, v := range file.Attributes {
-					desc.Annotations[k] = v
+					j, err := json.Marshal(v)
+					if err != nil {
+						return nil, err
+					}
+					desc.Annotations[k] = string(j)
 				}
 			}
 		}

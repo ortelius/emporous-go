@@ -2,18 +2,19 @@ kind: DataSetConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 linkedCollections:
 - localhost:5001/test:latest
-schemaAddress: localhost:5001/schema:latest
-files:
-  - file: "*.jpg"
-    attributes:
-      animal: fish
-      habitat: ocean
-      size: small
-      color: blue
-  - file: level1/file.txt
-    attributes:
-      genre: "science fiction"
-      bool: true
-  - file: fish.jpg"
-    attributes:
-      size: large
+collection:
+  schemaAddress: localhost:5001/schema:latest
+  files:
+    - file: "*.jpg"
+      attributes:
+        animal: fish
+        habitat: ocean
+        size: small
+        color: blue
+    - file: level1/file.txt
+      attributes:
+        genre: "science fiction"
+        bool: true
+    - file: fish.jpg"
+      attributes:
+        size: large

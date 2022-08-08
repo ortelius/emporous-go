@@ -1,5 +1,7 @@
 package model
 
+import "encoding/json"
+
 // DirectedGraph defines methods for interacting with groups of
 // nodes and edges in a directed graph structure. This graph may
 // or may not contain cycles.
@@ -42,7 +44,7 @@ type Node interface {
 	Address() string
 	// Attributes defines the attributes associated
 	// with the node data
-	Attributes() Attributes
+	Attributes() AttributeSet
 }
 
 // NodeBuilder defines methods to build new nodes.
@@ -79,28 +81,70 @@ type Iterator interface {
 
 // Matcher defines methods used for node searching.
 type Matcher interface {
-	// String returns a string that describes the match criteria
-	String() string
 	// Matches evaluates the current node against the criteria.
 	Matches(node Node) bool
 }
 
-// Attributes defines methods for manipulating attribute sets.
+// AttributeSet defines methods for manipulating attribute sets.
 // Nodes have set of attributes that allow them to self-describe and
 // describe connected nodes.
-type Attributes interface {
-	// Exists returns whether a key, value pair exists
-	Exists(string, string) bool
+type AttributeSet interface {
+	// Exists returns whether a key, value with type pair exists
+	Exists(string, Kind, interface{}) bool
 	// Find returns all values associated with a specified key
-	Find(string) []string
-	// String returns a string representation of the
-	// attribute set.
-	String() string
-	// Merge will merge the input Attributes with the receiver.
-	Merge(Attributes)
-	// List will list all key, value pairs for the attributes in a
+	Find(string) Attribute
+	// AsJSON returns a json representation of the Attribute set.
+	AsJSON() json.RawMessage
+	// List will list all key,value pairs for the attributes in a
 	// consumable format.
-	List() map[string][]string
+	List() map[string]Attribute
 	// Len returns the attribute set length
 	Len() int
+}
+
+// Attribute defines methods of an attribute object.
+type Attribute interface {
+	// Key is the value of the attribute identifier. This must always be a string.
+	Key() string
+	// Kind represent the value type.
+	Kind() Kind
+	// IsNull will return true if the attribute type is null.
+	IsNull() bool
+	// AsBool will return the attribute values as a boolean.
+	AsBool() (bool, error)
+	// AsNumber will return the attribute value as a float.
+	AsNumber() (float64, error)
+	// AsString will return the attribute value as a string.
+	AsString() (string, error)
+	// AsAny returns the value of the attribute with no type checking.
+	AsAny() interface{}
+}
+
+// Kind represents the kind of Attributes.
+type Kind int
+
+const (
+	KindInvalid Kind = iota
+	KindNull
+	KindBool
+	KindNumber
+	KindString
+)
+
+// String prints a string representation of the attribute kind.
+func (k Kind) String() string {
+	switch k {
+	case KindInvalid:
+		return "INVALID"
+	case KindNull:
+		return "null"
+	case KindBool:
+		return "bool"
+	case KindNumber:
+		return "number"
+	case KindString:
+		return "string"
+	default:
+		panic("invalid kind")
+	}
 }

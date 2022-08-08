@@ -1,0 +1,5 @@
+kind: AttributeQuery
+apiVersion: client.uor-framework.io/v1alpha1
+attributes:
+  - key: "test"
+    value: "linkedannotation"

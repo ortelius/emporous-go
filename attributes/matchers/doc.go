@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package matchers
 
-// Package v1alpha1 provides the APIs
-// used for constructing UOR Datasets, Schemas, and Attribute Queries.
+// This package defines concrete Matcher types for attribute queries.

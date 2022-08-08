@@ -13,7 +13,8 @@ import (
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/content/file"
 
-	"github.com/uor-framework/uor-client-go/attributes"
+	"github.com/uor-framework/uor-client-go/attributes/matchers"
+	"github.com/uor-framework/uor-client-go/builder/config"
 	"github.com/uor-framework/uor-client-go/content/layout"
 	"github.com/uor-framework/uor-client-go/model"
 	"github.com/uor-framework/uor-client-go/model/nodes/basic"
@@ -29,13 +30,13 @@ import (
 // be set using the pull subcommand.
 type PullOptions struct {
 	*RootOptions
-	Source     string
-	Output     string
-	Insecure   bool
-	PullAll    bool
-	PlainHTTP  bool
-	Configs    []string
-	Attributes map[string]string
+	Source         string
+	Output         string
+	Insecure       bool
+	PullAll        bool
+	PlainHTTP      bool
+	Configs        []string
+	AttributeQuery string
 }
 
 var clientPullExamples = examples.Example{
@@ -63,11 +64,10 @@ func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 	}
 
 	cmd.Flags().StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths when contacting registries")
-	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to SSL registry without certs")
-	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https when contacting registries")
+	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "i", o.Insecure, "allow connections to SSL registry without certs")
+	cmd.Flags().BoolVar(&o.PlainHTTP, "plain-http", o.PlainHTTP, "use plain http and not https when contacting registries")
 	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "output location for artifacts")
-	cmd.Flags().StringToStringVarP(&o.Attributes, "attributes", "", o.Attributes, "list of key,value pairs (e.g. key=value) for "+
-		"retrieving artifacts by attributes")
+	cmd.Flags().StringVar(&o.AttributeQuery, "attributes", o.AttributeQuery, "attribute query config path")
 	cmd.Flags().BoolVar(&o.PullAll, "pull-all", o.PullAll, "pull all linked collections")
 
 	return cmd
@@ -95,7 +95,7 @@ func (o *PullOptions) Validate() error {
 
 func (o *PullOptions) Run(ctx context.Context) error {
 	var pullFn pullFunc
-	if o.Attributes != nil {
+	if o.AttributeQuery != "" {
 		pullFn = withAttributes
 	} else {
 		pullFn = func(ctx context.Context, _ PullOptions) ([]ocispec.Descriptor, error) {
@@ -135,14 +135,14 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 	}
 
 	// Convert descriptor annotations to type Attribute.
-	attributesByFile := make(map[string]model.Attributes, len(layerDescs))
+	attributesByFile := make(map[string]model.AttributeSet, len(layerDescs))
 	for _, ldesc := range layerDescs {
 		filename, ok := ldesc.Annotations[ocispec.AnnotationTitle]
 		if !ok {
 			continue
 		}
 		attr := descriptor.AnnotationsToAttributes(ldesc.Annotations)
-		o.Logger.Debugf("Adding attributes %s for file %s", attr.String(), filename)
+		o.Logger.Debugf("Adding attributes %s for file %s", attr.AsJSON(), filename)
 		attributesByFile[filename] = attr
 	}
 
@@ -181,12 +181,19 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 		return nil, err
 	}
 
-	// Iterator through the collection using an iterator instead
-	// of constructing a tree data structure for now since
-	// we are handling one collection at first.
-	itr := collection.NewByAttributesIterator(nodes)
+	itr := collection.NewInOrderIterator(nodes)
 
-	moved, err := o.moveToResults(itr, o.Attributes)
+	query, err := config.ReadAttributeQuery(o.AttributeQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	attributeSet, err := config.ConvertToModel(query)
+	if err != nil {
+		return nil, err
+	}
+
+	moved, err := o.moveToResults(itr, attributeSet.List())
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +211,7 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 
 // moveToResult will iterate through the collection and moved any nodes with matching artifacts to the
 // output directory.
-func (o *PullOptions) moveToResults(itr model.Iterator, matcher attributes.PartialAttributeMatcher) (total int, err error) {
+func (o *PullOptions) moveToResults(itr model.Iterator, matcher matchers.PartialAttributeMatcher) (total int, err error) {
 	for itr.Next() {
 		node := itr.Node()
 		if matcher.Matches(node) {
@@ -260,7 +267,7 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) ([]ocis
 		// by attribute from the cache to a content.Store.
 		desc, err := client.Pull(ctx, source, file.New(output))
 		if err != nil {
-			return desc, fmt.Errorf("client pull error for reference %s: %v", o.Source, err)
+			return desc, fmt.Errorf("pull error for reference %s: %v", o.Source, err)
 		}
 
 		o.Logger.Debugf("Pulled down %s for reference %s", desc.Digest, source)

@@ -1,9 +1,8 @@
 package collection
 
 import (
-	"fmt"
+	"github.com/uor-framework/uor-client-go/attributes"
 	"sort"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -259,26 +258,20 @@ func TestCollection_Attributes(t *testing.T) {
 			nodes: []model.Node{
 				&testutils.MockNode{
 					I: "node1",
-					A: &mockAttributes{
-						"title": map[string]struct{}{
-							"node1": {},
-						},
+					A: attributes.Attributes{
+						"title": attributes.NewString("title", "node1"),
 					},
 				},
 				&testutils.MockNode{
 					I: "node2",
-					A: &mockAttributes{
-						"title": map[string]struct{}{
-							"node2": {},
-						},
+					A: attributes.Attributes{
+						"title": attributes.NewString("title", "node2"),
 					},
 				},
 				&testutils.MockNode{
 					I: "node3",
-					A: &mockAttributes{
-						"title": map[string]struct{}{
-							"node3": {},
-						},
+					A: attributes.Attributes{
+						"title": attributes.NewString("title", "node3"),
 					},
 				},
 			},
@@ -286,7 +279,7 @@ func TestCollection_Attributes(t *testing.T) {
 				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
 				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
 			},
-			expAttributes: "title=node3",
+			expAttributes: "{\"title\":\"node3\"}",
 		},
 		{
 			name:  "Failure/NotRootExists",
@@ -307,7 +300,7 @@ func TestCollection_Attributes(t *testing.T) {
 			if attr == nil {
 				require.Len(t, c.expAttributes, 0)
 			} else {
-				require.Equal(t, c.expAttributes, attr.String())
+				require.Equal(t, c.expAttributes, string(attr.AsJSON()))
 			}
 		})
 	}
@@ -322,57 +315,4 @@ func makeTestCollection(t *testing.T, nodes []model.Node, edges []model.Edge) Co
 		require.NoError(t, c.AddEdge(edge))
 	}
 	return *c
-}
-
-type mockAttributes map[string]map[string]struct{}
-
-var _ model.Attributes = &mockAttributes{}
-
-func (m mockAttributes) Find(key string) []string {
-	valSet, exists := m[key]
-	if !exists {
-		return nil
-	}
-	var vals []string
-	for val := range valSet {
-		vals = append(vals, val)
-	}
-	return vals
-}
-
-func (m mockAttributes) Exists(key, value string) bool {
-	vals, exists := m[key]
-	if !exists {
-		return false
-	}
-	_, valExists := vals[value]
-	return valExists
-}
-
-func (m mockAttributes) String() string {
-	out := new(strings.Builder)
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, key := range keys {
-		for val := range m[key] {
-			line := fmt.Sprintf("%s=%s,", key, val)
-			out.WriteString(line)
-		}
-	}
-	return strings.TrimSuffix(out.String(), ",")
-}
-
-func (m mockAttributes) Merge(_ model.Attributes) {
-	// Not implemented
-}
-
-func (m mockAttributes) List() map[string][]string {
-	return nil
-}
-
-func (m mockAttributes) Len() int {
-	return len(m)
 }

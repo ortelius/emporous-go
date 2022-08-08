@@ -3,6 +3,8 @@ package cli
 import (
 	"context"
 	"fmt"
+	"github.com/uor-framework/uor-client-go/attributes/matchers"
+	"github.com/uor-framework/uor-client-go/builder/config"
 	"github.com/uor-framework/uor-client-go/util/examples"
 	"io"
 	"os"
@@ -11,7 +13,6 @@ import (
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
-	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/content/layout"
 )
 
@@ -19,8 +20,8 @@ import (
 // be set when using the inspect subcommand.
 type InspectOptions struct {
 	*RootOptions
-	Source     string
-	Attributes map[string]string
+	Source         string
+	AttributeQuery string
 }
 
 var clientInspectExamples = []examples.Example{
@@ -64,8 +65,7 @@ func NewInspectCmd(rootOpts *RootOptions) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringToStringVarP(&o.Attributes, "attributes", "a", o.Attributes, "list of key,value pairs (e.g. key=value) for "+
-		"retrieving artifacts by attributes")
+	cmd.Flags().StringVarP(&o.AttributeQuery, "attributes", "a", o.AttributeQuery, "attribute query config path")
 	cmd.Flags().StringVarP(&o.Source, "reference", "r", o.Source, "a reference to list descriptors for")
 
 	return cmd
@@ -76,7 +76,7 @@ func (o *InspectOptions) Complete(args []string) error {
 }
 
 func (o *InspectOptions) Validate() error {
-	if o.Attributes != nil && o.Source == "" {
+	if o.AttributeQuery != "" && o.Source == "" {
 		return fmt.Errorf("must specify a reference with --reference")
 	}
 	return nil
@@ -96,9 +96,23 @@ func (o *InspectOptions) Run(ctx context.Context) error {
 		return o.formatManifestDescriptors(o.IOStreams.Out, idx.Manifests)
 	}
 
-	o.Logger.Debugf("Resolving source %s to descriptor with %d attributes", o.Source, len(o.Attributes))
+	matcher := matchers.PartialAttributeMatcher{}
+	if o.AttributeQuery != "" {
+		query, err := config.ReadAttributeQuery(o.AttributeQuery)
+		if err != nil {
+			return err
+		}
 
-	var matcher attributes.PartialAttributeMatcher = o.Attributes
+		attributeSet, err := config.ConvertToModel(query)
+		if err != nil {
+			return err
+		}
+
+		o.Logger.Debugf("Resolving source %s to descriptor with %d attributes", o.Source, attributeSet.Len())
+
+		matcher = attributeSet.List()
+	}
+
 	descs, err := cache.ResolveByAttribute(ctx, o.Source, matcher)
 	if err != nil {
 		return err
