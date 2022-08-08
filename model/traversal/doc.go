@@ -20,4 +20,3 @@ package traversal
 // It also tracker which nodes have been visited and a node budget (if set).
 
 // Walk performs a simple iterative DFS traversal over the tree.
-

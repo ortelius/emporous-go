@@ -14,8 +14,8 @@ import (
 	"k8s.io/kubectl/pkg/util/templates"
 )
 
-// PullOptions describe configuration options that can
-// be set using the pull subcommand.
+// InspectOptions describe configuration options that can
+// be set when using the inspect subcommand.
 type InspectOptions struct {
 	*RootOptions
 	Source     string
@@ -32,7 +32,7 @@ var clientInspectExamples = templates.Examples(
 	`,
 )
 
-// NewPullCmd creates a new cobra.Command for the pull subcommand.
+// NewInspectCmd creates a new cobra.Command for the inspect subcommand.
 func NewInspectCmd(rootOpts *RootOptions) *cobra.Command {
 	o := InspectOptions{RootOptions: rootOpts}
 
@@ -86,7 +86,7 @@ func (o *InspectOptions) Run(ctx context.Context) error {
 }
 
 func (o *InspectOptions) formatDescriptors(w io.Writer, descs []ocispec.Descriptor) error {
-	tw := tabwriter.NewWriter(o.IOStreams.Out, 0, 4, 2, ' ', 0)
+	tw := tabwriter.NewWriter(w, 0, 4, 2, ' ', 0)
 	if _, err := fmt.Fprintf(tw, "Listing matching descriptors for source:\t%s\n", o.Source); err != nil {
 		return err
 	}
@@ -98,7 +98,5 @@ func (o *InspectOptions) formatDescriptors(w io.Writer, descs []ocispec.Descript
 			return err
 		}
 	}
-
 	return tw.Flush()
-
 }
