@@ -24,6 +24,8 @@ func (a Attributes) Find(key string) model.Attribute {
 
 // Exists returns whether a key,value pair exists in the
 // attribute set.
+// FIXME(jpower432): Need to come up with an alternative to perform attribute matching
+// with out the cost of using reflection.
 func (a Attributes) Exists(key string, kind model.Kind, value interface{}) bool {
 	val, ok := a[key]
 	if !ok {
@@ -34,30 +36,42 @@ func (a Attributes) Exists(key string, kind model.Kind, value interface{}) bool 
 		return false
 	}
 
-	switch kind {
-	case model.KindString:
+	switch inputVal := value.(type) {
+	case string:
+		if kind != model.KindString {
+			return false
+		}
 		s, err := val.AsString()
 		if err != nil {
 			return false
 		}
-		return s == value.(string)
-	case model.KindNumber:
+		return s == inputVal
+	case float64:
+		if kind != model.KindNumber {
+			return false
+		}
 		n, err := val.AsNumber()
 		if err != nil {
 			return false
 		}
-		return n == value.(float64)
-	case model.KindBool:
+		return n == inputVal
+	case bool:
+		if kind != model.KindBool {
+			return false
+		}
 		b, err := val.AsBool()
 		if err != nil {
 			return false
 		}
 		return b == value.(bool)
-	case model.KindNull:
+	case nil:
+		if kind != model.KindNull {
+			return false
+		}
 		if val.IsNull() {
 			return true
 		}
-		fallthrough
+		return false
 	default:
 		return false
 	}

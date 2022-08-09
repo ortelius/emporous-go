@@ -11,9 +11,9 @@ import (
 func ConvertToModel(query v1alpha1.AttributeQuery) (model.AttributeSet, error) {
 	set := attributes.Attributes{}
 	for _, attr := range query.Attributes {
-		mattr, err := attr.ToModel()
+		mattr, err := attributes.Reflect(attr.Key, attr.Value)
 		if err != nil {
-			return nil, fmt.Errorf("error converting attribute %s to model", attr.Key)
+			return nil, fmt.Errorf("error converting attribute %s to model: %v", attr.Key, err)
 		}
 		set[attr.Key] = mattr
 	}
