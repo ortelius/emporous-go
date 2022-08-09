@@ -20,8 +20,12 @@ func TestAttributes_Exists(t *testing.T) {
 		"name": NewString("name", "test"),
 		"size": NewNumber("size", 2),
 	}
-	require.True(t, test.Exists("name", model.KindString, "test"))
-	require.True(t, test.Exists("size", model.KindNumber, float64(2)))
+	exists, err := test.Exists(NewString("name", "test"))
+	require.NoError(t, err)
+	require.True(t, exists)
+	exists, err = test.Exists(NewNumber("size", 2))
+	require.NoError(t, err)
+	require.True(t, exists)
 }
 
 func TestAttributes_Find(t *testing.T) {

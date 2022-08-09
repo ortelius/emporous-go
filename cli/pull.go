@@ -19,7 +19,6 @@ import (
 	"github.com/uor-framework/uor-client-go/model"
 	"github.com/uor-framework/uor-client-go/model/nodes/basic"
 	"github.com/uor-framework/uor-client-go/model/nodes/collection"
-	"github.com/uor-framework/uor-client-go/model/nodes/descriptor"
 	"github.com/uor-framework/uor-client-go/ocimanifest"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
 	"github.com/uor-framework/uor-client-go/util/examples"
@@ -141,7 +140,10 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 		if !ok {
 			continue
 		}
-		attr := descriptor.AnnotationsToAttributes(ldesc.Annotations)
+		attr, err := ocimanifest.AnnotationsToAttributeSet(ldesc.Annotations, nil)
+		if err != nil {
+			return nil, err
+		}
 		o.Logger.Debugf("Adding attributes %s for file %s", attr.AsJSON(), filename)
 		attributesByFile[filename] = attr
 	}
@@ -188,7 +190,7 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 		return nil, err
 	}
 
-	attributeSet, err := config.ConvertToModel(query)
+	attributeSet, err := config.ConvertToModel(query.Attributes)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +216,11 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 func (o *PullOptions) moveToResults(itr model.Iterator, matcher matchers.PartialAttributeMatcher) (total int, err error) {
 	for itr.Next() {
 		node := itr.Node()
-		if matcher.Matches(node) {
+		match, err := matcher.Matches(node)
+		if err != nil {
+			return total, err
+		}
+		if match {
 			o.Logger.Debugf("Found match: %q", node.ID())
 			newLoc := filepath.Join(o.Output, node.ID())
 			cleanLoc := filepath.Clean(newLoc)

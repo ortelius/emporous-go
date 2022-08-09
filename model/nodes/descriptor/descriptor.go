@@ -1,8 +1,8 @@
 package descriptor
 
 import (
-	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/model"
+	"github.com/uor-framework/uor-client-go/ocimanifest"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -17,14 +17,17 @@ type Node struct {
 
 var _ model.Node = &Node{}
 
-// NewNode create an empty Descriptor Node.
-func NewNode(id string, descriptor ocispec.Descriptor) *Node {
-	attr := AnnotationsToAttributes(descriptor.Annotations)
+// NewNode create a new Descriptor Node.
+func NewNode(id string, descriptor ocispec.Descriptor) (*Node, error) {
+	attr, err := ocimanifest.AnnotationsToAttributeSet(descriptor.Annotations, nil)
+	if err != nil {
+		return nil, err
+	}
 	return &Node{
 		id:         id,
 		attributes: attr,
 		descriptor: descriptor,
-	}
+	}, nil
 }
 
 // ID returns the unique identifier for a  basic Node.
@@ -46,14 +49,4 @@ func (n *Node) Attributes() model.AttributeSet {
 // Descriptor returns the underlying descriptor object.
 func (n *Node) Descriptor() ocispec.Descriptor {
 	return n.descriptor
-}
-
-// AnnotationsToAttributes converts annotations from a descriptors
-// to an Attribute type. Any value that is not valid JSON will be skipped.
-func AnnotationsToAttributes(annotations map[string]string) model.AttributeSet {
-	attr := attributes.Attributes{}
-	for key, value := range annotations {
-		attr[key] = attributes.NewString(key, value)
-	}
-	return attr
 }

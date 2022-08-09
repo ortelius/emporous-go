@@ -6,6 +6,10 @@ import (
 	"github.com/uor-framework/uor-client-go/model"
 )
 
+// ErrInvalidAttribute defines the error thrown when an attribute has an invalid
+// type.
+var ErrInvalidAttribute = errors.New("invalid attribute type")
+
 // Reflect will create a model.Attribute type from a Go type.
 func Reflect(key string, value interface{}) (model.Attribute, error) {
 	switch typVal := value.(type) {
@@ -18,6 +22,6 @@ func Reflect(key string, value interface{}) (model.Attribute, error) {
 	case bool:
 		return NewBool(key, typVal), nil
 	default:
-		return nil, errors.New("invalid attribute type")
+		return nil, ErrInvalidAttribute
 	}
 }

@@ -82,7 +82,7 @@ type Iterator interface {
 // Matcher defines methods used for node searching.
 type Matcher interface {
 	// Matches evaluates the current node against the criteria.
-	Matches(node Node) bool
+	Matches(node Node) (bool, error)
 }
 
 // AttributeSet defines methods for manipulating attribute sets.
@@ -90,7 +90,7 @@ type Matcher interface {
 // describe connected nodes.
 type AttributeSet interface {
 	// Exists returns whether a key, value with type pair exists
-	Exists(string, Kind, interface{}) bool
+	Exists(Attribute) (bool, error)
 	// Find returns all values associated with a specified key
 	Find(string) Attribute
 	// AsJSON returns a json representation of the Attribute set.

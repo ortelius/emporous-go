@@ -191,6 +191,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		manifestAnnotations[ocimanifest.AnnotationCollectionLinks] = formatLinks(config.LinkedCollections)
 	}
 
+	// Format manifest annotations
 	_, err = client.AddManifest(ctx, o.Destination, configDesc, manifestAnnotations, descs...)
 	if err != nil {
 		return err

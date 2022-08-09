@@ -82,7 +82,10 @@ func addOrGetNode(graph *collection.Collection, desc ocispec.Descriptor) (model.
 	if n != nil {
 		return n, nil
 	}
-	n = descriptor.NewNode(desc.Digest.String(), desc)
+	n, err := descriptor.NewNode(desc.Digest.String(), desc)
+	if err != nil {
+		return n, err
+	}
 	if err := graph.AddNode(n); err != nil {
 		return nil, err
 	}

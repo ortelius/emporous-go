@@ -29,5 +29,7 @@ type File struct {
 	// for grouping attributes.
 	File string `mapstructure:"file,omitempty"`
 	// Attributes is the lists of to associate to the file.
-	Attributes map[string]interface{} `mapstructure:"attributes,omitempty"`
+	Attributes Attributes `mapstructure:"attributes,omitempty"`
 }
+
+type Attributes map[string]interface{}

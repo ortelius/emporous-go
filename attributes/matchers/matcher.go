@@ -1,6 +1,8 @@
 package matchers
 
 import (
+	"errors"
+	"fmt"
 	"github.com/uor-framework/uor-client-go/model"
 )
 
@@ -13,16 +15,20 @@ var (
 type PartialAttributeMatcher map[string]model.Attribute
 
 // Matches determines whether a node has all required attributes.
-func (m PartialAttributeMatcher) Matches(n model.Node) bool {
+func (m PartialAttributeMatcher) Matches(n model.Node) (bool, error) {
 	attr := n.Attributes()
 	if attr == nil {
-		return false
+		return false, errors.New("node attributes cannot be nil")
 	}
 
-	for key, value := range m {
-		if exist := attr.Exists(key, value.Kind(), value.AsAny()); !exist {
-			return false
+	for _, a := range m {
+		exist, err := attr.Exists(a)
+		if err != nil {
+			return false, fmt.Errorf("error evaluating attribute %s: %w", a.Key(), err)
+		}
+		if !exist {
+			return false, nil
 		}
 	}
-	return true
+	return true, nil
 }

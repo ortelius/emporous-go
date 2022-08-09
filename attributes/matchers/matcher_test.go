@@ -17,5 +17,7 @@ func TestPartialMatches(t *testing.T) {
 
 	n := &testutils.MockNode{A: mockAttributes}
 	m := PartialAttributeMatcher{"name": attributes.NewString("name", "fish.jpg")}
-	require.True(t, m.Matches(n))
+	match, err := m.Matches(n)
+	require.NoError(t, err)
+	require.True(t, match)
 }

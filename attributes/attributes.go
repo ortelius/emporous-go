@@ -24,56 +24,55 @@ func (a Attributes) Find(key string) model.Attribute {
 
 // Exists returns whether a key,value pair exists in the
 // attribute set.
-// FIXME(jpower432): Need to come up with an alternative to perform attribute matching
-// with out the cost of using reflection.
-func (a Attributes) Exists(key string, kind model.Kind, value interface{}) bool {
-	val, ok := a[key]
+func (a Attributes) Exists(input model.Attribute) (bool, error) {
+	// Fail fast. Just check that the key exists and the Kinds match.
+	val, ok := a[input.Key()]
 	if !ok {
-		return false
+		return false, nil
 	}
 
-	if val.Kind() != kind {
-		return false
+	if val.Kind() != input.Kind() {
+		return false, nil
 	}
 
-	switch inputVal := value.(type) {
-	case string:
-		if kind != model.KindString {
-			return false
-		}
-		s, err := val.AsString()
+	switch input.Kind() {
+	case model.KindString:
+		outS, err := val.AsString()
 		if err != nil {
-			return false
+			return false, err
 		}
-		return s == inputVal
-	case float64:
-		if kind != model.KindNumber {
-			return false
-		}
-		n, err := val.AsNumber()
+		inS, err := input.AsString()
 		if err != nil {
-			return false
+			return false, err
 		}
-		return n == inputVal
-	case bool:
-		if kind != model.KindBool {
-			return false
-		}
-		b, err := val.AsBool()
+		return outS == inS, nil
+	case model.KindNumber:
+		outN, err := val.AsNumber()
 		if err != nil {
-			return false
+			return false, err
 		}
-		return b == value.(bool)
-	case nil:
-		if kind != model.KindNull {
-			return false
+		inN, err := input.AsNumber()
+		if err != nil {
+			return false, err
 		}
+		return outN == inN, nil
+	case model.KindBool:
+		outB, err := val.AsBool()
+		if err != nil {
+			return false, err
+		}
+		inB, err := input.AsBool()
+		if err != nil {
+			return false, err
+		}
+		return outB == inB, nil
+	case model.KindNull:
 		if val.IsNull() {
-			return true
+			return true, nil
 		}
-		return false
+		return false, nil
 	default:
-		return false
+		return false, nil
 	}
 }
 
