@@ -37,7 +37,7 @@ Matcher is an interface that defines methods for node searching/matching that ca
 # Attribute
 
 Attribute is an interface that defines a single attribute values with a key that is a type of string and a value that
-can be a string, boolean, number or null value.
+can be a string, boolean, integer, number, or null value.
 
 # AttributeSet
 

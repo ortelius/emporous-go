@@ -1,11 +1,12 @@
 package collection
 
 import (
-	"github.com/uor-framework/uor-client-go/attributes"
 	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/model"
 	"github.com/uor-framework/uor-client-go/util/testutils"
 )

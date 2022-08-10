@@ -1,10 +1,10 @@
 package descriptor
 
 import (
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+
 	"github.com/uor-framework/uor-client-go/model"
 	"github.com/uor-framework/uor-client-go/ocimanifest"
-
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // Node defines a single unit containing information about a UOR dataset node.

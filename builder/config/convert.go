@@ -7,10 +7,10 @@ import (
 	"github.com/uor-framework/uor-client-go/model"
 )
 
-// ConvertToModel converts an attribute query to an attribute set.
-func ConvertToModel(v1attributes v1alpha1.Attributes) (model.AttributeSet, error) {
+// ConvertToModel converts v1alpha1.Attributes to an model.AttributeSet.
+func ConvertToModel(input v1alpha1.Attributes) (model.AttributeSet, error) {
 	set := attributes.Attributes{}
-	for key, val := range v1attributes {
+	for key, val := range input {
 		mattr, err := attributes.Reflect(key, val)
 		if err != nil {
 			return nil, fmt.Errorf("error converting attribute %s to model: %v", key, err)

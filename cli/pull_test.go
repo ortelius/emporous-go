@@ -307,7 +307,7 @@ func prepTestArtifact(t *testing.T, ref string, host string) {
 		ocimanifest.AnnotationCollectionLinks: linked1Ref,
 	}
 	linkedRef := fmt.Sprintf("%s/linked:test", host)
-	publishFunc(fileLinkedName, linkedRef, fileContent, map[string]string{"test": "" + "linkedannotation"}, middleAnnotations)
+	publishFunc(fileLinkedName, linkedRef, fileContent, map[string]string{"test": "linkedannotation"}, middleAnnotations)
 	rootAnnotations := map[string]string{
 		ocimanifest.AnnotationSchema:          "test.com/schema:latest",
 		ocimanifest.AnnotationSchemaLinks:     "test.com/schema:latest",

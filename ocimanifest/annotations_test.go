@@ -30,5 +30,6 @@ func TestAnnotationsToAttributeSet(t *testing.T) {
 	require.Equal(t, expJSON, string(set.AsJSON()))
 	// JSON standard lib will unmarshal all numbers as float64
 	exists, err := set.Exists(attributes.NewFloat("size", 2))
+	require.NoError(t, err)
 	require.True(t, exists)
 }

@@ -22,9 +22,10 @@ declarations MUST follow the following syntax and guidelines:
 and are expressions with JSON syntax:
 
 1. Number (expressed at float)
-2. String
-3. Boolean
-4. Null
+2. Integer
+3. String
+4. Boolean
+5. Null
 
 ### Algorithm Reference
 

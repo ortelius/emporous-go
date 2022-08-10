@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
-	"github.com/uor-framework/uor-client-go/builder/config"
 	"regexp"
 	"strings"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/uor-framework/uor-client-go/attributes"
+	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
+	"github.com/uor-framework/uor-client-go/builder/config"
 	"github.com/uor-framework/uor-client-go/model"
 )
 
