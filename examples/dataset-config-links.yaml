@@ -7,14 +7,14 @@ collection:
   files:
     - file: "*.jpg"
       attributes:
-        animal: fish
-        habitat: ocean
-        size: small
-        color: blue
-    - file: level1/file.txt
+        animal: "fish"
+        habitat: "ocean"
+        size: "small"
+        color: "blue"
+    - file: "level1/file.txt"
       attributes:
         genre: "science fiction"
         bool: true
-    - file: fish.jpg"
+    - file: "fish.jpg"
       attributes:
-        size: large
+        size: "large"

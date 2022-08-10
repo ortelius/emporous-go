@@ -112,8 +112,10 @@ type Attribute interface {
 	IsNull() bool
 	// AsBool will return the attribute values as a boolean.
 	AsBool() (bool, error)
-	// AsNumber will return the attribute value as a float.
-	AsNumber() (float64, error)
+	// AsInt will return the attribute value as an int.
+	AsInt() (int, error)
+	// AsFloat will return the attribute value as a float.
+	AsFloat() (float64, error)
 	// AsString will return the attribute value as a string.
 	AsString() (string, error)
 	// AsAny returns the value of the attribute with no type checking.
@@ -127,7 +129,8 @@ const (
 	KindInvalid Kind = iota
 	KindNull
 	KindBool
-	KindNumber
+	KindInt
+	KindFloat
 	KindString
 )
 
@@ -140,8 +143,10 @@ func (k Kind) String() string {
 		return "null"
 	case KindBool:
 		return "bool"
-	case KindNumber:
-		return "number"
+	case KindFloat:
+		return "float"
+	case KindInt:
+		return "int"
 	case KindString:
 		return "string"
 	default:

@@ -225,7 +225,7 @@ func TestPullRun(t *testing.T) {
 					Logger: testlogr,
 				},
 				Source:         fmt.Sprintf("%s/client-test:latest", u.Host),
-				AttributeQuery: "testdata/nomatch.yaml",
+				AttributeQuery: "testdata/configs/nomatch.yaml",
 				PlainHTTP:      true,
 			},
 			assertFunc: func(path string) bool {

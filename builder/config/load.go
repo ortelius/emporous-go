@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"path/filepath"
 
@@ -14,7 +15,11 @@ func ReadCollectionConfig(configPath string) (v1alpha1.DataSetConfiguration, err
 	if err != nil {
 		return configuration, err
 	}
-	return cfg.(v1alpha1.DataSetConfiguration), nil
+	dsConfig := cfg.(v1alpha1.DataSetConfiguration)
+	if dsConfig.Kind != v1alpha1.DataSetConfigurationKind {
+		return v1alpha1.DataSetConfiguration{}, fmt.Errorf("config kind not recognized: %s", dsConfig.Kind)
+	}
+	return dsConfig, nil
 }
 
 // ReadAttributeQuery read the specified config into a AttributeQuery type.
@@ -24,7 +29,12 @@ func ReadAttributeQuery(configPath string) (v1alpha1.AttributeQuery, error) {
 	if err != nil {
 		return configuration, err
 	}
-	return cfg.(v1alpha1.AttributeQuery), nil
+
+	queryConfig := cfg.(v1alpha1.AttributeQuery)
+	if queryConfig.Kind != v1alpha1.AttributeQueryKind {
+		return v1alpha1.AttributeQuery{}, fmt.Errorf("config kind not recognized: %s", queryConfig.Kind)
+	}
+	return queryConfig, nil
 }
 
 func readInConfig(configPath string, object interface{}) (interface{}, error) {

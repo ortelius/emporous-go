@@ -15,12 +15,12 @@ type DataSetConfiguration struct {
 }
 
 type Collection struct {
-	// Files defines custom attributes to add the the files in the
+	// Files defines custom attributes to add the files in the
 	// workspaces when publishing content/
 	Files []File `mapstructure:"files,omitempty"`
 	// SchemaAddress is the address of the schema to associated
 	// to the Collection.
-	SchemaAddress string `mapstructure:"file,omitempty"`
+	SchemaAddress string `mapstructure:"schemaAddress,omitempty"`
 }
 
 // File associates attributes with file names.

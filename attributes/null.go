@@ -28,21 +28,27 @@ func (a nullAttribute) IsNull() bool {
 	return true
 }
 
-// AsBool returns the value as a boolean errors if that is not
+// AsBool returns the value as a boolean and errors if that is not
 // the underlying type.
 func (a nullAttribute) AsBool() (bool, error) {
 	return false, ErrWrongKind
 }
 
-// AsString returns the value as a string errors if that is not
+// AsString returns the value as a string and errors if that is not
 // the underlying type.
 func (a nullAttribute) AsString() (string, error) {
 	return "", ErrWrongKind
 }
 
-// AsNumber returns the value as a number value errors if that is not
+// AsFloat returns the value as a float value and errors if that is not
 // the underlying type.
-func (a nullAttribute) AsNumber() (float64, error) {
+func (a nullAttribute) AsFloat() (float64, error) {
+	return 0, ErrWrongKind
+}
+
+// AsInt returns the value as an int value errors if that is not
+// the underlying type.
+func (a nullAttribute) AsInt() (int, error) {
 	return 0, ErrWrongKind
 }
 

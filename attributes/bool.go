@@ -43,9 +43,15 @@ func (a boolAttribute) AsString() (string, error) {
 	return "", ErrWrongKind
 }
 
-// AsNumber returns the value as a number value errors if that is not
+// AsFloat returns the value as a number value errors if that is not
 // the underlying type.
-func (a boolAttribute) AsNumber() (float64, error) {
+func (a boolAttribute) AsFloat() (float64, error) {
+	return 0, ErrWrongKind
+}
+
+// AsInt returns the value as an int value errors and if that is not
+// the underlying type.
+func (a boolAttribute) AsInt() (int, error) {
 	return 0, ErrWrongKind
 }
 

@@ -25,7 +25,7 @@ const (
 	// be fully resolved.
 	AnnotationSchemaLinks = "uor.schema.linked"
 	// AnnotationCollectionLinks references the collections
-	// that are linked to a collection node. The will only
+	// that are linked to a collection node. They will only
 	// reference adjacent collection and will not descend
 	// into sub-collections.
 	AnnotationCollectionLinks = "uor.collections.linked"
@@ -89,6 +89,8 @@ func AnnotationsToAttributeSet(annotations map[string]string, skip func(string) 
 // are saved in a JSON valid syntax to allow for typing upon retrieval.
 func AnnotationsFromAttributeSet(set model.AttributeSet) (map[string]string, error) {
 	annotations := map[string]string{}
+	// TODO(jpower432): Put a wrapper on this to determine int from float64 like
+	// viper does when loading configs.
 	annotations[AnnotationUORAttributes] = string(set.AsJSON())
 	return annotations, nil
 }

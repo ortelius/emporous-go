@@ -24,11 +24,11 @@ func TestConvertToModel(t *testing.T) {
 				"size": 5.2,
 			},
 			asserFunc: func(set model.AttributeSet) bool {
-				testExists, err := set.Exists(attributes.NewNumber("test", 2.0))
+				testExists, err := set.Exists(attributes.NewFloat("test", 2.0))
 				if err != nil {
 					return false
 				}
-				sizeExists, err := set.Exists(attributes.NewNumber("size", 5.2))
+				sizeExists, err := set.Exists(attributes.NewFloat("size", 5.2))
 				if err != nil {
 					return false
 				}
@@ -38,10 +38,11 @@ func TestConvertToModel(t *testing.T) {
 		{
 			name: "Success/MultipleAttributeKinds",
 			attributes: v1alpha1.Attributes{
-				"test":   "a test",
-				"istest": true,
-				"other":  nil,
-				"size":   5.2,
+				"test":     "a test",
+				"istest":   true,
+				"other":    nil,
+				"size":     5.2,
+				"sequence": 1,
 			},
 			asserFunc: func(set model.AttributeSet) bool {
 				stringExists, err := set.Exists(attributes.NewString("test", "a test"))
@@ -59,12 +60,17 @@ func TestConvertToModel(t *testing.T) {
 					t.Log(err)
 					return false
 				}
-				numExists, err := set.Exists(attributes.NewNumber("size", 5.2))
+				numExists, err := set.Exists(attributes.NewFloat("size", 5.2))
 				if err != nil {
 					t.Log(err)
 					return false
 				}
-				return stringExists && boolExists && numExists && nullExists
+				intExists, err := set.Exists(attributes.NewInt("sequence", 1))
+				if err != nil {
+					t.Log(err)
+					return false
+				}
+				return stringExists && boolExists && numExists && nullExists && intExists
 			},
 		},
 		{

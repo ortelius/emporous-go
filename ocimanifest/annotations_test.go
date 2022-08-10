@@ -12,7 +12,7 @@ func TestAnnotationsFromAttributeSet(t *testing.T) {
 	}
 	set := attributes.Attributes{
 		"name": attributes.NewString("name", "test"),
-		"size": attributes.NewNumber("size", 2),
+		"size": attributes.NewInt("size", 2),
 	}
 	annotations, err := AnnotationsFromAttributeSet(set)
 	require.NoError(t, err)
@@ -28,6 +28,7 @@ func TestAnnotationsToAttributeSet(t *testing.T) {
 	set, err := AnnotationsToAttributeSet(annotations, nil)
 	require.NoError(t, err)
 	require.Equal(t, expJSON, string(set.AsJSON()))
-	exists, err := set.Exists(attributes.NewNumber("size", 2))
+	// JSON standard lib will unmarshal all numbers as float64
+	exists, err := set.Exists(attributes.NewFloat("size", 2))
 	require.True(t, exists)
 }

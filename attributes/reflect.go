@@ -2,7 +2,6 @@ package attributes
 
 import (
 	"errors"
-
 	"github.com/uor-framework/uor-client-go/model"
 )
 
@@ -16,7 +15,9 @@ func Reflect(key string, value interface{}) (model.Attribute, error) {
 	case string:
 		return NewString(key, typVal), nil
 	case float64:
-		return NewNumber(key, typVal), nil
+		return NewFloat(key, typVal), nil
+	case int:
+		return NewInt(key, typVal), nil
 	case nil:
 		return NewNull(key), nil
 	case bool:

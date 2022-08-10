@@ -1,0 +1,11 @@
+kind: DataSetConfiguration
+apiVersion: client.uor-framework.io/v1alpha1
+collection:
+  schemaAddress: localhost:5001/schema:latest
+  files:
+  - file: "*.json"
+    attributes:
+      size: 2
+      type: "model"
+      fiction: true
+

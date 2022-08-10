@@ -46,16 +46,26 @@ func (a Attributes) Exists(input model.Attribute) (bool, error) {
 			return false, err
 		}
 		return outS == inS, nil
-	case model.KindNumber:
-		outN, err := val.AsNumber()
+	case model.KindFloat:
+		outF, err := val.AsFloat()
 		if err != nil {
 			return false, err
 		}
-		inN, err := input.AsNumber()
+		inF, err := input.AsFloat()
 		if err != nil {
 			return false, err
 		}
-		return outN == inN, nil
+		return outF == inF, nil
+	case model.KindInt:
+		outI, err := val.AsInt()
+		if err != nil {
+			return false, err
+		}
+		inI, err := input.AsInt()
+		if err != nil {
+			return false, err
+		}
+		return outI == inI, nil
 	case model.KindBool:
 		outB, err := val.AsBool()
 		if err != nil {

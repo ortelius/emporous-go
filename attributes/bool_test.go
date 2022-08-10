@@ -18,11 +18,18 @@ func TestBoolAttribute_AsBool(t *testing.T) {
 	require.Equal(t, true, b)
 }
 
-func TestBoolAttribute_AsNumber(t *testing.T) {
+func TestBoolAttribute_AsFloat(t *testing.T) {
 	test := NewBool("test", false)
-	b, err := test.AsNumber()
+	b, err := test.AsFloat()
 	require.ErrorIs(t, ErrWrongKind, err)
 	require.Equal(t, float64(0), b)
+}
+
+func TestBoolAttribute_AsInt(t *testing.T) {
+	test := NewBool("test", false)
+	b, err := test.AsInt()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, 0, b)
 }
 
 func TestBoolAttribute_AsString(t *testing.T) {
@@ -30,4 +37,9 @@ func TestBoolAttribute_AsString(t *testing.T) {
 	b, err := test.AsString()
 	require.ErrorIs(t, ErrWrongKind, err)
 	require.Equal(t, "", b)
+}
+
+func TestBoolAttribute_IsNull(t *testing.T) {
+	test := NewBool("test", false)
+	require.False(t, test.IsNull())
 }
