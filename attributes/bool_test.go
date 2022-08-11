@@ -29,7 +29,7 @@ func TestBoolAttribute_AsInt(t *testing.T) {
 	test := NewBool("test", false)
 	b, err := test.AsInt()
 	require.ErrorIs(t, ErrWrongKind, err)
-	require.Equal(t, 0, b)
+	require.Equal(t, int64(0), b)
 }
 
 func TestBoolAttribute_AsString(t *testing.T) {

@@ -48,7 +48,7 @@ func (a nullAttribute) AsFloat() (float64, error) {
 
 // AsInt returns the value as an int value errors if that is not
 // the underlying type.
-func (a nullAttribute) AsInt() (int, error) {
+func (a nullAttribute) AsInt() (int64, error) {
 	return 0, ErrWrongKind
 }
 

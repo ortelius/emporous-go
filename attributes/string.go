@@ -49,7 +49,7 @@ func (a stringAttribute) AsFloat() (float64, error) {
 
 // AsInt returns the value as an int value errors and if that is not
 // the underlying type.
-func (a stringAttribute) AsInt() (int, error) {
+func (a stringAttribute) AsInt() (int64, error) {
 	return 0, ErrWrongKind
 }
 

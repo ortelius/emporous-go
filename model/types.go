@@ -113,7 +113,7 @@ type Attribute interface {
 	// AsBool will return the attribute values as a boolean.
 	AsBool() (bool, error)
 	// AsInt will return the attribute value as an int.
-	AsInt() (int, error)
+	AsInt() (int64, error)
 	// AsFloat will return the attribute value as a float.
 	AsFloat() (float64, error)
 	// AsString will return the attribute value as a string.

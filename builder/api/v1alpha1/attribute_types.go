@@ -5,8 +5,7 @@ const AttributeQueryKind = "AttributeQuery"
 
 // AttributeQuery configures an attribute query.
 type AttributeQuery struct {
-	Kind       string `mapstructure:"kind"`
-	APIVersion string `mapstructure:"apiVersion"`
+	TypeMeta `json:",inline"`
 	// Attributes list the configuration for Attribute types.
-	Attributes Attributes `mapstructure:"attributes"`
+	Attributes Attributes `json:"attributes"`
 }

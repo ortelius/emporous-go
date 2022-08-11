@@ -51,7 +51,7 @@ func (a boolAttribute) AsFloat() (float64, error) {
 
 // AsInt returns the value as an int value errors and if that is not
 // the underlying type.
-func (a boolAttribute) AsInt() (int, error) {
+func (a boolAttribute) AsInt() (int64, error) {
 	return 0, ErrWrongKind
 }
 

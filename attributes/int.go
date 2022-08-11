@@ -4,13 +4,13 @@ import "github.com/uor-framework/uor-client-go/model"
 
 type intAttribute struct {
 	key   string
-	value int
+	value int64
 }
 
 var _ model.Attribute = intAttribute{}
 
 // NewInt returns an int attribute.
-func NewInt(key string, value int) model.Attribute {
+func NewInt(key string, value int64) model.Attribute {
 	return intAttribute{key: key, value: value}
 }
 
@@ -49,7 +49,7 @@ func (a intAttribute) AsFloat() (float64, error) {
 
 // AsInt returns the value as an int value errors and if that is not
 // the underlying type.
-func (a intAttribute) AsInt() (int, error) {
+func (a intAttribute) AsInt() (int64, error) {
 	return a.value, nil
 }
 

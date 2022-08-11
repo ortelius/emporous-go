@@ -1,56 +1,72 @@
 package config
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-	"github.com/spf13/viper"
-	"path/filepath"
-
 	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
+	"io/ioutil"
+	"path/filepath"
+	"sigs.k8s.io/yaml"
 )
 
 // ReadCollectionConfig read the specified config into a CollectionConfiguration type.
 func ReadCollectionConfig(configPath string) (v1alpha1.DataSetConfiguration, error) {
 	var configuration v1alpha1.DataSetConfiguration
-	cfg, err := readInConfig(configPath, configuration)
+	data, err := readInConfig(configPath, v1alpha1.DataSetConfigurationKind)
 	if err != nil {
 		return configuration, err
 	}
-	dsConfig := cfg.(v1alpha1.DataSetConfiguration)
-	if dsConfig.Kind != v1alpha1.DataSetConfigurationKind {
-		return v1alpha1.DataSetConfiguration{}, fmt.Errorf("config kind not recognized: %s", dsConfig.Kind)
+
+	dec := json.NewDecoder(bytes.NewBuffer(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&configuration); err != nil {
+		return configuration, err
 	}
-	return dsConfig, nil
+
+	return configuration, nil
 }
 
 // ReadAttributeQuery read the specified config into a AttributeQuery type.
 func ReadAttributeQuery(configPath string) (v1alpha1.AttributeQuery, error) {
 	var configuration v1alpha1.AttributeQuery
-	cfg, err := readInConfig(configPath, configuration)
+	data, err := readInConfig(configPath, v1alpha1.AttributeQueryKind)
 	if err != nil {
 		return configuration, err
 	}
 
-	queryConfig := cfg.(v1alpha1.AttributeQuery)
-	if queryConfig.Kind != v1alpha1.AttributeQueryKind {
-		return v1alpha1.AttributeQuery{}, fmt.Errorf("config kind not recognized: %s", queryConfig.Kind)
+	dec := json.NewDecoder(bytes.NewBuffer(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&configuration); err != nil {
+		return configuration, err
 	}
-	return queryConfig, nil
+
+	return configuration, nil
 }
 
-func readInConfig(configPath string, object interface{}) (interface{}, error) {
-	base := filepath.Base(configPath)
-	dir := filepath.Dir(configPath)
-	viper.SetConfigName(base)
-	viper.AddConfigPath(filepath.Clean(dir))
-	viper.SetConfigType("yaml")
+func readInConfig(configPath, kind string) ([]byte, error) {
+	data, err := ioutil.ReadFile(filepath.Clean(configPath))
+	if err != nil {
+		return nil, err
+	}
 
-	err := viper.ReadInConfig()
+	if data, err = yaml.YAMLToJSON(data); err != nil {
+		return nil, err
+	}
+
+	typeMeta, err := getTypeMeta(data)
 	if err != nil {
 		return nil, err
 	}
-	err = viper.Unmarshal(&object)
-	if err != nil {
-		return nil, err
+	if typeMeta.Kind != kind {
+		return nil, fmt.Errorf("config kind %s, does not match expected %s", typeMeta.Kind, kind)
 	}
-	return object, nil
+	return data, nil
+}
+
+func getTypeMeta(data []byte) (typeMeta v1alpha1.TypeMeta, err error) {
+	if err := json.Unmarshal(data, &typeMeta); err != nil {
+		return typeMeta, fmt.Errorf("get type meta: %v", err)
+	}
+	return typeMeta, nil
 }

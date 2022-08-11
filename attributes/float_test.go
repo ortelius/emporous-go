@@ -29,7 +29,7 @@ func TestFloatAttribute_AsInt(t *testing.T) {
 	test := NewFloat("test", 1)
 	n, err := test.AsInt()
 	require.ErrorIs(t, ErrWrongKind, err)
-	require.Equal(t, 0, n)
+	require.Equal(t, int64(0), n)
 }
 
 func TestFloatAttribute_AsString(t *testing.T) {

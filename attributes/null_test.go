@@ -22,7 +22,7 @@ func TestNullAttribute_AsInt(t *testing.T) {
 	test := NewNull("test")
 	n, err := test.AsInt()
 	require.ErrorIs(t, ErrWrongKind, err)
-	require.Equal(t, 0, n)
+	require.Equal(t, int64(0), n)
 }
 
 func TestNullAttribute_AsFloat(t *testing.T) {

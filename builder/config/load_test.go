@@ -19,8 +19,10 @@ func TestReadAttributeQuery(t *testing.T) {
 			name: "Success/ValidConfig",
 			path: "testdata/valid-attr.yaml",
 			exp: v1alpha1.AttributeQuery{
-				Kind:       v1alpha1.AttributeQueryKind,
-				APIVersion: v1alpha1.GroupVersion,
+				TypeMeta: v1alpha1.TypeMeta{
+					Kind:       v1alpha1.AttributeQueryKind,
+					APIVersion: v1alpha1.GroupVersion,
+				},
 				Attributes: map[string]interface{}{
 					"size": "small",
 				},
@@ -29,7 +31,7 @@ func TestReadAttributeQuery(t *testing.T) {
 		{
 			name:     "Failure/InvalidConfig",
 			path:     "testdata/valid-ds.yaml",
-			expError: "config kind not recognized: DataSetConfiguration",
+			expError: "config kind DataSetConfiguration, does not match expected AttributeQuery",
 		},
 	}
 
@@ -59,8 +61,10 @@ func TestReadCollectionConfig(t *testing.T) {
 			name: "Success/ValidConfig",
 			path: "testdata/valid-ds.yaml",
 			exp: v1alpha1.DataSetConfiguration{
-				Kind:       v1alpha1.DataSetConfigurationKind,
-				APIVersion: v1alpha1.GroupVersion,
+				TypeMeta: v1alpha1.TypeMeta{
+					Kind:       v1alpha1.DataSetConfigurationKind,
+					APIVersion: v1alpha1.GroupVersion,
+				},
 				Collection: v1alpha1.Collection{
 					SchemaAddress: "localhost:5001/schema:latest",
 					Files: []v1alpha1.File{
@@ -77,7 +81,7 @@ func TestReadCollectionConfig(t *testing.T) {
 		{
 			name:     "Failure/InvalidConfig",
 			path:     "testdata/valid-attr.yaml",
-			expError: "config kind not recognized: AttributeQuery",
+			expError: "config kind AttributeQuery, does not match expected DataSetConfiguration",
 		},
 	}
 
