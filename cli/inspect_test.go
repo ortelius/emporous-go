@@ -20,28 +20,41 @@ import (
 func TestInspectValidate(t *testing.T) {
 	type spec struct {
 		name     string
-		args     []string
 		opts     *InspectOptions
 		expError string
 	}
 
 	cases := []spec{
 		{
-			name: "Valid/CorrectNumberOfArguments",
-			args: []string{"test-registry.com/image:latest"},
-			opts: &InspectOptions{},
+			name: "Valid/NoInputs",
+			opts: &InspectOptions{
+				Source: "localhost:5001/test:latest",
+			},
 		},
 		{
-			name:     "Invalid/NotEnoughArguments",
-			args:     []string{},
-			opts:     &InspectOptions{},
-			expError: "bug: expecting one argument",
+			name: "Valid/ReferenceOnly",
+			opts: &InspectOptions{
+				Source: "localhost:5001/test:latest",
+			},
+		},
+		{
+			name: "Valid/ReferenceAndAttributes",
+			opts: &InspectOptions{
+				Source: "localhost:5001/test:latest",
+			},
+		},
+		{
+			name: "Invalid/AttributesOnly",
+			opts: &InspectOptions{
+				Attributes: map[string]string{},
+			},
+			expError: "must specify a reference with --reference",
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			err := c.opts.Complete(c.args)
+			err := c.opts.Validate()
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
 			} else {
