@@ -93,7 +93,7 @@ func (l *Layout) Exists(ctx context.Context, desc ocispec.Descriptor) (bool, err
 func (l *Layout) Resolve(_ context.Context, reference string) (ocispec.Descriptor, error) {
 	desc, ok := l.resolver.Load(reference)
 	if !ok {
-		return ocispec.Descriptor{}, fmt.Errorf("descriptor for reference %s is not stored", reference)
+		return ocispec.Descriptor{}, &content.ErrNotStored{Reference: reference}
 	}
 	return desc.(ocispec.Descriptor), nil
 }
@@ -142,7 +142,7 @@ func (l *Layout) ResolveByAttribute(ctx context.Context, reference string, match
 }
 
 // ResolveLinks returns linked collection references for a collection. If the collection
-// has no links, nil is returned.
+// has no links, an error is returned.
 func (l *Layout) ResolveLinks(ctx context.Context, reference string) ([]string, error) {
 	desc, err := l.Resolve(ctx, reference)
 	if err != nil {
@@ -150,14 +150,14 @@ func (l *Layout) ResolveLinks(ctx context.Context, reference string) ([]string, 
 	}
 	r, err := l.Fetch(ctx, desc)
 	if err != nil {
-		return nil, errdef.ErrInvalidReference
+		return nil, err
 	}
 	var manifest ocispec.Manifest
 	if err := json.NewDecoder(r).Decode(&manifest); err != nil {
 		return nil, err
 	}
 	links, ok := manifest.Annotations[ocimanifest.AnnotationCollectionLinks]
-	if !ok {
+	if !ok || len(links) == 0 {
 		return nil, ocimanifest.ErrNoCollectionLinks
 	}
 	splitLinks := strings.Split(links, ocimanifest.Separator)

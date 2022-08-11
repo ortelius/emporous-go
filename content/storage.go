@@ -20,7 +20,7 @@ type Store interface {
 	content.TagResolver
 }
 
-// AttributeStore defines the methods for retrieve information
+// AttributeStore defines the methods for retrieving descriptor information
 // by attribute.
 type AttributeStore interface {
 	Store

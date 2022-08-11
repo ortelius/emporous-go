@@ -13,10 +13,12 @@ limitations under the License.
 
 package traversal
 
-// This package defines methods for traversing through a tree of
-// model.Node types. If a node type implements the model.Iterator interface,
+// This package defines methods for traversing through a graph of
+// model.Node types.
 
 // The Tracker types stores node relationship information for traversal.
 // It also tracker which nodes have been visited and a node budget (if set).
 
-// Walk performs a simple iterative DFS traversal over the tree.
+// Walk performs an iterative DFS traversal over a specified graph and starting node.
+
+// WalkNested performs an iterative DFS traversal over nested nodes with specified a root node.

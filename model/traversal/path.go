@@ -4,7 +4,7 @@ import (
 	"github.com/uor-framework/uor-client-go/model"
 )
 
-// Path describes a series of steps across a DAG of model.Node.
+// Path describes a series of steps across a graph of model.Node.
 type Path struct {
 	prev  map[string]string
 	index map[string]model.Node
