@@ -49,6 +49,7 @@ uor-client-go version
 2. Use the `uor-client-go build` command to build the workspace as an OCI artifact in build-cache The default location is ~/.uor/cache. It an be set with the `UOR_CACHE` environment variable`.
 3. Use the `uor-client-go push` command to publish to a registry as an OCI artifact.
 4. Use the `uor-client-go pull` command to pull the artifact back to a local workspace.
+5. Use the `uor-client-go inspect` command to inspect the build to list information about references.
 
 ### Build workspace into an artifact
 
@@ -129,11 +130,12 @@ uor-client-go push localhost:5000/test/dataset:latest
 
 7. Optionally inspect the OCI manifest of the dataset:
   `curl -H "Accept: application/vnd.oci.image.manifest.v1+json" <servername>:<port>/v2/<namespace>/<repo>/manifests/<digest or tag>`
-
-7. Optionally pull the collection back down to verify the content with `uor-client-go pull`:
+8. Optionally inspect the cache:
+  `uor-client-go inspect`
+9. Optionally pull the collection back down to verify the content with `uor-client-go pull`:
   `uor-client-go pull localhost:5000/test/dataset:latest -o my-output-directory`
 
-8. Optionally pull a subset of the collection back down to verify the content with `uor-client-go pull`:
+10. Optionally pull a subset of the collection back down to verify the content with `uor-client-go pull`:
   `uor-client-go pull localhost:5000/test/dataset:latest -o my-output-directory --attributes "fiction=true"`
 
 # Glossary
