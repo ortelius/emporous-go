@@ -2,16 +2,17 @@ package cli
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/uor-framework/uor-client-go/util/examples"
 	"io"
+	"os"
+	"path/filepath"
 	"text/tabwriter"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/content/layout"
-	"k8s.io/kubectl/pkg/util/templates"
 )
 
 // InspectOptions describe configuration options that can
@@ -22,15 +23,29 @@ type InspectOptions struct {
 	Attributes map[string]string
 }
 
-var clientInspectExamples = templates.Examples(
-	`
-	# Inspect artifacts
-	client inspect localhost:5000/myartifacts:latest
-
-	# Inspect artifacts with attributes
-	client inspect localhost:5000/myartifacts:latest --attributes "size=small"
-	`,
-)
+var clientInspectExamples = []examples.Example{
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		CommandString: "inspect",
+		Descriptions: []string{
+			"List all references",
+		},
+	},
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		CommandString: "inspect --reference localhost:5001/test:latest",
+		Descriptions: []string{
+			"List all descriptors for reference",
+		},
+	},
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		CommandString: "inspect --reference localhost:5001/test:latest --attributes \"size=small\"",
+		Descriptions: []string{
+			"List all descriptors for reference with attribute filtering",
+		},
+	},
+}
 
 // NewInspectCmd creates a new cobra.Command for the inspect subcommand.
 func NewInspectCmd(rootOpts *RootOptions) *cobra.Command {
@@ -39,10 +54,9 @@ func NewInspectCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "inspect SRC",
 		Short:         "Print UOR collection information",
-		Example:       clientInspectExamples,
+		Example:       examples.FormatExamples(clientInspectExamples...),
 		SilenceErrors: false,
 		SilenceUsage:  false,
-		Args:          cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			cobra.CheckErr(o.Complete(args))
 			cobra.CheckErr(o.Validate())
@@ -50,21 +64,21 @@ func NewInspectCmd(rootOpts *RootOptions) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringToStringVarP(&o.Attributes, "attributes", "", o.Attributes, "list of key,value pairs (e.g. key=value) for "+
+	cmd.Flags().StringToStringVarP(&o.Attributes, "attributes", "a", o.Attributes, "list of key,value pairs (e.g. key=value) for "+
 		"retrieving artifacts by attributes")
+	cmd.Flags().StringVarP(&o.Source, "reference", "r", o.Source, "a reference to list descriptors for")
 
 	return cmd
 }
 
 func (o *InspectOptions) Complete(args []string) error {
-	if len(args) < 1 {
-		return errors.New("bug: expecting one argument")
-	}
-	o.Source = args[0]
 	return nil
 }
 
 func (o *InspectOptions) Validate() error {
+	if o.Attributes != nil && o.Source == "" {
+		return fmt.Errorf("must specify a reference with --reference")
+	}
 	return nil
 }
 
@@ -72,6 +86,14 @@ func (o *InspectOptions) Run(ctx context.Context) error {
 	cache, err := layout.NewWithContext(ctx, o.cacheDir)
 	if err != nil {
 		return err
+	}
+
+	if o.Source == "" {
+		idx, err := cache.Index()
+		if err != nil {
+			return err
+		}
+		return o.formatManifestDescriptors(o.IOStreams.Out, idx.Manifests)
 	}
 
 	o.Logger.Debugf("Resolving source %s to descriptor with %d attributes", o.Source, len(o.Attributes))
@@ -83,6 +105,19 @@ func (o *InspectOptions) Run(ctx context.Context) error {
 	}
 
 	return o.formatDescriptors(o.IOStreams.Out, descs)
+}
+
+func (o *InspectOptions) formatManifestDescriptors(w io.Writer, descs []ocispec.Descriptor) error {
+	tw := tabwriter.NewWriter(w, 0, 4, 2, ' ', 0)
+	if _, err := fmt.Fprintf(tw, "Listing all references:\t%s\n", o.Source); err != nil {
+		return err
+	}
+	for _, desc := range descs {
+		if _, err := fmt.Fprintf(tw, "%s\n", desc.Annotations[ocispec.AnnotationRefName]); err != nil {
+			return err
+		}
+	}
+	return tw.Flush()
 }
 
 func (o *InspectOptions) formatDescriptors(w io.Writer, descs []ocispec.Descriptor) error {

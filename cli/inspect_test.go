@@ -17,12 +17,11 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-func TestInspectComplete(t *testing.T) {
+func TestInspectValidate(t *testing.T) {
 	type spec struct {
 		name     string
 		args     []string
 		opts     *InspectOptions
-		expOpts  *InspectOptions
 		expError string
 	}
 
@@ -30,15 +29,11 @@ func TestInspectComplete(t *testing.T) {
 		{
 			name: "Valid/CorrectNumberOfArguments",
 			args: []string{"test-registry.com/image:latest"},
-			expOpts: &InspectOptions{
-				Source: "test-registry.com/image:latest",
-			},
 			opts: &InspectOptions{},
 		},
 		{
 			name:     "Invalid/NotEnoughArguments",
 			args:     []string{},
-			expOpts:  &InspectOptions{},
 			opts:     &InspectOptions{},
 			expError: "bug: expecting one argument",
 		},
@@ -51,7 +46,6 @@ func TestInspectComplete(t *testing.T) {
 				require.EqualError(t, err, c.expError)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, c.expOpts, c.opts)
 			}
 		})
 	}
