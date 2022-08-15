@@ -11,7 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package registryclient
+package traversal
 
-// This package defines types and methods for
-// interacting with the client data sets for publishing to a registry.
+// This package defines methods for traversing through a graph of
+// model.Node types.
+
+// The Tracker types stores node relationship information for traversal.
+// It also tracker which nodes have been visited and a node budget (if set).
+
+// Walk performs an iterative DFS traversal over a specified graph and starting node.
+
+// WalkNested performs an iterative DFS traversal over nested nodes with specified a root node.
