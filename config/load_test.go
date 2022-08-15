@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
+	v1alpha12 "github.com/uor-framework/uor-client-go/api/v1alpha1"
 	"testing"
 )
 
@@ -10,7 +10,7 @@ func TestReadAttributeQuery(t *testing.T) {
 	type spec struct {
 		name     string
 		path     string
-		exp      v1alpha1.AttributeQuery
+		exp      v1alpha12.AttributeQuery
 		expError string
 	}
 
@@ -18,10 +18,10 @@ func TestReadAttributeQuery(t *testing.T) {
 		{
 			name: "Success/ValidConfig",
 			path: "testdata/valid-attr.yaml",
-			exp: v1alpha1.AttributeQuery{
-				TypeMeta: v1alpha1.TypeMeta{
-					Kind:       v1alpha1.AttributeQueryKind,
-					APIVersion: v1alpha1.GroupVersion,
+			exp: v1alpha12.AttributeQuery{
+				TypeMeta: v1alpha12.TypeMeta{
+					Kind:       v1alpha12.AttributeQueryKind,
+					APIVersion: v1alpha12.GroupVersion,
 				},
 				Attributes: map[string]interface{}{
 					"size": "small",
@@ -48,11 +48,11 @@ func TestReadAttributeQuery(t *testing.T) {
 	}
 }
 
-func TestReadCollectionConfig(t *testing.T) {
+func TestReadDataSetConfig(t *testing.T) {
 	type spec struct {
 		name     string
 		path     string
-		exp      v1alpha1.DataSetConfiguration
+		exp      v1alpha12.DataSetConfiguration
 		expError string
 	}
 
@@ -60,14 +60,14 @@ func TestReadCollectionConfig(t *testing.T) {
 		{
 			name: "Success/ValidConfig",
 			path: "testdata/valid-ds.yaml",
-			exp: v1alpha1.DataSetConfiguration{
-				TypeMeta: v1alpha1.TypeMeta{
-					Kind:       v1alpha1.DataSetConfigurationKind,
-					APIVersion: v1alpha1.GroupVersion,
+			exp: v1alpha12.DataSetConfiguration{
+				TypeMeta: v1alpha12.TypeMeta{
+					Kind:       v1alpha12.DataSetConfigurationKind,
+					APIVersion: v1alpha12.GroupVersion,
 				},
-				Collection: v1alpha1.Collection{
+				Collection: v1alpha12.Collection{
 					SchemaAddress: "localhost:5001/schema:latest",
-					Files: []v1alpha1.File{
+					Files: []v1alpha12.File{
 						{
 							File: "*.json",
 							Attributes: map[string]interface{}{
@@ -87,7 +87,7 @@ func TestReadCollectionConfig(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			cfg, err := ReadCollectionConfig(c.path)
+			cfg, err := ReadDataSetConfig(c.path)
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
 			} else {

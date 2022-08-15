@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/uor-framework/uor-client-go/api/v1alpha1"
+	"github.com/uor-framework/uor-client-go/config"
 	"regexp"
 	"strings"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
-	"github.com/uor-framework/uor-client-go/builder/config"
 	"github.com/uor-framework/uor-client-go/model"
 )
 
@@ -88,11 +88,7 @@ func AnnotationsToAttributeSet(annotations map[string]string, skip func(string) 
 // AnnotationsFromAttributeSet converts an AttributeSet to annotations. All annotation values
 // are saved in a JSON valid syntax to allow for typing upon retrieval.
 func AnnotationsFromAttributeSet(set model.AttributeSet) (map[string]string, error) {
-	annotations := map[string]string{}
-	// TODO(jpower432): Put a wrapper on this to determine int from float64 like
-	// viper does when loading configs.
-	annotations[AnnotationUORAttributes] = string(set.AsJSON())
-	return annotations, nil
+	return map[string]string{AnnotationUORAttributes: string(set.AsJSON())}, nil
 }
 
 // UpdateLayerDescriptors updates layers descriptor annotations with user provided key,value pairs

@@ -10,5 +10,6 @@ const (
 )
 
 var (
+	// GroupVersion of UOR
 	GroupVersion = path.Join(group, version)
 )

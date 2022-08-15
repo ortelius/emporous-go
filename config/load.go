@@ -4,16 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
+	v1alpha12 "github.com/uor-framework/uor-client-go/api/v1alpha1"
 	"io/ioutil"
 	"path/filepath"
 	"sigs.k8s.io/yaml"
 )
 
-// ReadCollectionConfig reads the specified config into a CollectionConfiguration type.
-func ReadCollectionConfig(configPath string) (v1alpha1.DataSetConfiguration, error) {
-	var configuration v1alpha1.DataSetConfiguration
-	data, err := readInConfig(configPath, v1alpha1.DataSetConfigurationKind)
+// ReadDataSetConfig reads the specified config into a DataSetConfiguration type.
+func ReadDataSetConfig(configPath string) (v1alpha12.DataSetConfiguration, error) {
+	var configuration v1alpha12.DataSetConfiguration
+	data, err := readInConfig(configPath, v1alpha12.DataSetConfigurationKind)
 	if err != nil {
 		return configuration, err
 	}
@@ -28,9 +28,9 @@ func ReadCollectionConfig(configPath string) (v1alpha1.DataSetConfiguration, err
 }
 
 // ReadAttributeQuery reads the specified config into a AttributeQuery type.
-func ReadAttributeQuery(configPath string) (v1alpha1.AttributeQuery, error) {
-	var configuration v1alpha1.AttributeQuery
-	data, err := readInConfig(configPath, v1alpha1.AttributeQueryKind)
+func ReadAttributeQuery(configPath string) (v1alpha12.AttributeQuery, error) {
+	var configuration v1alpha12.AttributeQuery
+	data, err := readInConfig(configPath, v1alpha12.AttributeQueryKind)
 	if err != nil {
 		return configuration, err
 	}
@@ -66,7 +66,7 @@ func readInConfig(configPath, kind string) ([]byte, error) {
 }
 
 // getTypeMeta retrieves TypeMeta information from the input.
-func getTypeMeta(data []byte) (typeMeta v1alpha1.TypeMeta, err error) {
+func getTypeMeta(data []byte) (typeMeta v1alpha12.TypeMeta, err error) {
 	if err := json.Unmarshal(data, &typeMeta); err != nil {
 		return typeMeta, fmt.Errorf("get type meta: %v", err)
 	}

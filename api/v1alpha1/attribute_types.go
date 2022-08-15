@@ -10,3 +10,7 @@ type AttributeQuery struct {
 	// Attributes list the configuration for Attribute types.
 	Attributes Attributes `json:"attributes"`
 }
+
+// Attributes is a map structure that holds all
+// attribute information provided by the user.
+type Attributes map[string]interface{}

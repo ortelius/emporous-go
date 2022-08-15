@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	config2 "github.com/uor-framework/uor-client-go/config"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,7 +15,6 @@ import (
 	"oras.land/oras-go/v2/content/file"
 
 	"github.com/uor-framework/uor-client-go/attributes/matchers"
-	"github.com/uor-framework/uor-client-go/builder/config"
 	"github.com/uor-framework/uor-client-go/content/layout"
 	"github.com/uor-framework/uor-client-go/model"
 	"github.com/uor-framework/uor-client-go/model/nodes/basic"
@@ -185,12 +185,12 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 
 	itr := collection.NewInOrderIterator(nodes)
 
-	query, err := config.ReadAttributeQuery(o.AttributeQuery)
+	query, err := config2.ReadAttributeQuery(o.AttributeQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	attributeSet, err := config.ConvertToModel(query.Attributes)
+	attributeSet, err := config2.ConvertToModel(query.Attributes)
 	if err != nil {
 		return nil, err
 	}

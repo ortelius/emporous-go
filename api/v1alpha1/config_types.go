@@ -36,7 +36,3 @@ type File struct {
 	// Attributes is the lists of to associate to the file.
 	Attributes Attributes `json:"attributes,omitempty"`
 }
-
-// Attributes is a map structure that holds all
-// attribute information provided by the user.
-type Attributes map[string]interface{}

@@ -12,8 +12,8 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 
-	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
-	load "github.com/uor-framework/uor-client-go/builder/config"
+	"github.com/uor-framework/uor-client-go/api/v1alpha1"
+	load "github.com/uor-framework/uor-client-go/config"
 	"github.com/uor-framework/uor-client-go/content/layout"
 	"github.com/uor-framework/uor-client-go/ocimanifest"
 	"github.com/uor-framework/uor-client-go/registryclient"
@@ -112,7 +112,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 
 	var config v1alpha1.DataSetConfiguration
 	if len(o.DSConfig) > 0 {
-		config, err = load.ReadCollectionConfig(o.DSConfig)
+		config, err = load.ReadDataSetConfig(o.DSConfig)
 		if err != nil {
 			return err
 		}
