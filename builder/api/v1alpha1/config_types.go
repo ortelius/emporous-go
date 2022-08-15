@@ -38,5 +38,5 @@ type File struct {
 }
 
 // Attributes is a map structure that holds all
-// attribute information.
+// attribute information provided by the user.
 type Attributes map[string]interface{}

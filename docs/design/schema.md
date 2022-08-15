@@ -15,11 +15,11 @@ There are four elements within a schema:
 
 ### Attribute Type Declarations
 
-Attribute type declarations MUST reside within a node of the Schema Collection as a JSON Schema document. Attribute type
+Attribute type declarations MUST reside within a manifest of the Schema Collection a JSON Schema document. Attribute type
 declarations MUST follow the following syntax and guidelines:
 
-**Values** - Attribute type declarations are expression via manifest annotation. The values for limited to the following
-and are expressions with JSON syntax:
+**Values** - Attribute type declarations are expression via manifest annotation. The key,value pairs are stored 
+as an annotation value in a JSON dictionary.
 
 1. Number (expressed at float)
 2. Integer

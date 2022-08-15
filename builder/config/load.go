@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// ReadCollectionConfig read the specified config into a CollectionConfiguration type.
+// ReadCollectionConfig reads the specified config into a CollectionConfiguration type.
 func ReadCollectionConfig(configPath string) (v1alpha1.DataSetConfiguration, error) {
 	var configuration v1alpha1.DataSetConfiguration
 	data, err := readInConfig(configPath, v1alpha1.DataSetConfigurationKind)
@@ -27,7 +27,7 @@ func ReadCollectionConfig(configPath string) (v1alpha1.DataSetConfiguration, err
 	return configuration, nil
 }
 
-// ReadAttributeQuery read the specified config into a AttributeQuery type.
+// ReadAttributeQuery reads the specified config into a AttributeQuery type.
 func ReadAttributeQuery(configPath string) (v1alpha1.AttributeQuery, error) {
 	var configuration v1alpha1.AttributeQuery
 	data, err := readInConfig(configPath, v1alpha1.AttributeQueryKind)
@@ -44,6 +44,7 @@ func ReadAttributeQuery(configPath string) (v1alpha1.AttributeQuery, error) {
 	return configuration, nil
 }
 
+// readInConfig reads in the file from the path and checks the type.
 func readInConfig(configPath, kind string) ([]byte, error) {
 	data, err := ioutil.ReadFile(filepath.Clean(configPath))
 	if err != nil {
@@ -64,6 +65,7 @@ func readInConfig(configPath, kind string) ([]byte, error) {
 	return data, nil
 }
 
+// getTypeMeta retrieves TypeMeta information from the input.
 func getTypeMeta(data []byte) (typeMeta v1alpha1.TypeMeta, err error) {
 	if err := json.Unmarshal(data, &typeMeta); err != nil {
 		return typeMeta, fmt.Errorf("get type meta: %v", err)
