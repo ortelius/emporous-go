@@ -118,7 +118,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		}
 	}
 
-	mconfig, err := json.Marshal(config)
+	configJSON, err := json.Marshal(config)
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 	descs = append(descs, linkedDescs...)
 
 	// Add the attributes from the config to their respective blocks
-	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, mconfig, nil)
+	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, configJSON, nil)
 	if err != nil {
 		return err
 	}
