@@ -26,6 +26,10 @@ func NewAuthStore(configPaths ...string) (*AuthStore, error) {
 		// No config path passed, attempt to load default configuration
 		// from well-known locations.
 		cfg, err := loadDefaultConfig()
+		if os.IsNotExist(err) {
+			// No default auth.json file exists
+			return &AuthStore{}, nil
+		}
 		if err != nil {
 			return nil, err
 		}
