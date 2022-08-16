@@ -188,7 +188,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 
 	if len(linkedDescs) > 0 {
 		manifestAnnotations[ocimanifest.AnnotationSchemaLinks] = formatLinks(linkedSchemas)
-		manifestAnnotations[ocimanifest.AnnotationCollectionLinks] = formatLinks(config.LinkedCollections)
+		manifestAnnotations[ocimanifest.AnnotationCollectionLinks] = formatLinks(config.Collection.LinkedCollections)
 	}
 
 	_, err = client.AddManifest(ctx, o.Destination, configDesc, manifestAnnotations, descs...)
@@ -210,7 +210,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 func gatherLinkedCollections(ctx context.Context, cfg v1alpha1.DataSetConfiguration, client registryclient.Client) ([]ocispec.Descriptor, []string, error) {
 	var allLinkedSchemas []string
 	var linkedDescs []ocispec.Descriptor
-	for _, collection := range cfg.LinkedCollections {
+	for _, collection := range cfg.Collection.LinkedCollections {
 		schema, linkedSchemas, err := ocimanifest.FetchSchema(ctx, collection, client)
 		if err != nil {
 			return nil, nil, err

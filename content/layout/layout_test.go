@@ -2,7 +2,6 @@ package layout
 
 import (
 	"context"
-	"github.com/uor-framework/uor-client-go/attributes/matchers"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -14,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/uor-framework/uor-client-go/attributes"
+	"github.com/uor-framework/uor-client-go/attributes/matchers"
 	"github.com/uor-framework/uor-client-go/model"
 )
 

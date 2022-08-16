@@ -50,7 +50,7 @@ var (
 )
 
 // AnnotationsToAttributeSet converts annotations from descriptors
-// to an AttributeSet. This also perform annotation validation.
+// to an AttributeSet. This also performs annotation validation.
 func AnnotationsToAttributeSet(annotations map[string]string, skip func(string) bool) (model.AttributeSet, error) {
 	set := attributes.Attributes{}
 
@@ -59,12 +59,17 @@ func AnnotationsToAttributeSet(annotations map[string]string, skip func(string) 
 			continue
 		}
 
-		// Key collision.
-		// TODO(jpower432): Handle this more gracefully
+		// Handle key collision. This should only occur if
+		// an annotation is set and the key also exists in the UOR
+		// specific attributes.
+		// TODO(jpower432): Handle more gracefully.
 		if _, exists := set[key]; exists {
 			continue
 		}
 
+		// Since annotations are in the form of map[string]string, we
+		// can just assume it is a string attribute at this point. Incorporating
+		// this into thr attribute set allows, users to pull by filename or reference name (cache).
 		if key != AnnotationUORAttributes {
 			set[key] = attributes.NewString(key, value)
 			continue
@@ -108,13 +113,12 @@ func UpdateLayerDescriptors(descs []ocispec.Descriptor, cfg v1alpha1.DataSetConf
 			} else {
 				file.File = strings.Replace(file.File, file.File, "^"+file.File+"$", -1)
 			}
-			namesearch, err := regexp.Compile(file.File)
+			nameSearch, err := regexp.Compile(file.File)
 			if err != nil {
 				return nil, err
 			}
 
-			if namesearch.Match([]byte(filename)) {
-				// Get the k/v pairs from the config and add them to the descriptor annotations.
+			if nameSearch.Match([]byte(filename)) {
 				set, err := config.ConvertToModel(file.Attributes)
 				if err != nil {
 					return nil, err

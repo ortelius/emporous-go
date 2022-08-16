@@ -13,19 +13,20 @@ const DataSetConfigurationKind = "DataSetConfiguration"
 type DataSetConfiguration struct {
 	TypeMeta `json:",inline"`
 	// Collection configuration spec.
-	Collection Collection `json:"collection,omitempty"`
-	// LinkedCollections are the remote addresses of collection that are
-	// linked to the collection.
-	LinkedCollections []string `json:"linkedCollections,omitempty"`
+	Collection DataSetConfigurationSpec `json:"collection,omitempty"`
 }
 
-type Collection struct {
+// DataSetConfigurationSpec defines the configuration spec to build a single UOR collection.
+type DataSetConfigurationSpec struct {
 	// Files defines custom attributes to add the files in the
 	// workspaces when publishing content/
 	Files []File `json:"files,omitempty"`
 	// SchemaAddress is the address of the schema to associated
 	// to the Collection.
 	SchemaAddress string `json:"schemaAddress,omitempty"`
+	// LinkedCollections are the remote addresses of collection that are
+	// linked to the collection.
+	LinkedCollections []string `json:"linkedCollections,omitempty"`
 }
 
 // File associates attributes with file names.

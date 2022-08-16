@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/stretchr/testify/require"
-	v1alpha12 "github.com/uor-framework/uor-client-go/api/v1alpha1"
+	"github.com/uor-framework/uor-client-go/api/v1alpha1"
 	"testing"
 )
 
@@ -10,7 +10,7 @@ func TestReadAttributeQuery(t *testing.T) {
 	type spec struct {
 		name     string
 		path     string
-		exp      v1alpha12.AttributeQuery
+		exp      v1alpha1.AttributeQuery
 		expError string
 	}
 
@@ -18,10 +18,10 @@ func TestReadAttributeQuery(t *testing.T) {
 		{
 			name: "Success/ValidConfig",
 			path: "testdata/valid-attr.yaml",
-			exp: v1alpha12.AttributeQuery{
-				TypeMeta: v1alpha12.TypeMeta{
-					Kind:       v1alpha12.AttributeQueryKind,
-					APIVersion: v1alpha12.GroupVersion,
+			exp: v1alpha1.AttributeQuery{
+				TypeMeta: v1alpha1.TypeMeta{
+					Kind:       v1alpha1.AttributeQueryKind,
+					APIVersion: v1alpha1.GroupVersion,
 				},
 				Attributes: map[string]interface{}{
 					"size": "small",
@@ -52,7 +52,7 @@ func TestReadDataSetConfig(t *testing.T) {
 	type spec struct {
 		name     string
 		path     string
-		exp      v1alpha12.DataSetConfiguration
+		exp      v1alpha1.DataSetConfiguration
 		expError string
 	}
 
@@ -60,14 +60,14 @@ func TestReadDataSetConfig(t *testing.T) {
 		{
 			name: "Success/ValidConfig",
 			path: "testdata/valid-ds.yaml",
-			exp: v1alpha12.DataSetConfiguration{
-				TypeMeta: v1alpha12.TypeMeta{
-					Kind:       v1alpha12.DataSetConfigurationKind,
-					APIVersion: v1alpha12.GroupVersion,
+			exp: v1alpha1.DataSetConfiguration{
+				TypeMeta: v1alpha1.TypeMeta{
+					Kind:       v1alpha1.DataSetConfigurationKind,
+					APIVersion: v1alpha1.GroupVersion,
 				},
-				Collection: v1alpha12.Collection{
+				Collection: v1alpha1.DataSetConfigurationSpec{
 					SchemaAddress: "localhost:5001/schema:latest",
-					Files: []v1alpha12.File{
+					Files: []v1alpha1.File{
 						{
 							File: "*.json",
 							Attributes: map[string]interface{}{
