@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -109,6 +110,19 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 		return fmt.Errorf("error configuring client: %v", err)
 	}
 
+	var config v1alpha1.DataSetConfiguration
+	if len(o.DSConfig) > 0 {
+		config, err = load.ReadConfig(o.DSConfig)
+		if err != nil {
+			return err
+		}
+	}
+
+	configJSON, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+
 	var files []string
 	err = space.Walk(func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -125,14 +139,6 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 	})
 	if err != nil {
 		return err
-	}
-
-	var config v1alpha1.DataSetConfiguration
-	if len(o.DSConfig) > 0 {
-		config, err = load.ReadConfig(o.DSConfig)
-		if err != nil {
-			return err
-		}
 	}
 
 	// To allow the files to be loaded relative to the render
@@ -169,7 +175,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 	descs = append(descs, linkedDescs...)
 
 	// Add the attributes from the config to their respective blocks
-	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, []byte("{}"), nil)
+	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, configJSON, nil)
 	if err != nil {
 		return err
 	}
