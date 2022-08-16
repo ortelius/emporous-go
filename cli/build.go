@@ -1,9 +1,10 @@
 package cli
 
 import (
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+
+	"github.com/spf13/cobra"
 
 	"github.com/uor-framework/uor-client-go/util/examples"
 )
@@ -49,10 +50,10 @@ func NewBuildCmd(rootOpts *RootOptions) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "", o.DSConfig, "dataset config path")
-	cmd.Flags().StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths when contacting registries")
-	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to registries SSL registry without certs")
-	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https when contacting registries")
+	f := cmd.PersistentFlags()
+	f.StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths when contacting registries")
+	f.BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to registries SSL registry without certs")
+	f.BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https when contacting registries")
 
 	cmd.AddCommand(NewBuildSchemaCmd(&o))
 	cmd.AddCommand(NewBuildCollectionCmd(&o))

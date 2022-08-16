@@ -24,9 +24,11 @@ type Store interface {
 // by attribute.
 type AttributeStore interface {
 	Store
-	// ResolveByAttribute will return all descriptors associated
+	// ResolveByAttribute returns all descriptors associated
 	// with a reference satisfy the attribute matcher.
 	ResolveByAttribute(context.Context, string, model.Matcher) ([]ocispec.Descriptor, error)
+	// AttributeSchema return the layer descriptor for the attribute schema at a given reference.
+	AttributeSchema(context.Context, string) (ocispec.Descriptor, error)
 }
 
 // GraphStore defines the methods for adding, inspecting, and removing

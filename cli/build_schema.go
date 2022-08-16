@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/uor-framework/uor-client-go/schema"
 	"os"
 	"path/filepath"
+
+	"github.com/uor-framework/uor-client-go/schema"
 
 	"github.com/spf13/cobra"
 
@@ -95,7 +96,7 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 		return fmt.Errorf("error configuring client: %v", err)
 	}
 
-	schema, err := schema.FromTypes(config.AttributeTypes)
+	schema, err := schema.FromTypes(config.Schema.AttributeTypes)
 	if err != nil {
 		return err
 	}
@@ -107,7 +108,7 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 
 	// Add the attributes from the config to their respective blocks
 	// Store default content declarations in the schema config.
-	dcd, err := json.Marshal(config.DefaultContentDeclarations)
+	dcd, err := json.Marshal(config.Schema.DefaultContentDeclarations)
 	if err != nil {
 		return err
 	}
@@ -117,7 +118,7 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 	}
 
 	// Convert common attribute mapping for manifest storage
-	attrs, err := load.ConvertToModel(config.CommonAttributeMapping)
+	attrs, err := load.ConvertToModel(config.Schema.CommonAttributeMapping)
 	if err != nil {
 		return fmt.Errorf("error converting common attributes to attribute set: %w", err)
 	}

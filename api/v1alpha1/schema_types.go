@@ -10,6 +10,11 @@ const SchemaConfigurationKind = "SchemaConfiguration"
 // SchemaConfiguration configures a schema.
 type SchemaConfiguration struct {
 	TypeMeta `json:",inline"`
+	Schema   SchemaConfigurationSpec `json:"schema"`
+}
+
+// SchemaConfigurationSpec defines the configuration spec to build a UOR schema.
+type SchemaConfigurationSpec struct {
 	// Address is the remote location for the default schema of the
 	// collection.
 	Address string `json:"address"`

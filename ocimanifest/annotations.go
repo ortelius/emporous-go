@@ -99,8 +99,27 @@ func AnnotationsFromAttributeSet(set model.AttributeSet) (map[string]string, err
 	return map[string]string{AnnotationUORAttributes: string(set.AsJSON())}, nil
 }
 
-// UpdateLayerDescriptors updates layers descriptor annotations with user provided key,value pairs
-func UpdateLayerDescriptors(descs []ocispec.Descriptor, cfg v1alpha1.DataSetConfiguration) ([]ocispec.Descriptor, error) {
+// UpdateLayerDescriptors updates layers descriptor annotations with attributes from an AttributeSet. The key in the fileAttributes
+// argument can be a regular expression or the name of a single file.
+func UpdateLayerDescriptors(descs []ocispec.Descriptor, fileAttributes map[string]model.AttributeSet) ([]ocispec.Descriptor, error) {
+	// Process each key into a regular expression and store it.
+	regexpByFilename := map[string]*regexp.Regexp{}
+	for file := range fileAttributes {
+		// If the config has a grouping declared, make a valid regex.
+		var expression string
+		if strings.Contains(file, "*") && !strings.Contains(file, ".*") {
+			expression = strings.Replace(file, "*", ".*", -1)
+		} else {
+			expression = strings.Replace(file, file, "^"+file+"$", -1)
+		}
+
+		nameSearch, err := regexp.Compile(expression)
+		if err != nil {
+			return nil, err
+		}
+		regexpByFilename[file] = nameSearch
+	}
+
 	var updateDescs []ocispec.Descriptor
 	for _, desc := range descs {
 		filename, ok := desc.Annotations[ocispec.AnnotationTitle]
@@ -109,23 +128,9 @@ func UpdateLayerDescriptors(descs []ocispec.Descriptor, cfg v1alpha1.DataSetConf
 			continue
 		}
 
-		for _, file := range cfg.Collection.Files {
-			// If the config has a grouping declared, make a valid regex.
-			if strings.Contains(file.File, "*") && !strings.Contains(file.File, ".*") {
-				file.File = strings.Replace(file.File, "*", ".*", -1)
-			} else {
-				file.File = strings.Replace(file.File, file.File, "^"+file.File+"$", -1)
-			}
-			nameSearch, err := regexp.Compile(file.File)
-			if err != nil {
-				return nil, err
-			}
-
+		for file, set := range fileAttributes {
+			nameSearch := regexpByFilename[file]
 			if nameSearch.Match([]byte(filename)) {
-				set, err := config.ConvertToModel(file.Attributes)
-				if err != nil {
-					return nil, err
-				}
 				annotations, err := AnnotationsFromAttributeSet(set)
 				if err != nil {
 					return nil, err
@@ -137,6 +142,5 @@ func UpdateLayerDescriptors(descs []ocispec.Descriptor, cfg v1alpha1.DataSetConf
 		}
 		updateDescs = append(updateDescs, desc)
 	}
-
 	return updateDescs, nil
 }

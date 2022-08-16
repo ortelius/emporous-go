@@ -3,6 +3,7 @@ package layout
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -143,6 +144,35 @@ func (l *Layout) ResolveByAttribute(ctx context.Context, reference string, match
 		return nil
 	})
 	return res, err
+}
+
+// AttributeSchema returns the descriptor containing the given attribute schema for a given reference.
+func (l *Layout) AttributeSchema(ctx context.Context, reference string) (ocispec.Descriptor, error) {
+	desc, err := l.Resolve(ctx, reference)
+	if err != nil {
+		return ocispec.Descriptor{}, err
+	}
+
+	node := l.graph.NodeByID(desc.Digest.String())
+	if node == nil {
+		return ocispec.Descriptor{}, fmt.Errorf("node %q does not exist in graph", reference)
+	}
+	var res ocispec.Descriptor
+	var stopErr = errors.New("stop")
+	err = traversal.Walk(node, l.graph, func(_ traversal.Tracker, n model.Node) error {
+		desc, ok := n.(*descriptor.Node)
+		if ok {
+			if desc.Descriptor().MediaType == ocimanifest.UORSchemaMediaType {
+				res = desc.Descriptor()
+				return stopErr
+			}
+		}
+		return nil
+	})
+	if err != nil && !errors.Is(err, stopErr) {
+		return ocispec.Descriptor{}, err
+	}
+	return res, nil
 }
 
 // ResolveLinks returns linked collection references for a collection. If the collection

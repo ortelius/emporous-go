@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,10 +15,13 @@ import (
 
 	"github.com/uor-framework/uor-client-go/api/v1alpha1"
 	load "github.com/uor-framework/uor-client-go/config"
+	"github.com/uor-framework/uor-client-go/content"
 	"github.com/uor-framework/uor-client-go/content/layout"
+	"github.com/uor-framework/uor-client-go/model"
 	"github.com/uor-framework/uor-client-go/ocimanifest"
 	"github.com/uor-framework/uor-client-go/registryclient"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
+	"github.com/uor-framework/uor-client-go/schema"
 	"github.com/uor-framework/uor-client-go/util/examples"
 	"github.com/uor-framework/uor-client-go/util/workspace"
 )
@@ -130,9 +134,49 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 		}
 	}
 
-	configJSON, err := json.Marshal(config)
-	if err != nil {
-		return err
+	attributesByFile := map[string]model.AttributeSet{}
+	for _, file := range config.Collection.Files {
+		set, err := load.ConvertToModel(file.Attributes)
+		if err != nil {
+			return err
+		}
+		attributesByFile[file.File] = set
+	}
+
+	// If a schema is present, pull it and do the validation before
+	// processing the files to get quick feedback to the user.
+	collectionManifestAnnotations := map[string]string{}
+	if config.Collection.SchemaAddress != "" {
+		collectionManifestAnnotations[ocimanifest.AnnotationSchema] = config.Collection.SchemaAddress
+		// Pull the schema into the cache if not present
+		schemaClient, err := orasclient.NewClient(
+			orasclient.SkipTLSVerify(o.Insecure),
+			orasclient.WithAuthConfigs(o.Configs),
+			orasclient.WithPlainHTTP(o.PlainHTTP),
+			orasclient.WithCache(cache),
+		)
+		if err != nil {
+			return fmt.Errorf("error configuring client: %v", err)
+		}
+		_, err = schemaClient.Pull(ctx, config.Collection.SchemaAddress, cache)
+		if err != nil {
+			return err
+		}
+
+		schemaDoc, err := fetchJSONSchema(ctx, config.Collection.SchemaAddress, cache)
+		if err != nil {
+			return err
+		}
+
+		for file, attr := range attributesByFile {
+			valid, err := schemaDoc.Validate(attr)
+			if err != nil {
+				return err
+			}
+			if !valid {
+				return fmt.Errorf("attributes for file %s are not valid for schema %s", file, config.Collection.SchemaAddress)
+			}
+		}
 	}
 
 	// To allow the files to be loaded relative to the render
@@ -142,6 +186,7 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	if err := os.Chdir(space.Path()); err != nil {
 		return err
 	}
@@ -156,7 +201,7 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	descs, err = ocimanifest.UpdateLayerDescriptors(descs, config)
+	descs, err = ocimanifest.UpdateLayerDescriptors(descs, attributesByFile)
 	if err != nil {
 		return err
 	}
@@ -168,25 +213,24 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 
 	descs = append(descs, linkedDescs...)
 
-	// Add the attributes from the config to their respective blocks
+	// Store the DataSetConfiguration file in the manifest config of the OCI artifact for
+	// later use.
+	configJSON, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
 	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, configJSON, nil)
 	if err != nil {
 		return err
 	}
 
 	// Write the root collection attributes
-	manifestAnnotations := map[string]string{}
-	// TODO(jpower432): Add schema validation here
-	if config.Collection.SchemaAddress != "" {
-		manifestAnnotations[ocimanifest.AnnotationSchema] = config.Collection.SchemaAddress
-	}
-
 	if len(linkedDescs) > 0 {
-		manifestAnnotations[ocimanifest.AnnotationSchemaLinks] = formatLinks(linkedSchemas)
-		manifestAnnotations[ocimanifest.AnnotationCollectionLinks] = formatLinks(config.Collection.LinkedCollections)
+		collectionManifestAnnotations[ocimanifest.AnnotationSchemaLinks] = formatLinks(linkedSchemas)
+		collectionManifestAnnotations[ocimanifest.AnnotationCollectionLinks] = formatLinks(config.Collection.LinkedCollections)
 	}
 
-	_, err = client.AddManifest(ctx, o.Destination, configDesc, manifestAnnotations, descs...)
+	_, err = client.AddManifest(ctx, o.Destination, configDesc, collectionManifestAnnotations, descs...)
 	if err != nil {
 		return err
 	}
@@ -201,12 +245,29 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 	return client.Destroy()
 }
 
+// fetchJSONSchema returns a schema type from a content store and a schema address.
+func fetchJSONSchema(ctx context.Context, schemaAddress string, store content.AttributeStore) (schema.Schema, error) {
+	desc, err := store.AttributeSchema(ctx, schemaAddress)
+	if err != nil {
+		return schema.Schema{}, err
+	}
+	schemaReader, err := store.Fetch(ctx, desc)
+	if err != nil {
+		return schema.Schema{}, fmt.Errorf("error fetching schema from store: %w", err)
+	}
+	schemaBytes, err := ioutil.ReadAll(schemaReader)
+	if err != nil {
+		return schema.Schema{}, err
+	}
+	return schema.FromBytes(schemaBytes)
+}
+
 // gatherLinkedCollections create null descriptors to denotes linked collections in a manifest with schema link information.
 func gatherLinkedCollections(ctx context.Context, cfg v1alpha1.DataSetConfiguration, client registryclient.Client) ([]ocispec.Descriptor, []string, error) {
 	var allLinkedSchemas []string
 	var linkedDescs []ocispec.Descriptor
 	for _, collection := range cfg.Collection.LinkedCollections {
-		schema, linkedSchemas, err := ocimanifest.FetchSchema(ctx, collection, client)
+		schema, linkedSchemas, err := ocimanifest.FetchSchemaLinks(ctx, collection, client)
 		if err != nil {
 			return nil, nil, err
 		}
