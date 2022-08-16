@@ -169,9 +169,14 @@ func (l *Layout) AttributeSchema(ctx context.Context, reference string) (ocispec
 		}
 		return nil
 	})
+	if err == nil {
+		return ocispec.Descriptor{}, fmt.Errorf("reference %s is not a schema address", reference)
+	}
+
 	if err != nil && !errors.Is(err, stopErr) {
 		return ocispec.Descriptor{}, err
 	}
+	
 	return res, nil
 }
 

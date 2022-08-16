@@ -32,7 +32,10 @@ type BuildCollectionOptions struct {
 	*BuildOptions
 	RootDir string
 	// Dataset Config
-	DSConfig string
+	DSConfig  string
+	Insecure  bool
+	PlainHTTP bool
+	Configs   []string
 }
 
 var clientBuildCollectionExamples = []examples.Example{
@@ -67,6 +70,9 @@ func NewBuildCollectionCmd(buildOpts *BuildOptions) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "", o.DSConfig, "config path for artifact building and dataset configuration")
+	cmd.Flags().StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths when contacting registries")
+	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to registries SSL registry without certs")
+	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https when contacting registries")
 
 	return cmd
 }

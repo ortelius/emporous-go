@@ -87,11 +87,7 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	client, err := orasclient.NewClient(
-		orasclient.SkipTLSVerify(o.Insecure),
-		orasclient.WithAuthConfigs(o.Configs),
-		orasclient.WithPlainHTTP(o.PlainHTTP),
-	)
+	client, err := orasclient.NewClient()
 	if err != nil {
 		return fmt.Errorf("error configuring client: %v", err)
 	}

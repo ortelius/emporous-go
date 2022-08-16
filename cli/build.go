@@ -13,12 +13,7 @@ import (
 // be set using the build subcommand.
 type BuildOptions struct {
 	*RootOptions
-	RootDir     string
-	DSConfig    string
 	Destination string
-	Insecure    bool
-	PlainHTTP   bool
-	Configs     []string
 }
 
 var clientBuildExamples = []examples.Example{
@@ -49,11 +44,6 @@ func NewBuildCmd(rootOpts *RootOptions) *cobra.Command {
 			return cmd.Help()
 		},
 	}
-
-	f := cmd.PersistentFlags()
-	f.StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths when contacting registries")
-	f.BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to registries SSL registry without certs")
-	f.BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https when contacting registries")
 
 	cmd.AddCommand(NewBuildSchemaCmd(&o))
 	cmd.AddCommand(NewBuildCollectionCmd(&o))
