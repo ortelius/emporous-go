@@ -48,8 +48,8 @@ uor-client-go version
 > WARNING: Currently, only JSON is supported for link replacement.
 2. Use the `uor-client-go build` command to build the workspace as an OCI artifact in build-cache The default location is ~/.uor/cache. It an be set with the `UOR_CACHE` environment variable`.
 3. Use the `uor-client-go push` command to publish to a registry as an OCI artifact.
-4. Use the `uor-client-go pull` command to pull the artifact back to a local workspace.
-5. 5. Use the `uor-client-go inspect` command to inspect the build cache to list information about references.
+4. Use the `uor-client-go pull` command to pull the artifact back to a local workspace. 
+5. Use the `uor-client-go inspect` command to inspect the build cache to list information about references.
 
 ### Build workspace into an artifact
 

@@ -208,10 +208,6 @@ type mockMatcher struct {
 
 var _ model.Matcher = &mockMatcher{}
 
-func (m *mockMatcher) String() string {
-	return ""
-}
-
-func (m *mockMatcher) Matches(n model.Node) bool {
-	return n.ID() == m.criteria
+func (m *mockMatcher) Matches(n model.Node) (bool, error) {
+	return n.ID() == m.criteria, nil
 }

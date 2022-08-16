@@ -130,7 +130,11 @@ func (l *Layout) ResolveByAttribute(ctx context.Context, reference string, match
 		return nil, fmt.Errorf("node %q does not exist in graph", reference)
 	}
 	err = traversal.Walk(node, l.graph, func(_ traversal.Tracker, n model.Node) error {
-		if matcher.Matches(n) {
+		match, err := matcher.Matches(n)
+		if err != nil {
+			return err
+		}
+		if match {
 			desc, ok := n.(*descriptor.Node)
 			if ok {
 				res = append(res, desc.Descriptor())

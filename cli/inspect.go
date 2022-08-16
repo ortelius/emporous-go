@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/uor-framework/uor-client-go/attributes/matchers"
-	"github.com/uor-framework/uor-client-go/builder/config"
+	"github.com/uor-framework/uor-client-go/config"
 	"github.com/uor-framework/uor-client-go/util/examples"
 	"io"
 	"os"
@@ -71,7 +71,7 @@ func NewInspectCmd(rootOpts *RootOptions) *cobra.Command {
 	return cmd
 }
 
-func (o *InspectOptions) Complete(args []string) error {
+func (o *InspectOptions) Complete(_ []string) error {
 	return nil
 }
 
@@ -103,7 +103,7 @@ func (o *InspectOptions) Run(ctx context.Context) error {
 			return err
 		}
 
-		attributeSet, err := config.ConvertToModel(query)
+		attributeSet, err := config.ConvertToModel(query.Attributes)
 		if err != nil {
 			return err
 		}
