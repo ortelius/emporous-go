@@ -1,8 +1,6 @@
 package v1alpha1
 
-import (
-	"path"
-)
+import "path"
 
 const (
 	version = "v1alpha1"
