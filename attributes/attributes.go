@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/uor-framework/client/model"
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 // Attributes implements the model.Attributes interface
@@ -85,19 +85,4 @@ func (a Attributes) Merge(attr model.Attributes) {
 			sub[val] = struct{}{}
 		}
 	}
-}
-
-// AnnotationsToAttributes converts annotations from a descriptors
-// to an Attribute type.
-func AnnotationsToAttributes(annotations map[string]string) model.Attributes {
-	attr := Attributes{}
-	for key, value := range annotations {
-		curr, exists := attr[key]
-		if !exists {
-			curr = map[string]struct{}{}
-		}
-		curr[value] = struct{}{}
-		attr[key] = curr
-	}
-	return attr
 }

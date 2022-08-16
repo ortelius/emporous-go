@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/client/model"
-	"github.com/uor-framework/client/util/testutils"
+	"github.com/uor-framework/uor-client-go/model"
+	"github.com/uor-framework/uor-client-go/util/testutils"
 )
 
 func TestCollection_Root(t *testing.T) {
@@ -255,7 +255,6 @@ func TestCollection_Attributes(t *testing.T) {
 
 	cases := []spec{
 		{
-			// TODO(jpower432)
 			name: "Success/RootExists",
 			nodes: []model.Node{
 				&testutils.MockNode{
@@ -315,7 +314,7 @@ func TestCollection_Attributes(t *testing.T) {
 }
 
 func makeTestCollection(t *testing.T, nodes []model.Node, edges []model.Edge) Collection {
-	c := NewCollection("test")
+	c := New("test")
 	for _, node := range nodes {
 		require.NoError(t, c.AddNode(node))
 	}

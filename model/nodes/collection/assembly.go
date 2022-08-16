@@ -3,7 +3,7 @@ package collection
 import (
 	"errors"
 
-	"github.com/uor-framework/client/model"
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 // AddNode adds a new node to the graph.

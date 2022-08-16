@@ -9,10 +9,10 @@ import (
 
 	"github.com/opencontainers/go-digest"
 
-	"github.com/uor-framework/client/builder/parser"
-	"github.com/uor-framework/client/model"
-	"github.com/uor-framework/client/model/nodes/collection"
-	"github.com/uor-framework/client/util/workspace"
+	"github.com/uor-framework/uor-client-go/builder/parser"
+	"github.com/uor-framework/uor-client-go/model"
+	"github.com/uor-framework/uor-client-go/model/nodes/collection"
+	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
 // Builder defines methods for building UOR datasets.
@@ -112,7 +112,7 @@ func (b Compatibility) makeTemplates(ctx context.Context, c *collection.Collecti
 
 // isBuildable will check the node ID able to be built with
 // the render method.
-func (b *Compatibility) isBuildable(id string) bool {
+func (b Compatibility) isBuildable(id string) bool {
 	tmpl, ok := b.Templates[id]
 	if !ok {
 		return false
@@ -122,7 +122,7 @@ func (b *Compatibility) isBuildable(id string) bool {
 
 // render will render the template for the current state of the
 // node at the specified ID.
-func (b *Compatibility) render(w io.Writer, id string) error {
+func (b Compatibility) render(w io.Writer, id string) error {
 	tmpl, ok := b.Templates[id]
 	if !ok {
 		return fmt.Errorf("no template associated with node %v", id)

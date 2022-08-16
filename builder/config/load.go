@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/spf13/viper"
 
-	"github.com/uor-framework/client/builder/api/v1alpha1"
+	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
 )
 
 func ReadConfig(configName string) (v1alpha1.DataSetConfiguration, error) {

@@ -5,11 +5,12 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	"github.com/uor-framework/client/cli/log"
+	"github.com/uor-framework/uor-client-go/cli/log"
 )
 
 // EnvConfig stores CLI runtime configuration from environment variables.
@@ -23,18 +24,32 @@ type RootOptions struct {
 	IOStreams genericclioptions.IOStreams
 	LogLevel  string
 	Logger    log.Logger
+	cacheDir  string
 	EnvConfig
 }
 
 var clientLong = templates.LongDesc(
 	`
-	This client helps you build and publish UOR collections as an OCI artifact.
+	The UOR client helps you build, publish, and retrieve UOR collections as an OCI artifact.
+
+	The workflow to publish a collection is to gather files for a collection in a directory workspace 
+	and use the build sub-command. During the build process, the tag for the
+	remote destination is specified. 
+	
+	This build action will store the collection in a build cache. This location can be specified with the UOR_CACHE environment 
+	variable. The default location is ~/.uor/cache. 
+	
+	After the collection has been stored, it can be retrieved and pushed the to registry with the push sub-command.
+
+	Collections can be retrieved from the cache or the remote location (if not stored) with the pull sub-command. The pull sub-command also
+	allows for filtering of the collection with the attributes flag.
 	`,
 )
 
 // NewRootCmd creates a new cobra.Command for the command root.
 func NewRootCmd() *cobra.Command {
 	o := RootOptions{}
+
 	o.IOStreams = genericclioptions.IOStreams{
 		In:     os.Stdin,
 		Out:    os.Stdout,
@@ -53,7 +68,19 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 			o.Logger = logger
-			return nil
+
+			cacheEnv := os.Getenv("UOR_CACHE")
+			if cacheEnv != "" {
+				o.cacheDir = cacheEnv
+			} else {
+				home, err := homedir.Dir()
+				if err != nil {
+					return err
+				}
+				o.cacheDir = filepath.Join(home, ".uor", "cache")
+			}
+
+			return os.MkdirAll(o.cacheDir, 0750)
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Help()
@@ -64,8 +91,9 @@ func NewRootCmd() *cobra.Command {
 	f.StringVarP(&o.LogLevel, "loglevel", "l", "info",
 		"Log level (debug, info, warn, error, fatal)")
 
-	// TODO(sabre1041) Reenable/remove once build capability strategy determined
-	//cmd.AddCommand(NewBuildCmd(&o))
+	cmd.AddCommand(NewRenderCmd(&o))
+	cmd.AddCommand(NewInspectCmd(&o))
+	cmd.AddCommand(NewBuildCmd(&o))
 	cmd.AddCommand(NewPushCmd(&o))
 	cmd.AddCommand(NewPullCmd(&o))
 	cmd.AddCommand(NewRunCmd(&o))

@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package registryclient
+package ocimanifest
 
-// This package defines types and methods for
-// interacting with the client data sets for publishing to a registry.
+// This package defines types and methods for managing and inspecting
+// OCI manifests.

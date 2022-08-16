@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/uor-framework/client/model"
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 var (
@@ -32,8 +32,8 @@ type Collection struct {
 	*ByAttributesIterator
 }
 
-// NewCollection creates an empty Collection with the specified ID.
-func NewCollection(id string) *Collection {
+// New creates an empty Collection with the specified ID.
+func New(id string) *Collection {
 	return &Collection{
 		id:                   id,
 		nodes:                map[string]model.Node{},

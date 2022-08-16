@@ -1,7 +1,8 @@
-package collection
+package builder
 
 import (
-	"github.com/uor-framework/client/model"
+	"github.com/uor-framework/uor-client-go/model"
+	"github.com/uor-framework/uor-client-go/model/nodes/collection"
 )
 
 var _ model.NodeBuilder = &collectionBuilder{}
@@ -11,8 +12,8 @@ type collectionBuilder struct {
 	edges []model.Edge
 }
 
-// NewBuilder returns a builder for collection nodes.
-func NewBuilder(nodes []model.Node, edges []model.Edge) model.NodeBuilder {
+// New returns a builder for collection nodes.
+func New(nodes []model.Node, edges []model.Edge) model.NodeBuilder {
 	return &collectionBuilder{
 		nodes: nodes,
 		edges: edges,
@@ -23,7 +24,7 @@ func NewBuilder(nodes []model.Node, edges []model.Edge) model.NodeBuilder {
 // before return the final immutable collection.
 // At node build time create and attach the iterator.
 func (b *collectionBuilder) Build(id string) (model.Node, error) {
-	c := NewCollection(id)
+	c := collection.New(id)
 	for _, node := range b.nodes {
 		if err := c.AddNode(node); err != nil {
 			return nil, err
@@ -34,7 +35,7 @@ func (b *collectionBuilder) Build(id string) (model.Node, error) {
 			return nil, err
 		}
 	}
-	itr := NewByAttributesIterator(c.Nodes())
+	itr := collection.NewByAttributesIterator(c.Nodes())
 	c.ByAttributesIterator = itr
 	return c, nil
 }

@@ -2,8 +2,9 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 	"net/url"
 	"os"
@@ -11,11 +12,15 @@ import (
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/registry"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/client/cli/log"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"oras.land/oras-go/pkg/content"
-	"oras.land/oras-go/pkg/oras"
+	"oras.land/oras-go/v2"
+	"oras.land/oras-go/v2/content/memory"
+	"oras.land/oras-go/v2/registry/remote"
+
+	"github.com/uor-framework/uor-client-go/cli/log"
+	"github.com/uor-framework/uor-client-go/ocimanifest"
 )
 
 func TestPullComplete(t *testing.T) {
@@ -30,10 +35,10 @@ func TestPullComplete(t *testing.T) {
 	cases := []spec{
 		{
 			name: "Valid/CorrectNumberOfArguments",
-			args: []string{"test-registry.com/image:latest", "test"},
+			args: []string{"test-registry.com/image:latest"},
 			expOpts: &PullOptions{
 				Source: "test-registry.com/image:latest",
-				Output: "test",
+				Output: ".",
 			},
 			opts: &PullOptions{},
 		},
@@ -42,7 +47,7 @@ func TestPullComplete(t *testing.T) {
 			args:     []string{},
 			expOpts:  &PullOptions{},
 			opts:     &PullOptions{},
-			expError: "bug: expecting two arguments",
+			expError: "bug: expecting one argument",
 		},
 	}
 
@@ -98,7 +103,7 @@ func TestPullValidate(t *testing.T) {
 }
 
 func TestPullRun(t *testing.T) {
-	testlogr, err := log.NewLogger(ioutil.Discard, "debug")
+	testlogr, err := log.NewLogger(io.Discard, "debug")
 	require.NoError(t, err)
 
 	server := httptest.NewServer(registry.New())
@@ -107,10 +112,10 @@ func TestPullRun(t *testing.T) {
 	require.NoError(t, err)
 
 	type spec struct {
-		name      string
-		opts      *PullOptions
-		fileExist bool
-		expError  string
+		name       string
+		opts       *PullOptions
+		assertFunc func(string) bool
+		expError   string
 	}
 
 	cases := []spec{
@@ -125,9 +130,69 @@ func TestPullRun(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Source: fmt.Sprintf("%s/client-test:latest", u.Host),
+				Source:    fmt.Sprintf("%s/client-test:latest", u.Host),
+				PlainHTTP: true,
 			},
-			fileExist: true,
+			assertFunc: func(path string) bool {
+				actual := filepath.Join(path, "hello.txt")
+				_, err = os.Stat(actual)
+				return err == nil
+			},
+		},
+		{
+			name: "Success/PullAll",
+			opts: &PullOptions{
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
+				},
+				Source:    fmt.Sprintf("%s/client-linked:latest", u.Host),
+				PlainHTTP: true,
+				PullAll:   true,
+			},
+			assertFunc: func(path string) bool {
+				actual := filepath.Join(path, "hello.txt")
+				_, err = os.Stat(actual)
+				if err != nil {
+					return false
+				}
+				actual = filepath.Join(path, "hello.linked.txt")
+				_, err = os.Stat(actual)
+				if err != nil {
+					return false
+				}
+				actual = filepath.Join(path, "hello.linked1.txt")
+				_, err = os.Stat(actual)
+				return err == nil
+			},
+		},
+		{
+			name: "Success/PullAllWithAttributes",
+			opts: &PullOptions{
+				RootOptions: &RootOptions{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
+				},
+				Source:    fmt.Sprintf("%s/client-linked-attr:latest", u.Host),
+				PlainHTTP: true,
+				PullAll:   true,
+				Attributes: map[string]string{
+					"test": "linkedannotation",
+				},
+			},
+			assertFunc: func(path string) bool {
+				actual := filepath.Join(path, "hello.linked.txt")
+				_, err = os.Stat(actual)
+				return err == nil
+			},
 		},
 		{
 			name: "Success/OneMatchingAnnotation",
@@ -144,8 +209,13 @@ func TestPullRun(t *testing.T) {
 				Attributes: map[string]string{
 					"test": "annotation",
 				},
+				PlainHTTP: true,
 			},
-			fileExist: true,
+			assertFunc: func(path string) bool {
+				actual := filepath.Join(path, "hello.txt")
+				_, err = os.Stat(actual)
+				return err == nil
+			},
 		},
 		{
 			name: "Success/NoMatchingAnnotation",
@@ -162,8 +232,13 @@ func TestPullRun(t *testing.T) {
 				Attributes: map[string]string{
 					"test2": "annotation",
 				},
+				PlainHTTP: true,
 			},
-			fileExist: false,
+			assertFunc: func(path string) bool {
+				actual := filepath.Join(path, "hello.txt")
+				_, err = os.Stat(actual)
+				return errors.Is(err, os.ErrNotExist)
+			},
 		},
 	}
 
@@ -171,19 +246,18 @@ func TestPullRun(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			tmp := t.TempDir()
 			c.opts.Output = tmp
-			prepTestArtifact(t, c.opts.Source)
+			prepTestArtifact(t, c.opts.Source, u.Host)
+
+			cache := filepath.Join(t.TempDir(), "cache")
+			require.NoError(t, os.MkdirAll(cache, 0750))
+			c.opts.cacheDir = cache
+
 			err := c.opts.Run(context.TODO())
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
 			} else {
 				require.NoError(t, err)
-				actual := filepath.Join(tmp, "hello.txt")
-				_, err = os.Stat(actual)
-				if c.fileExist {
-					require.NoError(t, err)
-				} else {
-					require.ErrorIs(t, err, os.ErrNotExist)
-				}
+				require.True(t, c.assertFunc(tmp))
 			}
 		})
 	}
@@ -191,23 +265,60 @@ func TestPullRun(t *testing.T) {
 
 // prepTestArtifact will push a hello.txt artifact into the
 // registry for retrieval. Uses methods from oras-go.
-// FIXME(jpower432): Possibly set this up to mirror from files.
-func prepTestArtifact(t *testing.T, ref string) {
+func prepTestArtifact(t *testing.T, ref string, host string) {
 	fileName := "hello.txt"
+	fileLinkedName := "hello.linked.txt"
+	fileLinked1Name := "hello.linked1.txt"
 	fileContent := []byte("Hello World!\n")
-	// Push file(s) w custom mediatype to registry
-	memoryStore := content.NewMemory()
-	desc, err := memoryStore.Add(fileName, "", fileContent)
-	desc.Annotations["test"] = "annotation"
-	require.NoError(t, err)
 
-	manifest, manifestDesc, config, configDesc, err := content.GenerateManifestAndConfig(nil, nil, desc)
-	require.NoError(t, err)
-	memoryStore.Set(configDesc, config)
-	err = memoryStore.StoreManifest(ref, manifestDesc, manifest)
-	require.NoError(t, err)
-	registry, err := content.NewRegistry(content.RegistryOptions{PlainHTTP: true})
-	require.NoError(t, err)
-	_, err = oras.Copy(context.TODO(), memoryStore, ref, registry, "")
-	require.NoError(t, err)
+	publishFunc := func(fileName, ref string, fileContent []byte, layerAnnotations, manifestAnnotations map[string]string) {
+		ctx := context.TODO()
+		// Push file(s) w custom mediatype to registry
+		memoryStore := memory.New()
+		layerDesc, err := pushBlob(ctx, ocispec.MediaTypeImageLayer, fileContent, memoryStore)
+		require.NoError(t, err)
+		if layerDesc.Annotations == nil {
+			layerDesc.Annotations = map[string]string{}
+		}
+		layerDesc.Annotations = layerAnnotations
+		layerDesc.Annotations[ocispec.AnnotationTitle] = fileName
+
+		config := []byte("{}")
+		configDesc, err := pushBlob(ctx, ocispec.MediaTypeImageConfig, config, memoryStore)
+		require.NoError(t, err)
+
+		manifest, err := generateManifest(configDesc, manifestAnnotations, layerDesc)
+		require.NoError(t, err)
+
+		manifestDesc, err := pushBlob(ctx, ocispec.MediaTypeImageManifest, manifest, memoryStore)
+		require.NoError(t, err)
+
+		require.NoError(t, memoryStore.Tag(ctx, manifestDesc, ref))
+
+		repo, err := remote.NewRepository(ref)
+		require.NoError(t, err)
+		repo.PlainHTTP = true
+		_, err = oras.Copy(context.TODO(), memoryStore, ref, repo, "", oras.DefaultCopyOptions)
+		require.NoError(t, err)
+	}
+
+	linkAnnotations := map[string]string{
+		ocimanifest.AnnotationSchema: "test.com/schema:latest",
+	}
+	linked1Ref := fmt.Sprintf("%s/linked1:test", host)
+	publishFunc(fileLinked1Name, linked1Ref, fileContent, map[string]string{"test": "linked1annotation"}, linkAnnotations)
+	middleAnnotations := map[string]string{
+		ocimanifest.AnnotationSchema:          "test.com/schema:latest",
+		ocimanifest.AnnotationSchemaLinks:     "test.com/schema:latest",
+		ocimanifest.AnnotationCollectionLinks: linked1Ref,
+	}
+	linkedRef := fmt.Sprintf("%s/linked:test", host)
+	publishFunc(fileLinkedName, linkedRef, fileContent, map[string]string{"test": "linkedannotation"}, middleAnnotations)
+	rootAnnotations := map[string]string{
+		ocimanifest.AnnotationSchema:          "test.com/schema:latest",
+		ocimanifest.AnnotationSchemaLinks:     "test.com/schema:latest",
+		ocimanifest.AnnotationCollectionLinks: linkedRef,
+	}
+	publishFunc(fileName, ref, fileContent, map[string]string{"test": "annotation"}, rootAnnotations)
+
 }

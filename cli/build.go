@@ -1,52 +1,63 @@
 package cli
 
 import (
-	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
-	"k8s.io/kubectl/pkg/util/templates"
 
-	"github.com/uor-framework/client/builder"
-	"github.com/uor-framework/client/builder/parser"
-	"github.com/uor-framework/client/model/nodes/basic"
-	"github.com/uor-framework/client/model/nodes/collection"
-	"github.com/uor-framework/client/util/workspace"
+	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
+	load "github.com/uor-framework/uor-client-go/builder/config"
+	"github.com/uor-framework/uor-client-go/content/layout"
+	"github.com/uor-framework/uor-client-go/ocimanifest"
+	"github.com/uor-framework/uor-client-go/registryclient"
+	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
+	"github.com/uor-framework/uor-client-go/util/examples"
+	"github.com/uor-framework/uor-client-go/util/workspace"
 )
 
 // BuildOptions describe configuration options that can
 // be set using the build subcommand.
 type BuildOptions struct {
 	*RootOptions
-	RootDir string
-	Output  string
+	RootDir     string
+	DSConfig    string
+	Destination string
+	Insecure    bool
+	PlainHTTP   bool
+	Configs     []string
 }
 
-var clientBuildExamples = templates.Examples(
-	`
-	# Template content in a directory
-	# The default workspace is "client-workspace" in the current working directory.
-	client build my-directory
-
-	# Template content into a specified output directory.
-	client build my-directory --output my-workspace
-	`,
-)
+var clientBuildExamples = []examples.Example{
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		Descriptions:  []string{"Build artifacts."},
+		CommandString: "build my-directory localhost:5000/myartifacts:latest",
+	},
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		Descriptions:  []string{"Build artifacts with custom annotations."},
+		CommandString: "build my-directory localhost:5000/myartifacts:latest --dsconfig dataset-config.yaml",
+	},
+}
 
 // NewBuildCmd creates a new cobra.Command for the build subcommand.
 func NewBuildCmd(rootOpts *RootOptions) *cobra.Command {
 	o := BuildOptions{RootOptions: rootOpts}
 
 	cmd := &cobra.Command{
-		Use:           "build SRC",
-		Short:         "Template and build files from a local directory into a UOR dataset",
-		Example:       clientBuildExamples,
+		Use:           "build SRC DST",
+		Short:         "Build and save an OCI artifact from files",
+		Example:       examples.FormatExamples(clientBuildExamples...),
 		SilenceErrors: false,
 		SilenceUsage:  false,
-		Args:          cobra.ExactArgs(1),
+		Args:          cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			cobra.CheckErr(o.Complete(args))
 			cobra.CheckErr(o.Validate())
@@ -54,19 +65,20 @@ func NewBuildCmd(rootOpts *RootOptions) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "location to stored templated files")
+	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "", o.DSConfig, "dataset config path")
+	cmd.Flags().StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths when contacting registries")
+	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to registries SSL registry without certs")
+	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https when contacting registries")
 
 	return cmd
 }
 
 func (o *BuildOptions) Complete(args []string) error {
-	if len(args) < 1 {
-		return errors.New("bug: expecting one argument")
+	if len(args) < 2 {
+		return errors.New("bug: expecting two arguments")
 	}
 	o.RootDir = args[0]
-	if o.Output == "" {
-		o.Output = "client-workspace"
-	}
+	o.Destination = args[1]
 	return nil
 }
 
@@ -74,21 +86,45 @@ func (o *BuildOptions) Validate() error {
 	if _, err := os.Stat(o.RootDir); err != nil {
 		return fmt.Errorf("workspace directory %q: %v", o.RootDir, err)
 	}
+
 	return nil
 }
 
 func (o *BuildOptions) Run(ctx context.Context) error {
-	o.Logger.Infof("Using output directory %q", o.Output)
-	userSpace, err := workspace.NewLocalWorkspace(o.RootDir)
+	space, err := workspace.NewLocalWorkspace(o.RootDir)
 	if err != nil {
 		return err
 	}
 
-	c := collection.NewCollection(o.Output)
+	cache, err := layout.NewWithContext(ctx, o.cacheDir)
+	if err != nil {
+		return err
+	}
 
-	fileIndex := make(map[string]struct{})
-	// Do the initial walk to get an index of what is in the workspace
-	err = userSpace.Walk(func(path string, info os.FileInfo, err error) error {
+	client, err := orasclient.NewClient(
+		orasclient.SkipTLSVerify(o.Insecure),
+		orasclient.WithAuthConfigs(o.Configs),
+		orasclient.WithPlainHTTP(o.PlainHTTP),
+	)
+	if err != nil {
+		return fmt.Errorf("error configuring client: %v", err)
+	}
+
+	var config v1alpha1.DataSetConfiguration
+	if len(o.DSConfig) > 0 {
+		config, err = load.ReadConfig(o.DSConfig)
+		if err != nil {
+			return err
+		}
+	}
+
+	configJSON, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	var files []string
+	err = space.Walk(func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("traversing %s: %v", path, err)
 		}
@@ -96,95 +132,132 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 			return fmt.Errorf("no file info")
 		}
 
-		if info.IsDir() {
-			return nil
+		if info.Mode().IsRegular() {
+			files = append(files, path)
 		}
-
-		fileIndex[path] = struct{}{}
-
 		return nil
 	})
 	if err != nil {
 		return err
 	}
 
-	// Function to determine whether the
-	// data should be replaced in the template
-	tFunc := func(value interface{}) bool {
-		stringValue, ok := value.(string)
-		if !ok {
-			return false
-		}
-
-		// If the file is found in the workspace
-		// return true
-		_, found := fileIndex[stringValue]
-		return found
-	}
-
-	templateBuilder := builder.NewCompatibilityBuilder(userSpace)
-
-	for path := range fileIndex {
-		o.Logger.Infof("Adding node %s\n", path)
-
-		// Since the paths will be unique in this
-		// case, the id is set as the location.
-		node := basic.NewNode(path, nil)
-		node.Location = path
-
-		perr := &parser.ErrInvalidFormat{}
-		buf := new(bytes.Buffer)
-		if err := userSpace.ReadObject(ctx, path, buf); err != nil {
-			return err
-		}
-		p, err := parser.ByContentType(path, buf.Bytes())
-		switch {
-		case err == nil:
-			p.AddFuncs(tFunc)
-			templates, links, err := p.GetLinkableData(buf.Bytes())
-			if err != nil {
-				return err
-			}
-			templateBuilder.Links[node.ID()] = links
-			templateBuilder.Templates[node.ID()] = templates
-		case !errors.As(err, &perr):
-			return err
-		}
-
-		if err := c.AddNode(node); err != nil {
-			return err
-		}
-	}
-
-	for _, node := range c.Nodes() {
-		for link, data := range templateBuilder.Links[node.ID()] {
-			// Currently with the parsing implementation
-			// all initial values are expected to represent
-			// the file string data present in the content.
-			// FIXME(jpower432): Making this assumption could lead
-			// to bug when trying to translate links to a graph.
-			fpath, ok := data.(string)
-			if !ok {
-				return fmt.Errorf("link %q: value should be of type string", link)
-			}
-			to := c.NodeByID(fpath)
-			edge := collection.NewEdge(node, to)
-			if err := c.AddEdge(edge); err != nil {
-				return err
-			}
-		}
-	}
-
-	renderSpace, err := workspace.NewLocalWorkspace(o.Output)
+	// To allow the files to be loaded relative to the render
+	// workspace, change to the render directory. This is required
+	// to get path correct in the description annotations.
+	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	if err := templateBuilder.Run(ctx, c, renderSpace); err != nil {
-		return fmt.Errorf("error building content: %v", err)
+	if err := os.Chdir(space.Path()); err != nil {
+		return err
+	}
+	defer func() {
+		if err := os.Chdir(cwd); err != nil {
+			o.Logger.Errorf("%v", err)
+		}
+	}()
+
+	descs, err := client.AddFiles(ctx, "", files...)
+	if err != nil {
+		return err
 	}
 
-	_, _ = fmt.Fprintf(o.IOStreams.Out, "\nTo publish this content, run the following command:")
-	_, _ = fmt.Fprintf(o.IOStreams.Out, "\nclient push %s IMAGE\n", o.Output)
+	descs, err = ocimanifest.UpdateLayerDescriptors(descs, config)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	linkedDescs, linkedSchemas, err := gatherLinkedCollections(ctx, config, client)
+	if err != nil {
+		return err
+	}
+
+	descs = append(descs, linkedDescs...)
+
+	// Add the attributes from the config to their respective blocks
+	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, configJSON, nil)
+	if err != nil {
+		return err
+	}
+
+	// Write the root collection attributes
+	manifestAnnotations := map[string]string{}
+	if config.SchemaAddress != "" {
+		manifestAnnotations[ocimanifest.AnnotationSchema] = config.SchemaAddress
+	}
+
+	if len(linkedDescs) > 0 {
+		manifestAnnotations[ocimanifest.AnnotationSchemaLinks] = formatLinks(linkedSchemas)
+		manifestAnnotations[ocimanifest.AnnotationCollectionLinks] = formatLinks(config.LinkedCollections)
+	}
+
+	_, err = client.AddManifest(ctx, o.Destination, configDesc, manifestAnnotations, descs...)
+	if err != nil {
+		return err
+	}
+
+	desc, err := client.Save(ctx, o.Destination, cache)
+	if err != nil {
+		return fmt.Errorf("client save error for reference %s: %v", o.Destination, err)
+	}
+
+	o.Logger.Infof("Artifact %s built with reference name %s\n", desc.Digest, o.Destination)
+
+	return client.Destroy()
+}
+
+// gatherLinkedCollections create null descriptors to denotes linked collections in a manifest with schema link information.
+func gatherLinkedCollections(ctx context.Context, cfg v1alpha1.DataSetConfiguration, client registryclient.Client) ([]ocispec.Descriptor, []string, error) {
+	var allLinkedSchemas []string
+	var linkedDescs []ocispec.Descriptor
+	for _, collection := range cfg.LinkedCollections {
+		schema, linkedSchemas, err := ocimanifest.FetchSchema(ctx, collection, client)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if len(linkedSchemas) != 0 {
+			allLinkedSchemas = append(allLinkedSchemas, linkedSchemas...)
+		}
+
+		allLinkedSchemas = append(allLinkedSchemas, schema)
+
+		annotations := map[string]string{
+			ocimanifest.AnnotationSchema:      schema,
+			ocimanifest.AnnotationSchemaLinks: formatLinks(linkedSchemas),
+		}
+		// The bytes contain the collection name to keep the blobs unique within the manifest
+		desc, err := client.AddContent(ctx, ocispec.MediaTypeImageLayer, []byte(collection), annotations)
+		if err != nil {
+			return nil, nil, err
+		}
+		linkedDescs = append(linkedDescs, desc)
+	}
+	return linkedDescs, allLinkedSchemas, nil
+}
+
+func formatLinks(links []string) string {
+	n := len(links)
+	switch {
+	case n == 1:
+		return links[0]
+	case n > 1:
+		dedupLinks := deduplicate(links)
+		return strings.Join(dedupLinks, ocimanifest.Separator)
+	default:
+		return ""
+	}
+}
+
+func deduplicate(in []string) []string {
+	links := map[string]struct{}{}
+	var out []string
+	for _, l := range in {
+		if _, ok := links[l]; ok {
+			continue
+		}
+		links[l] = struct{}{}
+		out = append(out, l)
+	}
+	return out
 }
