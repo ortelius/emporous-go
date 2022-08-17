@@ -56,6 +56,7 @@ func TestSchema_Validate(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			schema, err := FromTypes(c.schemaTypes)
+			require.NoError(t, err)
 			result, err := schema.Validate(c.doc)
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
