@@ -92,18 +92,18 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 		return fmt.Errorf("error configuring client: %v", err)
 	}
 
-	schema, err := schema.FromTypes(config.Schema.AttributeTypes)
+	generatedSchema, err := schema.FromTypes(config.Schema.AttributeTypes)
 	if err != nil {
 		return err
 	}
 
-	desc, err := client.AddContent(ctx, ocimanifest.UORSchemaMediaType, schema.Export(), nil)
+	desc, err := client.AddContent(ctx, ocimanifest.UORSchemaMediaType, generatedSchema.Export(), nil)
 	if err != nil {
 		return err
 	}
 
 	// Add the attributes from the config to their respective blocks
-	// Store default content declarations in the schema config.
+	// Store default content declarations in the generatedSchema config.
 	dcd, err := json.Marshal(config.Schema.DefaultContentDeclarations)
 	if err != nil {
 		return err

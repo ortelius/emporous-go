@@ -43,7 +43,6 @@ func TestAddContent(t *testing.T) {
 	})
 }
 
-// TODO(jpower432): Create a mock client to mock non-tested actions
 func TestAddManifest(t *testing.T) {
 	t.Run("Success/OneArtifact", func(t *testing.T) {
 		ctx := context.TODO()
@@ -58,6 +57,41 @@ func TestAddManifest(t *testing.T) {
 		mdesc, err := c.AddManifest(ctx, "localhost:5000/test:latest", configDesc, nil, desc...)
 		require.NoError(t, err)
 		require.Equal(t, expDigest, mdesc.Digest.String())
+	})
+}
+
+func TestSave(t *testing.T) {
+	server := httptest.NewServer(registry.New())
+	t.Cleanup(server.Close)
+	u, err := url.Parse(server.URL)
+	require.NoError(t, err)
+
+	ref := fmt.Sprintf("%s/test:latest", u.Host)
+	testdata := filepath.Join("testdata", "workspace", "fish.jpg")
+
+	ctx := context.TODO()
+
+	t.Run("Success/PushOneImage", func(t *testing.T) {
+		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		c, err := NewClient(WithPlainHTTP(true))
+		require.NoError(t, err)
+		descs, err := c.AddFiles(ctx, "", testdata)
+		require.NoError(t, err)
+		configDesc, err := c.AddContent(ctx, ocimanifest.UORConfigMediaType, []byte("{}"), nil)
+		require.NoError(t, err)
+
+		mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
+		require.NoError(t, err)
+
+		memStore := memory.New()
+		desc, err := c.Save(ctx, ref, memStore)
+		require.NoError(t, err)
+		require.Equal(t, mdesc.Digest.String(), desc.Digest.String())
+		require.Equal(t, expDigest, desc.Digest.String())
+		require.NoError(t, c.Destroy())
+		desc, err = memStore.Resolve(ctx, ref)
+		require.NoError(t, err)
+		require.Equal(t, expDigest, desc.Digest.String())
 	})
 }
 
