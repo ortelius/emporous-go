@@ -9,8 +9,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	config2 "github.com/uor-framework/uor-client-go/config"
-
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/content/file"

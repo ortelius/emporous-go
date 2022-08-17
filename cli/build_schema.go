@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -102,28 +101,12 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	// Add the attributes from the config to their respective blocks
-	// Store default content declarations in the generatedSchema config.
-	dcd, err := json.Marshal(config.Schema.DefaultContentDeclarations)
-	if err != nil {
-		return err
-	}
-	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, dcd, nil)
+	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, []byte("{}"), nil)
 	if err != nil {
 		return err
 	}
 
-	// Convert common attribute mapping for manifest storage
-	attrs, err := load.ConvertToModel(config.Schema.CommonAttributeMapping)
-	if err != nil {
-		return fmt.Errorf("error converting common attributes to attribute set: %w", err)
-	}
-	manifestAnnotations, err := ocimanifest.AnnotationsFromAttributeSet(attrs)
-	if err != nil {
-		return fmt.Errorf("error converting attribute set to annotations: %w", err)
-	}
-
-	_, err = client.AddManifest(ctx, o.Destination, configDesc, manifestAnnotations, desc)
+	_, err = client.AddManifest(ctx, o.Destination, configDesc, nil, desc)
 	if err != nil {
 		return err
 	}
