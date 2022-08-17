@@ -153,6 +153,7 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 	// processing the files to get quick feedback to the user.
 	collectionManifestAnnotations := map[string]string{}
 	if config.Collection.SchemaAddress != "" {
+		o.Logger.Infof("Validating dataset configuration against schema %s", config.Collection.SchemaAddress)
 		collectionManifestAnnotations[ocimanifest.AnnotationSchema] = config.Collection.SchemaAddress
 		// Pull the schema into the cache if not present
 		schemaClient, err := orasclient.NewClient(
@@ -177,7 +178,7 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 		for file, attr := range attributesByFile {
 			valid, err := schemaDoc.Validate(attr)
 			if err != nil {
-				return err
+				return fmt.Errorf("schema validation error: %w", err)
 			}
 			if !valid {
 				return fmt.Errorf("attributes for file %s are not valid for schema %s", file, config.Collection.SchemaAddress)
@@ -273,7 +274,7 @@ func gatherLinkedCollections(ctx context.Context, cfg v1alpha1.DataSetConfigurat
 	var allLinkedSchemas []string
 	var linkedDescs []ocispec.Descriptor
 	for _, collection := range cfg.Collection.LinkedCollections {
-		schema, linkedSchemas, err := ocimanifest.FetchSchemaLinks(ctx, collection, client)
+		rootSchema, linkedSchemas, err := ocimanifest.FetchSchemaLinks(ctx, collection, client)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -282,10 +283,10 @@ func gatherLinkedCollections(ctx context.Context, cfg v1alpha1.DataSetConfigurat
 			allLinkedSchemas = append(allLinkedSchemas, linkedSchemas...)
 		}
 
-		allLinkedSchemas = append(allLinkedSchemas, schema)
+		allLinkedSchemas = append(allLinkedSchemas, rootSchema)
 
 		annotations := map[string]string{
-			ocimanifest.AnnotationSchema:      schema,
+			ocimanifest.AnnotationSchema:      rootSchema,
 			ocimanifest.AnnotationSchemaLinks: formatLinks(linkedSchemas),
 		}
 		// The bytes contain the collection name to keep the blobs unique within the manifest
@@ -310,6 +311,7 @@ func formatLinks(links []string) string {
 		return ""
 	}
 }
+
 func deduplicate(in []string) []string {
 	links := map[string]struct{}{}
 	var out []string

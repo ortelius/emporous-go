@@ -13,5 +13,5 @@ limitations under the License.
 
 package schema
 
-// This package defines schema types and methods the correlate to the Attribute data model. Since the Attribute types
-// fit neatly into JSON value categories, the underlying schema being used is a JSON schema.
+// This package defines schema types and methods the correlate to Attribute Kinds in the model. Since the Attribute types
+// fit into JSON value types, the underlying schema being used is a JSON schema.

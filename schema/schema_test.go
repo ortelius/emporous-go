@@ -22,7 +22,8 @@ func TestFromTypes(t *testing.T) {
 				"test": TypeString,
 				"size": TypeNumber,
 			},
-			expSchema: "{\"size\":{\"type\":\"number\"},\"test\":{\"type\":\"string\"}}",
+			expSchema: "{\"type\":\"object\",\"properties\":" + "" +
+				"{\"size\":{\"type\":\"number\"},\"test\":{\"type\":\"string\"}},\"required\":[\"size\",\"test\"]}",
 		},
 		{
 			name: "Failure/InvalidType",
@@ -72,7 +73,7 @@ func TestFromBytes(t *testing.T) {
 		{
 			name:     "Failure/InvalidJSON",
 			input:    `"size"": "type"": number`,
-			expError: "schema is invalid",
+			expError: "error creating JSON schema: schema is invalid",
 		},
 	}
 

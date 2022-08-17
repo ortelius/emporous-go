@@ -1,8 +1,13 @@
 package schema
 
 import (
-	"github.com/uor-framework/uor-client-go/model"
+	"errors"
+	"fmt"
+	"strings"
+
 	"github.com/xeipuuv/gojsonschema"
+
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 // Validate performs schema validation against the
@@ -13,5 +18,16 @@ func (s Schema) Validate(set model.AttributeSet) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return result.Valid(), nil
+	return result.Valid(), aggregateErrors(result.Errors())
+}
+
+func aggregateErrors(errs []gojsonschema.ResultError) error {
+	if len(errs) == 0 {
+		return nil
+	}
+	finalErr := errors.New(strings.ToLower(errs[0].String()))
+	for i := 1; i < len(errs); i++ {
+		finalErr = fmt.Errorf("%v:%v", finalErr, strings.ToLower(errs[i].String()))
+	}
+	return finalErr
 }

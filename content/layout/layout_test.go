@@ -15,6 +15,7 @@ import (
 	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/attributes/matchers"
 	"github.com/uor-framework/uor-client-go/model"
+	"github.com/uor-framework/uor-client-go/ocimanifest"
 )
 
 func TestExists(t *testing.T) {
@@ -112,7 +113,7 @@ func TestTag(t *testing.T) {
 	require.NoError(t, l.Tag(context.TODO(), desc, "test/test:tag"))
 
 	require.Error(t, l.Tag(context.TODO(), ocispec.Descriptor{}, "test"))
-	require.Error(t, l.Tag(context.TODO(), ocispec.Descriptor{}, "test/repo@sha256:2e30f6131"))
+	require.EqualError(t, l.Tag(context.TODO(), ocispec.Descriptor{}, "test/repo@sha256:2e30f6131"), "\"test/repo@sha256:2e30f6131\": invalid reference")
 
 	_, err = os.Stat(filepath.Join(cacheDir, indexFile))
 	require.NoError(t, err)
@@ -331,7 +332,7 @@ func TestResolveLinks(t *testing.T) {
 
 	cases := []spec{
 		{
-			name:     "Success/OCILayoutFileWithCorrectVersion",
+			name:     "Success/LinksFound",
 			cacheDir: "testdata/attributes",
 			ref:      "localhost:5001/test3:latest",
 			expRes:   []string{"localhost:5001/test1:latest"},
@@ -355,6 +356,50 @@ func TestResolveLinks(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, c.expRes, res)
+			}
+		})
+	}
+}
+
+func TestAttributeSchema(t *testing.T) {
+	type spec struct {
+		name     string
+		cacheDir string
+		ref      string
+		expRes   ocispec.Descriptor
+		expError string
+	}
+
+	cases := []spec{
+		{
+			name:     "Success/SchemaFound",
+			cacheDir: "testdata/schema",
+			ref:      "localhost:5001/schema-test:latest",
+			expRes: ocispec.Descriptor{
+				MediaType: ocimanifest.UORSchemaMediaType,
+				Digest:    "sha256:a50ae3a26456b388ec5174e4f8b580ec26a9f94fb2a29a68e00516b3ddef5e76",
+				Size:      77,
+			},
+		},
+		{
+			name:     "Failure/NoSchemaFound",
+			cacheDir: "testdata/valid",
+			ref:      "localhost:5001/test:latest",
+			expError: "reference localhost:5001/test:latest is not a schema address",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			ctx := context.TODO()
+			l, err := NewWithContext(ctx, c.cacheDir)
+			require.NoError(t, err)
+			desc, err := l.AttributeSchema(ctx, c.ref)
+			if c.expError != "" {
+				require.EqualError(t, err, c.expError)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, c.expRes, desc)
 			}
 		})
 	}

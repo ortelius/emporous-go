@@ -3,10 +3,12 @@ package schema
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+
 	"github.com/uor-framework/uor-client-go/model"
 )
 
-// Type represent the Attribute Kinds
+// Type represent types for an attribute schema.
 type Type int
 
 const (
@@ -20,42 +22,21 @@ const (
 
 // String prints a string representation of the attribute kind.
 func (t Type) String() string {
-	switch t {
-	case TypeInvalid:
-		return "INVALID"
-	case TypeNull:
-		return "null"
-	case TypeBool:
-		return "bool"
-	case TypeInteger:
-		return "integer"
-	case TypeNumber:
-		return "number"
-	case TypeString:
-		return "string"
-	default:
-		return ""
-	}
+	return stringByType[t]
 }
 
 // IsLike returns the model Kind that correlate to the schema Type.
 func (t Type) IsLike() (model.Kind, error) {
-	switch t {
-	case TypeInvalid:
-		return model.KindInvalid, nil
-	case TypeNull:
-		return model.KindNull, nil
-	case TypeBool:
-		return model.KindBool, nil
-	case TypeInteger:
-		return model.KindInt, nil
-	case TypeNumber:
-		return model.KindFloat, nil
-	case TypeString:
-		return model.KindString, nil
-	default:
-		return model.KindInvalid, errors.New(" schema type")
+	// Use d to represent the default kind if one does not match
+	var d model.Kind
+	if err := t.validate(); err != nil {
+		return d, err
 	}
+	kind, found := modelKindByType[t]
+	if !found {
+		return d, fmt.Errorf("type %s is not linked to a model kind", t.String())
+	}
+	return kind, nil
 }
 
 // UnmarshalJSON unmarshal a JSON serialized type to the Schema Type
@@ -64,50 +45,62 @@ func (t *Type) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &j); err != nil {
 		return err
 	}
-
-	typ, err := getType(j)
-	if err != nil {
-		return err
-	}
-	*t = typ
-	return nil
+	*t = typeByString[j]
+	return t.validate()
 }
 
 // MarshalJSON marshals the Schema Type into JSON format.
 func (t Type) MarshalJSON() ([]byte, error) {
+	if err := t.validate(); err != nil {
+		return nil, err
+	}
 	return json.Marshal(t.String())
 }
 
 // validate performs basic validation
 // on a Type.
 func (t Type) validate() error {
-	typ, err := getType(t.String())
-	if err != nil {
-		return err
+	if _, found := stringByType[t]; found {
+		return nil
 	}
-	if typ == TypeInvalid {
+	switch t {
+	case TypeInvalid:
+		// TypeInvalid is the default value for the concrete type, which means the field was not set.
 		return errors.New("must set schema type")
+	default:
+		return fmt.Errorf("unknown schema type")
 	}
-	return nil
 }
 
-// getType will return a schema type based on a string.
-// FIXME(jpower432): Do this with maps?
-func getType(s string) (Type, error) {
-	switch s {
-	case "bool":
-		return TypeBool, nil
-	case "null":
-		return TypeNull, nil
-	case "number":
-		return TypeNumber, nil
-	case "string":
-		return TypeString, nil
-	case "INVALID":
-		return TypeInvalid, nil
-	default:
-		return TypeInvalid, errors.New("unknown schema type")
-	}
+// stringByType maps the schema Type to its string
+// representation.
+var stringByType = map[Type]string{
+	TypeNumber:  "number",
+	TypeInteger: "integer",
+	TypeBool:    "boolean",
+	TypeString:  "string",
+	TypeNull:    "null",
+}
+
+// typeByString maps the string representation of the schema Type
+// to the schema Type.
+var typeByString = map[string]Type{
+	"number":  TypeNumber,
+	"integer": TypeInteger,
+	"boolean": TypeBool,
+	"string":  TypeString,
+	"null":    TypeNull,
+}
+
+// modelKindByType maps each schema type to a
+// corresponding model Kind.
+var modelKindByType = map[Type]model.Kind{
+	TypeNumber:  model.KindFloat,
+	TypeInteger: model.KindInt,
+	TypeBool:    model.KindBool,
+	TypeString:  model.KindString,
+	TypeNull:    model.KindNull,
+	TypeInvalid: model.KindInvalid,
 }
 
 // Types represent a schema Type mapped to a key of string type.
