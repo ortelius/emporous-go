@@ -276,7 +276,7 @@ func gatherLinkedCollections(ctx context.Context, cfg v1alpha1.DataSetConfigurat
 	for _, collection := range cfg.Collection.LinkedCollections {
 		rootSchema, linkedSchemas, err := ocimanifest.FetchSchemaLinks(ctx, collection, client)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("collection %q: %w", collection, err)
 		}
 
 		if len(linkedSchemas) != 0 {
