@@ -38,10 +38,28 @@ type PullOptions struct {
 	AttributeQuery string
 }
 
-var clientPullExamples = examples.Example{
-	RootCommand:   filepath.Base(os.Args[0]),
-	Descriptions:  []string{"Pull artifacts."},
-	CommandString: "pull localhost:5000/myartifacts:latest",
+var clientPullExamples = []examples.Example{
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		CommandString: "pull localhost:5001/test:latest",
+		Descriptions: []string{
+			"Pull collection reference.",
+		},
+	},
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		CommandString: "pull localhost:5001/test:latest --pull-all",
+		Descriptions: []string{
+			"Pull collection reference and all linked references.",
+		},
+	},
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		CommandString: "pull localhost:5001/test:latest --attributes attribute-query.yaml",
+		Descriptions: []string{
+			"Pull all content from reference that satisfies the attribute query.",
+		},
+	},
 }
 
 // NewPullCmd creates a new cobra.Command for the pull subcommand.
@@ -51,7 +69,7 @@ func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "pull SRC",
 		Short:         "Pull a UOR collection based on content or attribute address",
-		Example:       examples.FormatExamples(clientPullExamples),
+		Example:       examples.FormatExamples(clientPullExamples...),
 		SilenceErrors: false,
 		SilenceUsage:  false,
 		Args:          cobra.ExactArgs(1),
