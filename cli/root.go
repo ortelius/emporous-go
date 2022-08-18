@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -12,12 +13,19 @@ import (
 	"github.com/uor-framework/uor-client-go/cli/log"
 )
 
+// EnvConfig stores CLI runtime configuration from environment variables.
+// Struct field names should match the name of the environment variable that the field is derived from.
+type EnvConfig struct {
+	UOR_DEV_MODE bool // true: show unimplemented stubs in --help
+}
+
 // RootOptions describe global configuration options that can be set.
 type RootOptions struct {
 	IOStreams genericclioptions.IOStreams
 	LogLevel  string
 	Logger    log.Logger
 	cacheDir  string
+	EnvConfig
 }
 
 var clientLong = templates.LongDesc(
@@ -47,6 +55,7 @@ func NewRootCmd() *cobra.Command {
 		Out:    os.Stdout,
 		ErrOut: os.Stderr,
 	}
+	o.EnvConfig = readEnvConfig()
 	cmd := &cobra.Command{
 		Use:           filepath.Base(os.Args[0]),
 		Short:         "UOR Client",
@@ -87,7 +96,18 @@ func NewRootCmd() *cobra.Command {
 	cmd.AddCommand(NewBuildCmd(&o))
 	cmd.AddCommand(NewPushCmd(&o))
 	cmd.AddCommand(NewPullCmd(&o))
+	cmd.AddCommand(NewRunCmd(&o))
 	cmd.AddCommand(NewVersionCmd(&o))
 
 	return cmd
+}
+
+func readEnvConfig() EnvConfig {
+	envConfig := EnvConfig{}
+
+	devModeString := os.Getenv("UOR_DEV_MODE")
+	devMode, err := strconv.ParseBool(devModeString)
+	envConfig.UOR_DEV_MODE = err == nil && devMode
+
+	return envConfig
 }
