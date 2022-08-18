@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	v1alpha12 "github.com/uor-framework/uor-client-go/api/v1alpha1"
 	"io/ioutil"
 	"path/filepath"
+
 	"sigs.k8s.io/yaml"
+
+	v1alpha12 "github.com/uor-framework/uor-client-go/api/v1alpha1"
 )
 
 // ReadDataSetConfig reads the specified config into a DataSetConfiguration type.

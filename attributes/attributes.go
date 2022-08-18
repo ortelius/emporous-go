@@ -3,6 +3,7 @@ package attributes
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/uor-framework/uor-client-go/model"
 )
 

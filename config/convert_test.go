@@ -1,11 +1,13 @@
 package config
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/require"
+
 	"github.com/uor-framework/uor-client-go/api/v1alpha1"
 	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/model"
-	"testing"
 )
 
 func TestConvertToModel(t *testing.T) {

@@ -1,9 +1,11 @@
 package attributes
 
 import (
-	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/uor-client-go/model"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 func TestAttributes_AsJSON(t *testing.T) {

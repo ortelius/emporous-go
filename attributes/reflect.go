@@ -2,8 +2,9 @@ package attributes
 
 import (
 	"errors"
-	"github.com/uor-framework/uor-client-go/model"
 	"reflect"
+
+	"github.com/uor-framework/uor-client-go/model"
 )
 
 // ErrInvalidAttribute defines the error thrown when an attribute has an invalid

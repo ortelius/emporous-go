@@ -3,16 +3,18 @@ package cli
 import (
 	"context"
 	"fmt"
-	"github.com/uor-framework/uor-client-go/attributes/matchers"
-	"github.com/uor-framework/uor-client-go/config"
-	"github.com/uor-framework/uor-client-go/util/examples"
 	"io"
 	"os"
 	"path/filepath"
 	"text/tabwriter"
 
+	"github.com/uor-framework/uor-client-go/attributes/matchers"
+	"github.com/uor-framework/uor-client-go/config"
+	"github.com/uor-framework/uor-client-go/util/examples"
+
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+
 	"github.com/uor-framework/uor-client-go/content/layout"
 )
 

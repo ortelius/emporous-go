@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/uor-framework/uor-client-go/api/v1alpha1"
 	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/model"

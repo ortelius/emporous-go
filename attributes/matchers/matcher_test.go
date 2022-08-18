@@ -1,10 +1,12 @@
 package matchers
 
 import (
-	"github.com/uor-framework/uor-client-go/attributes"
 	"testing"
 
+	"github.com/uor-framework/uor-client-go/attributes"
+
 	"github.com/stretchr/testify/require"
+
 	"github.com/uor-framework/uor-client-go/util/testutils"
 )
 

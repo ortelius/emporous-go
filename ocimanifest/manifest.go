@@ -3,6 +3,7 @@ package ocimanifest
 import (
 	"context"
 	"encoding/json"
+
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/uor-framework/uor-client-go/registryclient"

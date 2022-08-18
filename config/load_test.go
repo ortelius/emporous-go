@@ -1,9 +1,11 @@
 package config
 
 import (
-	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/uor-client-go/api/v1alpha1"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/uor-framework/uor-client-go/api/v1alpha1"
 )
 
 func TestReadAttributeQuery(t *testing.T) {
