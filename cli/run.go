@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
-	"k8s.io/kubectl/pkg/util/templates"
 	"os"
+	"path/filepath"
+
+	"github.com/spf13/cobra"
+	"github.com/uor-framework/uor-client-go/util/examples"
 )
 
 // RunOptions describe configuration options that can
@@ -16,12 +18,11 @@ type RunOptions struct {
 	Config string
 }
 
-var clientRunExamples = templates.Examples(
-	`
-	# Push artifacts
-	client run ./config.yaml
-	`,
-)
+var clientRunExamples = examples.Example{
+	RootCommand:   filepath.Base(os.Args[0]),
+	Descriptions:  []string{"Run instructions against a UOR collection."},
+	CommandString: "run ./config.yaml",
+}
 
 // NewRunCmd creates a new cobra.Command for the run subcommand.
 func NewRunCmd(rootOpts *RootOptions) *cobra.Command {
@@ -31,7 +32,7 @@ func NewRunCmd(rootOpts *RootOptions) *cobra.Command {
 		Hidden:        !o.UOR_DEV_MODE, // TODO delete after implementation
 		Use:           "run <CONFIG>",
 		Short:         "Run instructions against a UOR collection",
-		Example:       clientRunExamples,
+		Example:       examples.FormatExamples(clientRunExamples),
 		SilenceErrors: false,
 		SilenceUsage:  false,
 		Args:          cobra.ExactArgs(1),
