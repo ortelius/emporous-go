@@ -1,6 +1,6 @@
 # Schema
 
-UOR Schema is the attribute type declaration for a UOR Collection. Schema also links application logic to a importing UOR Collection. Schema can also be used for things like validating a Collection's links and attribute declarations.
+UOR Schema is the attribute type declaration for a UOR Collection. Schema also links application logic to importing UOR Collection. Schema can also be used for things like validating a Collection's links and attribute declarations.
 
 This document explains UOR Schema and the relationship of a UOR Collection with its imported Schema. 
 

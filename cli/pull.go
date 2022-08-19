@@ -220,7 +220,7 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 
 	if moved == 0 {
 		o.Logger.Infof("No matching artifacts found")
-		// Do not return the manifest descriptors if not matches are found.
+		// Do not return the manifest descriptors if no matches are found.
 		// Anything pulled into the temporary directory will be deleted.
 		return nil, nil
 	}
@@ -229,7 +229,7 @@ func withAttributes(ctx context.Context, o PullOptions) ([]ocispec.Descriptor, e
 
 }
 
-// moveToResult will iterate through the collection and moved any nodes with matching artifacts to the
+// moveToResult iterates through the collection and move any nodes with matching artifacts to the
 // output directory.
 func (o *PullOptions) moveToResults(itr model.Iterator, matcher matchers.PartialAttributeMatcher) (total int, err error) {
 	for itr.Next() {
@@ -254,7 +254,7 @@ func (o *PullOptions) moveToResults(itr model.Iterator, matcher matchers.Partial
 	return total, nil
 }
 
-// pullCollection will pull one or more collections and return the manifest descriptors, layer descriptors, and an error.
+// pullCollection pulls one or more collections and return the manifest descriptors, layer descriptors, and an error.
 func (o *PullOptions) pullCollection(ctx context.Context, output string) ([]ocispec.Descriptor, []ocispec.Descriptor, error) {
 	var layerDescs []ocispec.Descriptor
 	var manifestDescs []ocispec.Descriptor
@@ -287,7 +287,7 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) ([]ocis
 	}()
 
 	pullSource := func(source string) (ocispec.Descriptor, error) {
-		// TODO(jpower432): Write an method to pull blobs
+		// TODO(jpower432): Write a method to pull blobs
 		// by attribute from the cache to a content.Store.
 		desc, err := client.Pull(ctx, source, file.New(output))
 		if err != nil {
@@ -296,8 +296,8 @@ func (o *PullOptions) pullCollection(ctx context.Context, output string) ([]ocis
 
 		o.Logger.Debugf("Pulled down %s for reference %s", desc.Digest, source)
 
-		// The cache will be populated by the pull command
-		// Ensure the resource is captured in the index.json by
+		// The cache is populated by the pull command.
+		// Ensure the descriptor is captured in the index.json by
 		// tagging the reference.
 		if err := cache.Tag(ctx, desc, source); err != nil {
 			return desc, err
@@ -358,7 +358,7 @@ func (o *PullOptions) checkResolvedLinksError(ref string, err error) error {
 	return nil
 }
 
-// mkTempDir will make a temporary dir and return the name
+// mkTempDir makes a temporary dir and return the name
 // and cleanup method.
 func (o *PullOptions) mktempDir(parent string) (func(), string, error) {
 	dir, err := ioutil.TempDir(parent, "collection.*")

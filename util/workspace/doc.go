@@ -15,4 +15,4 @@ package workspace
 
 // This package defines the Workspace type, which can be used for local
 // or remote workspace types to allow traversal, reading, writing, and path
-// information. It allows allows for nested Workspace types.
+// information. It allows for nested Workspace types.

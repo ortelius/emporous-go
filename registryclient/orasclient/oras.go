@@ -133,7 +133,7 @@ func (c *orasClient) GetManifest(ctx context.Context, reference string) (ocispec
 	return repo.FetchReference(ctx, reference)
 }
 
-// Store returns the source storage being used to stored
+// Store returns the source storage being used to store
 // the OCI artifact.
 func (c *orasClient) Store() (content.Store, error) {
 	return c.artifactStore, nil
