@@ -13,8 +13,9 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/registry"
 	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/uor-client-go/cli/log"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
+	"github.com/uor-framework/uor-client-go/cli/log"
 )
 
 func TestInspectValidate(t *testing.T) {
@@ -46,7 +47,7 @@ func TestInspectValidate(t *testing.T) {
 		{
 			name: "Invalid/AttributesOnly",
 			opts: &InspectOptions{
-				Attributes: map[string]string{},
+				AttributeQuery: "notempty",
 			},
 			expError: "must specify a reference with --reference",
 		},
@@ -93,13 +94,11 @@ func TestInspectRun(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Source: fmt.Sprintf("%s/success:latest", u.Host),
-				Attributes: map[string]string{
-					"size": "small",
-				},
+				Source:         fmt.Sprintf("%s/success:latest", u.Host),
+				AttributeQuery: "testdata/configs/match.yaml",
 			},
 			annotations: map[string]string{
-				"size": "small",
+				"test": "annotation",
 			},
 			expRes: "Listing matching descriptors for source:  " + u.Host + "/success:latest\nName" +
 				"                                      Digest" +
@@ -118,10 +117,8 @@ func TestInspectRun(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Source: fmt.Sprintf("%s/success:latest", u.Host),
-				Attributes: map[string]string{
-					"size": "small",
-				},
+				Source:         fmt.Sprintf("%s/success:latest", u.Host),
+				AttributeQuery: "testdata/configs/nomatch.yaml",
 			},
 			expRes: "Listing matching descriptors for source:  " + u.Host + "/success:latest\nName" +
 				"                                      Digest  Size  MediaType\n",

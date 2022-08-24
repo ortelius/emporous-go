@@ -7,14 +7,14 @@ import (
 // Node defines a single unit containing information about a UOR dataset node.
 type Node struct {
 	id         string
-	attributes model.Attributes
+	attributes model.AttributeSet
 	Location   string
 }
 
 var _ model.Node = &Node{}
 
 // NewNode create an empty Basic Node.
-func NewNode(id string, attributes model.Attributes) *Node {
+func NewNode(id string, attributes model.AttributeSet) *Node {
 	return &Node{
 		id:         id,
 		attributes: attributes,
@@ -33,6 +33,6 @@ func (n *Node) Address() string {
 }
 
 // Attributes represents a collection of data defining the node.
-func (n *Node) Attributes() model.Attributes {
+func (n *Node) Attributes() model.AttributeSet {
 	return n.attributes
 }

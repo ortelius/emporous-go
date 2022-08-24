@@ -12,8 +12,9 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/registry"
 	"github.com/stretchr/testify/require"
-	"github.com/uor-framework/uor-client-go/cli/log"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
+	"github.com/uor-framework/uor-client-go/cli/log"
 )
 
 func TestCLIE2E(t *testing.T) {

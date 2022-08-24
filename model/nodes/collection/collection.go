@@ -58,7 +58,7 @@ func (c *Collection) Address() string {
 // Because each parent node should inherit the attributes all
 // of the attached child node, the root node will contain attributes
 // for the entire collection. If no root node exists, nil is returned.
-func (c *Collection) Attributes() model.Attributes {
+func (c *Collection) Attributes() model.AttributeSet {
 	root, err := c.Root()
 	if err == nil {
 		return root.Attributes()

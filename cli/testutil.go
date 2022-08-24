@@ -8,8 +8,9 @@ import (
 	"github.com/opencontainers/go-digest"
 	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/uor-framework/uor-client-go/content/layout"
 	"oras.land/oras-go/v2"
+
+	"github.com/uor-framework/uor-client-go/content/layout"
 )
 
 func pushBlob(ctx context.Context, mediaType string, blob []byte, target oras.Target) (ocispec.Descriptor, error) {

@@ -12,8 +12,8 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 
-	"github.com/uor-framework/uor-client-go/builder/api/v1alpha1"
-	load "github.com/uor-framework/uor-client-go/builder/config"
+	"github.com/uor-framework/uor-client-go/api/v1alpha1"
+	load "github.com/uor-framework/uor-client-go/config"
 	"github.com/uor-framework/uor-client-go/content/layout"
 	"github.com/uor-framework/uor-client-go/ocimanifest"
 	"github.com/uor-framework/uor-client-go/registryclient"
@@ -112,7 +112,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 
 	var config v1alpha1.DataSetConfiguration
 	if len(o.DSConfig) > 0 {
-		config, err = load.ReadConfig(o.DSConfig)
+		config, err = load.ReadDataSetConfig(o.DSConfig)
 		if err != nil {
 			return err
 		}
@@ -182,13 +182,13 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 
 	// Write the root collection attributes
 	manifestAnnotations := map[string]string{}
-	if config.SchemaAddress != "" {
-		manifestAnnotations[ocimanifest.AnnotationSchema] = config.SchemaAddress
+	if config.Collection.SchemaAddress != "" {
+		manifestAnnotations[ocimanifest.AnnotationSchema] = config.Collection.SchemaAddress
 	}
 
 	if len(linkedDescs) > 0 {
 		manifestAnnotations[ocimanifest.AnnotationSchemaLinks] = formatLinks(linkedSchemas)
-		manifestAnnotations[ocimanifest.AnnotationCollectionLinks] = formatLinks(config.LinkedCollections)
+		manifestAnnotations[ocimanifest.AnnotationCollectionLinks] = formatLinks(config.Collection.LinkedCollections)
 	}
 
 	_, err = client.AddManifest(ctx, o.Destination, configDesc, manifestAnnotations, descs...)
@@ -210,7 +210,7 @@ func (o *BuildOptions) Run(ctx context.Context) error {
 func gatherLinkedCollections(ctx context.Context, cfg v1alpha1.DataSetConfiguration, client registryclient.Client) ([]ocispec.Descriptor, []string, error) {
 	var allLinkedSchemas []string
 	var linkedDescs []ocispec.Descriptor
-	for _, collection := range cfg.LinkedCollections {
+	for _, collection := range cfg.Collection.LinkedCollections {
 		schema, linkedSchemas, err := ocimanifest.FetchSchema(ctx, collection, client)
 		if err != nil {
 			return nil, nil, err

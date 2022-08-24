@@ -15,3 +15,6 @@ package attributes
 
 // This package defines types and methods for performing attributing matching,
 // implementation, and node searching.
+
+// This package contains helper functions when creating new attributes.
+// WARNING: The helper functions (attribute.Reflect) in this package use reflection and therefore will incur a performance penalty.

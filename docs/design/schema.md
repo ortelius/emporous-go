@@ -10,32 +10,35 @@ There are four elements within a schema:
 
 1. Attribute Type Declarations
 2. Algorithm Reference
-3. Default Attribute Mappings
+3. Common Attribute Mappings
 4. Default Content Reference
 
 ### Attribute Type Declarations
 
-Attribute type declarations MUST reside within a node of the Schema Collection as a JSON formatted document. Attribute type declarations MUST follow the following syntax and guidelines:
+Attribute type declarations MUST reside within a manifest of the Schema Collection a JSON Schema document. Attribute type
+declarations MUST follow the following syntax and guidelines:
 
-**Key Formatting** - Attributes expressed via manifest annotation keys MUST follow reverse domain notation, where the top level domain is the schema name; tag or digest. The Schema JSON does not declare the top level domain within. The top level domain is implicitly prepended as the top level domain by the UOR Client. 
+**Values** - Attribute type declarations are expression via manifest annotation. The key,value pairs are stored 
+as an annotation value in a JSON dictionary.
 
-**Example key name:** `quay.io/exampleOrg/exampleSchema:versionTag.category1.attribute1`
-
-**Values** - Attribute type declarations expressed via manifest annotation values MUST be one of the following:
-  - a string
-  - a number
-  - a boolean
-  - a dictionary 
-  - an array
-  - null
+1. Number (expressed at float)
+2. Integer
+3. String
+4. Boolean
+5. Null
 
 ### Algorithm Reference
 
-Schema Collections MAY contain Algorithm References. A Collection's Algorithm Reference can be thought of as the "application logic" of the Collection. The Algorithm Reference in a Schema Collection is the link to the algorithm imported into a calling Collection. This reference is expressed by assigning the `uor.algorithm=true` attribute to the node annotations of the Algorithm's Linked Collection. 
+Schemas Collections MAY contain Algorithm References. A Collection's Algorithm Reference can be thought of as the "
+application logic" of the Collection. The Algorithm Reference in a Schema Collection is the link to the algorithm
+imported into a calling Collection. This reference is expressed by assigning the `uor.algorithm=true` attribute to the
+node annotations of the Algorithm's Linked Collection.
 
-### Default Attribute Mappings
+### Common Attribute Mappings
 
-Schema Collections MAY contain Default Attribute Mappings. The Default Attribute Mappings in a schema instruct the UOR Client to add preset attributes to a Collection while being built. This reference is expressed by assigning the `uor.attribute.mapping=true` attribute to the node annotations of the Default Attribute Mappings. 
+Schema Collections MAY contain Common Attribute Mappings. The Common Attribute Mappings in a schema instruct the UOR
+Client to add preset attributes to a Collection while being built. This reference is expressed by assigning
+the `uor.attribute.mapping=true` attribute to the node annotations of the Default Attribute Mappings.
 
 ### Default Content Declaration
 

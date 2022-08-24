@@ -48,8 +48,8 @@ uor-client-go version
 > WARNING: Currently, only JSON is supported for link replacement.
 2. Use the `uor-client-go build` command to build the workspace as an OCI artifact in build-cache The default location is ~/.uor/cache. It an be set with the `UOR_CACHE` environment variable`.
 3. Use the `uor-client-go push` command to publish to a registry as an OCI artifact.
-4. Use the `uor-client-go pull` command to pull the artifact back to a local workspace.
-5. Use the `uor-client-go inspect` command to inspect the build to list information about references.
+4. Use the `uor-client-go pull` command to pull the artifact back to a local workspace. 
+5. Use the `uor-client-go inspect` command to inspect the build cache to list information about references.
 
 ### Build workspace into an artifact
 
@@ -85,58 +85,69 @@ uor-client-go pull localhost:5000/myartifacts:latest -o my-output-directory --at
 2. Add the content to be uploaded in the directory (can be files of any content types).
 3. Create a json doc where the value of each kv pair is the path to each file within the directory. Multiple json docs can be used to create deep graphs, but a graph must only have one root. Multiple json docs in a build directory is for advanced use cases. Most use cases do not need more than one json doc.
 
-Example json doc:
-
-```
-{
-    "fish": "fish.jpg",
-    "text": "subdir1/file.txt",
-    "fish2": "subdir1/fish2.jpg"
-}
-```
+    Example json doc:
+    
+    ```
+    {
+        "fish": "fish.jpg",
+        "text": "subdir1/file.txt",
+        "fish2": "subdir1/fish2.jpg"
+    }
+    ```
 
 4. Create a dataset-config.yaml outside of the content directory that references the relative paths from within the content directory to each file. Add user defined key value pairs as subkeys to the `annotations`section. Each file should have as many attributes as possible. Multiple files can be referenced by using the `*` wildcard.
 
-Example dataset-config.yaml:
-
-```
-kind: DataSetConfiguration
-apiVersion: client.uor-framework.io/v1alpha1
-files:
-  - file: fish.jpg
-    attributes:
-      animal: fish
-      habitat: ocean
-      size: small
-      color: blue
-  - file: subdir1/file.txt
-    attributes:
-      fiction: true  
-      genre: science fiction
-  - file: *.jpg
-    attributes:
-      custom: customval
-
-```
+    Example dataset-config.yaml:
+    
+    ```
+    kind: DataSetConfiguration
+    apiVersion: client.uor-framework.io/v1alpha1
+    collection:
+      files:
+        - file: "fish.jpg"
+          attributes:
+            animal: "fish"
+            habitat: "ocean"
+            size: "small"
+            color: "blue"
+        - file: "subdir1/file.txt"
+          attributes:
+            fiction: true  
+            genre: "science fiction"
+        - file: "*.jpg"
+          attributes:
+            custom: "customval"
+    
+    ```
 
 5. Run the UOR client build command referencing the dataset config, the content directory, and the destination registry location.
-```
-uor-client-go build my-workspace localhost:5000/test/dataset:latest --dsconfig dataset-config.yaml 
-```
+    ```
+    uor-client-go build my-workspace localhost:5000/test/dataset:latest --dsconfig dataset-config.yaml 
+    ```
 6. Run the UOR push command to publish
-```
-uor-client-go push localhost:5000/test/dataset:latest
-```
+    ```
+    uor-client-go push localhost:5000/test/dataset:latest
+    ```
 
 7. Optionally inspect the OCI manifest of the dataset:
   `curl -H "Accept: application/vnd.oci.image.manifest.v1+json" <servername>:<port>/v2/<namespace>/<repo>/manifests/<digest or tag>`
+
 8. Optionally inspect the cache:
-  `uor-client-go inspect`
+      `uor-client-go inspect`
+
 9. Optionally pull the collection back down to verify the content with `uor-client-go pull`:
-  `uor-client-go pull localhost:5000/test/dataset:latest -o my-output-directory`
+`uor-client-go pull localhost:5000/test/dataset:latest -o my-output-directory`
 
 10. Optionally pull a subset of the collection back down to verify the content with `uor-client-go pull`:
-  `uor-client-go pull localhost:5000/test/dataset:latest -o my-output-directory --attributes "fiction=true"`
+
+     Example attribute-query.yaml:
+     ```
+     kind: AttributeQuery
+     apiVersion: client.uor-framework.io/v1alpha1
+     attributes:
+       fiction: true
+     ```
+     `uor-client-go pull localhost:5000/test/dataset:latest -o my-output-directory --attributes attribute-query.yaml`
 
 # Glossary
 
