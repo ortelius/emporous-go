@@ -12,7 +12,7 @@ builds:
   -
     binary: uor-client-go-{{ .Os }}-{{ .Arch }}
     no_unique_dist_dir: true
-    main: ./cmd/uor-client-go
+    main: ./cmd/client
     flags:
       - -trimpath
     mod_timestamp: "{{ .CommitTimestamp }}"
