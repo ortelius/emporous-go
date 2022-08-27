@@ -9,8 +9,8 @@ import (
 	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
-// FetchSchema fetches schema information for a reference.
-func FetchSchema(ctx context.Context, reference string, client registryclient.Remote) (string, []string, error) {
+// FetchSchemaLinks fetches schema information for a reference.
+func FetchSchemaLinks(ctx context.Context, reference string, client registryclient.Remote) (string, []string, error) {
 	_, manBytes, err := client.GetManifest(ctx, reference)
 	if err != nil {
 		return "", nil, err

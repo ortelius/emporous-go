@@ -55,8 +55,8 @@ func (c *Collection) Address() string {
 
 // Attributes returns a collection of all the
 // attributes contained within the collection nodes.
-// Because each parent node should inherit the attributes all
-// of the attached child node, the root node will contain attributes
+// Because each parent node should inherit the attributes, all
+// the attached child nodes, the root node will contain attributes
 // for the entire collection. If no root node exists, nil is returned.
 func (c *Collection) Attributes() model.AttributeSet {
 	root, err := c.Root()

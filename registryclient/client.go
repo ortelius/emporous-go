@@ -31,7 +31,7 @@ type Remote interface {
 
 // Local defines methods to interact with OCI artifacts
 // in a local context. An underlying store can be used to store
-// each descriptor and is return in the Store method for use with
+// each descriptor and is returned from Store method for use with
 // Push and Pull operations.
 type Local interface {
 	DescriptorAdder

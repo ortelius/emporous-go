@@ -64,8 +64,8 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client.destroy = destroy
 	client.cache = config.cache
 
-	// We not allowing this to be configurable since
-	// oras file stores turn artifacts into descriptors in
+	// We are not allowing this to be configurable since
+	// `oras` file store turn artifacts into descriptors in
 	// specific way we want to reuse.
 	client.artifactStore = file.NewWithFallbackStorage("", memory.New())
 

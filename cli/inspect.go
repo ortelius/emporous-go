@@ -43,7 +43,7 @@ var clientInspectExamples = []examples.Example{
 	},
 	{
 		RootCommand:   filepath.Base(os.Args[0]),
-		CommandString: "inspect --reference localhost:5001/test:latest --attributes \"size=small\"",
+		CommandString: "inspect --reference localhost:5001/test:latest --attributes attribute-query.yaml",
 		Descriptions: []string{
 			"List all descriptors for reference with attribute filtering",
 		},

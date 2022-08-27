@@ -11,8 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package workspace
+package schema
 
-// This package defines the Workspace type, which can be used for local
-// or remote workspace types to allow traversal, reading, writing, and path
-// information. It allows for nested Workspace types.
+// This package defines schema types and methods the correlate to Attribute Kinds in the model. Since the Attribute types
+// fit into JSON value types, the underlying schema being used is a JSON schema.

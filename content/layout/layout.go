@@ -3,6 +3,7 @@ package layout
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -145,6 +146,40 @@ func (l *Layout) ResolveByAttribute(ctx context.Context, reference string, match
 	return res, err
 }
 
+// AttributeSchema returns the descriptor containing the given attribute schema for a given reference.
+func (l *Layout) AttributeSchema(ctx context.Context, reference string) (ocispec.Descriptor, error) {
+	desc, err := l.Resolve(ctx, reference)
+	if err != nil {
+		return ocispec.Descriptor{}, err
+	}
+
+	node := l.graph.NodeByID(desc.Digest.String())
+	if node == nil {
+		return ocispec.Descriptor{}, fmt.Errorf("node %q does not exist in graph", reference)
+	}
+	var res ocispec.Descriptor
+	var stopErr = errors.New("stop")
+	err = traversal.Walk(node, l.graph, func(_ traversal.Tracker, n model.Node) error {
+		desc, ok := n.(*descriptor.Node)
+		if ok {
+			if desc.Descriptor().MediaType == ocimanifest.UORSchemaMediaType {
+				res = desc.Descriptor()
+				return stopErr
+			}
+		}
+		return nil
+	})
+	if err == nil {
+		return ocispec.Descriptor{}, fmt.Errorf("reference %s is not a schema address", reference)
+	}
+
+	if err != nil && !errors.Is(err, stopErr) {
+		return ocispec.Descriptor{}, err
+	}
+
+	return res, nil
+}
+
 // ResolveLinks returns linked collection references for a collection. If the collection
 // has no links, an error is returned.
 func (l *Layout) ResolveLinks(ctx context.Context, reference string) ([]string, error) {
@@ -173,7 +208,7 @@ func (l *Layout) ResolveLinks(ctx context.Context, reference string) ([]string, 
 // or a digest matching the descriptor (e.g. "@sha256:abc123").
 func (l *Layout) Tag(ctx context.Context, desc ocispec.Descriptor, reference string) error {
 	if err := validateReference(reference); err != nil {
-		return fmt.Errorf("invalid reference: %w", err)
+		return err
 	}
 
 	exists, err := l.Exists(ctx, desc)
@@ -303,7 +338,7 @@ func validateReference(name string) error {
 	}
 	path := parts[1]
 	if index := strings.Index(path, "@"); index != -1 {
-		return fmt.Errorf("%w: ", errdef.ErrInvalidReference)
+		return fmt.Errorf("%q: %w", name, errdef.ErrInvalidReference)
 	} else if index := strings.Index(path, ":"); index != -1 {
 		// tag found
 		return nil

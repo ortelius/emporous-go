@@ -24,19 +24,21 @@ type Store interface {
 // by attribute.
 type AttributeStore interface {
 	Store
-	// ResolveByAttribute will return all descriptors associated
+	// ResolveByAttribute returns all descriptors associated
 	// with a reference satisfy the attribute matcher.
 	ResolveByAttribute(context.Context, string, model.Matcher) ([]ocispec.Descriptor, error)
+	// AttributeSchema finds the layer descriptor for the attribute schema at a given reference.
+	AttributeSchema(context.Context, string) (ocispec.Descriptor, error)
 }
 
 // GraphStore defines the methods for adding, inspecting, and removing
-// OCI content from a storage location. The interface wraps oras
+// OCI content from a storage location. The interface wraps `oras`
 // Storage, TagResolver, and PredecessorFinder interfaces for use with `oras` extended copy methods.
 type GraphStore interface {
 	Store
 	// PredecessorFinder returns the nodes directly pointing to the current node.
 	content.PredecessorFinder
 	// ResolveLinks returns all sub-collections references that are linked
-	// to the root node.
+	// to the node corresponding a given reference.
 	ResolveLinks(context.Context, string) ([]string, error)
 }

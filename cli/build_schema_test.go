@@ -17,30 +17,30 @@ import (
 	"github.com/uor-framework/uor-client-go/cli/log"
 )
 
-func TestBuildComplete(t *testing.T) {
+func TestBuildSchemaComplete(t *testing.T) {
 	type spec struct {
-		name     string
-		args     []string
-		opts     *BuildOptions
-		expOpts  *BuildOptions
-		expError string
+		name       string
+		args       []string
+		opts       *BuildSchemaOptions
+		assertFunc func(config *BuildSchemaOptions) bool
+		expError   string
 	}
 
 	cases := []spec{
 		{
 			name: "Valid/CorrectNumberOfArguments",
-			args: []string{"testdata", "test-registry.com/image:latest"},
-			expOpts: &BuildOptions{
-				RootDir:     "testdata",
-				Destination: "test-registry.com/image:latest",
+			args: []string{"testdata/config.yaml", "test-registry.com/image:latest"},
+			assertFunc: func(config *BuildSchemaOptions) bool {
+				return config.SchemaConfig == "testdata/config.yaml" && config.Destination == "test-registry.com/image:latest"
 			},
-			opts: &BuildOptions{},
+			opts: &BuildSchemaOptions{
+				BuildOptions: &BuildOptions{},
+			},
 		},
 		{
 			name:     "Invalid/NotEnoughArguments",
 			args:     []string{},
-			expOpts:  &BuildOptions{},
-			opts:     &BuildOptions{},
+			opts:     &BuildSchemaOptions{},
 			expError: "bug: expecting two arguments",
 		},
 	}
@@ -52,32 +52,32 @@ func TestBuildComplete(t *testing.T) {
 				require.EqualError(t, err, c.expError)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, c.expOpts, c.opts)
+				require.True(t, c.assertFunc(c.opts))
 			}
 		})
 	}
 }
 
-func TestBuildValidate(t *testing.T) {
+func TestBuildSchemaValidate(t *testing.T) {
 	type spec struct {
 		name     string
-		opts     *BuildOptions
+		opts     *BuildSchemaOptions
 		expError string
 	}
 
 	cases := []spec{
 		{
-			name: "Valid/RootDirExists",
-			opts: &BuildOptions{
-				RootDir: "testdata",
+			name: "Valid/SchemaExsits",
+			opts: &BuildSchemaOptions{
+				SchemaConfig: "testdata/configs/schema-config.yaml",
 			},
 		},
 		{
-			name: "Invalid/RootDirDoesNotExist",
-			opts: &BuildOptions{
-				RootDir: "fake",
+			name: "Invalid/SchemaDoesNotExist",
+			opts: &BuildSchemaOptions{
+				SchemaConfig: "fake",
 			},
-			expError: "workspace directory \"fake\": stat fake: no such file or directory",
+			expError: "schema configuration \"fake\": stat fake: no such file or directory",
 		},
 	}
 
@@ -93,7 +93,7 @@ func TestBuildValidate(t *testing.T) {
 	}
 }
 
-func TestBuildRun(t *testing.T) {
+func TestBuildSchemaRun(t *testing.T) {
 	testlogr, err := log.NewLogger(ioutil.Discard, "debug")
 	require.NoError(t, err)
 
@@ -104,54 +104,26 @@ func TestBuildRun(t *testing.T) {
 
 	type spec struct {
 		name     string
-		opts     *BuildOptions
+		opts     *BuildSchemaOptions
 		expError string
 	}
 
 	cases := []spec{
 		{
 			name: "Success/FlatWorkspace",
-			opts: &BuildOptions{
-				RootOptions: &RootOptions{
-					IOStreams: genericclioptions.IOStreams{
-						Out:    os.Stdout,
-						In:     os.Stdin,
-						ErrOut: os.Stderr,
+			opts: &BuildSchemaOptions{
+				BuildOptions: &BuildOptions{
+					Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
+					RootOptions: &RootOptions{
+						IOStreams: genericclioptions.IOStreams{
+							Out:    os.Stdout,
+							In:     os.Stdin,
+							ErrOut: os.Stderr,
+						},
+						Logger: testlogr,
 					},
-					Logger: testlogr,
 				},
-				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
-				RootDir:     "testdata/flatworkspace",
-			},
-		},
-		{
-			name: "Success/MultiLevelWorkspace",
-			opts: &BuildOptions{
-				RootOptions: &RootOptions{
-					IOStreams: genericclioptions.IOStreams{
-						Out:    os.Stdout,
-						In:     os.Stdin,
-						ErrOut: os.Stderr,
-					},
-					Logger: testlogr,
-				},
-				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
-				RootDir:     "testdata/multi-level-workspace",
-			},
-		},
-		{
-			name: "SuccessTwoRoots",
-			opts: &BuildOptions{
-				RootOptions: &RootOptions{
-					IOStreams: genericclioptions.IOStreams{
-						Out:    os.Stdout,
-						In:     os.Stdin,
-						ErrOut: os.Stderr,
-					},
-					Logger: testlogr,
-				},
-				Destination: fmt.Sprintf("%s/client-tworoots-test:latest", u.Host),
-				RootDir:     "testdata/tworoots",
+				SchemaConfig: "testdata/configs/schema-config.yaml",
 			},
 		},
 	}

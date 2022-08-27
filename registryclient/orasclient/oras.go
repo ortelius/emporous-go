@@ -93,7 +93,7 @@ func (c *orasClient) AddManifest(ctx context.Context, ref string, configDesc oci
 	return manifestDesc, c.artifactStore.Tag(ctx, manifestDesc, ref)
 }
 
-// Save save the OCI artifact to local store location (e.g. cache)
+// Save saves the OCI artifact to local store location (e.g. cache)
 func (c *orasClient) Save(ctx context.Context, ref string, store content.Store) (ocispec.Descriptor, error) {
 	return oras.Copy(ctx, c.artifactStore, ref, store, ref, c.copyOpts)
 }
@@ -133,7 +133,7 @@ func (c *orasClient) GetManifest(ctx context.Context, reference string) (ocispec
 	return repo.FetchReference(ctx, reference)
 }
 
-// Store returns the source storage being used to stored
+// Store returns the source storage being used to store
 // the OCI artifact.
 func (c *orasClient) Store() (content.Store, error) {
 	return c.artifactStore, nil
@@ -144,7 +144,7 @@ func (c *orasClient) Destroy() error {
 	return c.destroy()
 }
 
-// checkFileStore ensure that the file store
+// checkFileStore ensures that the file store
 // has been initialized.
 func (c *orasClient) checkFileStore() error {
 	if c.artifactStore == nil {
