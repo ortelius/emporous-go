@@ -163,12 +163,12 @@ uor-client-go pull localhost:5000/myartifacts:latest -o my-output-directory --at
     kind: SchemaConfiguration
     apiVersion: client.uor-framework.io/v1alpha1
     schema:
-    attributeTypes:
-      "animal": string
-      "size": number
-      "color": string
-      "habitat": string
-      "mammal": boolean
+      attributeTypes:
+        "animal": string
+        "size": number
+        "color": string
+        "habitat": string
+        "mammal": boolean
    ```
 2. Build and save the schema:
     ```
@@ -259,12 +259,12 @@ uor-client-go pull localhost:5000/myartifacts:latest -o my-output-directory --at
    kind: SchemaConfiguration
    apiVersion: client.uor-framework.io/v1alpha1
    schema:
-   attributeTypes:
-   "animal": string
-   "size": number
-   "color": string
-   "habitat": string
-   "type": string
+    attributeTypes:
+      "animal": string
+      "size": number
+      "color": string
+      "habitat": string
+      "type": string
    ```
 
     ```bash
