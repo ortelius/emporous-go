@@ -75,6 +75,13 @@ func (c *Collection) NodeByID(id string) model.Node {
 	return node
 }
 
+// HasNode determines whether a node with a given id
+// exists within the collection.
+func (c *Collection) HasNode(id string) bool {
+	_, ok := c.nodes[id]
+	return ok
+}
+
 // Nodes returns a slice containing
 // all nodes in the graph.
 func (c *Collection) Nodes() []model.Node {

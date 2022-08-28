@@ -15,10 +15,9 @@ package traversal
 
 // This package defines methods for traversing through a graph of
 // model.Node types.
-
-// The Tracker types stores node relationship information for traversal.
-// It also tracker which nodes have been visited and a node budget (if set).
-
-// Walk performs an iterative DFS traversal over a specified graph and starting node.
-
-// WalkNested performs an iterative DFS traversal over nested nodes with specified a root node.
+//
+// The Tracker types stores node relationship information for traversal
+// which includes a node traversal path and a node budget (if set).
+//
+// Walk the nodes of a graph and call the handler for each. If the handler
+// decodes the child nodes for each parent node.

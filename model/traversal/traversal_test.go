@@ -1,6 +1,7 @@
 package traversal
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -27,7 +28,7 @@ func TestTracker_Walk(t *testing.T) {
 				budget: &Budget{
 					NodeBudget: 3,
 				},
-				seen: map[string]struct{}{},
+				Path: NewPath(&testutils.MockNode{I: "node1"}),
 			},
 			root: &testutils.MockNode{I: "node1"},
 			graph: &mockGraph{nodes: map[string][]model.Node{
@@ -41,7 +42,7 @@ func TestTracker_Walk(t *testing.T) {
 				budget: &Budget{
 					NodeBudget: 8,
 				},
-				seen: map[string]struct{}{},
+				Path: NewPath(&testutils.MockNode{I: "node1"}),
 			},
 			root: &testutils.MockNode{I: "node1"},
 			graph: &mockGraph{nodes: map[string][]model.Node{
@@ -62,7 +63,7 @@ func TestTracker_Walk(t *testing.T) {
 				budget: &Budget{
 					NodeBudget: 0,
 				},
-				seen: map[string]struct{}{},
+				Path: NewPath(&testutils.MockNode{I: "node1"}),
 			},
 			root: &testutils.MockNode{I: "node1"},
 			graph: &mockGraph{nodes: map[string][]model.Node{
@@ -76,85 +77,13 @@ func TestTracker_Walk(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var actualInvocations int
-			visit := func(tr Tracker, n model.Node) error {
-				t.Log("Visiting " + n.ID())
+			handler := HandlerFunc(func(ctx context.Context, tracker Tracker, node model.Node) ([]model.Node, error) {
+				t.Log("Visiting " + node.ID())
 				actualInvocations++
-				return nil
-			}
+				return c.graph.From(node.ID()), nil
+			})
 
-			err := c.t.Walk(c.root, c.graph, visit)
-			if c.expError != nil {
-				require.ErrorAs(t, err, &c.expError)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, c.expInvocations, actualInvocations)
-			}
-		})
-	}
-}
-
-func TestTracker_WalkNested(t *testing.T) {
-	type spec struct {
-		name           string
-		t              Tracker
-		root           model.Node
-		expError       error
-		expInvocations int
-	}
-
-	cases := []spec{
-		{
-			name: "Success/VisitNonIterableNode",
-
-			t: Tracker{
-				budget: &Budget{
-					NodeBudget: 3,
-				},
-				seen: map[string]struct{}{},
-			},
-			root:           &testutils.MockNode{I: "node1"},
-			expInvocations: 1,
-		},
-		{
-			name: "Success/WithIterableNode",
-
-			t: Tracker{
-				budget: &Budget{
-					NodeBudget: 8,
-				},
-				seen: map[string]struct{}{},
-			},
-			root: &testutils.MockIterableNode{
-				I:     "node2",
-				Index: -1,
-				Nodes: []model.Node{&testutils.MockNode{I: "node3"}}},
-			expInvocations: 2,
-		},
-		{
-			name: "Failure/ExceededBudget",
-
-			t: Tracker{
-				budget: &Budget{
-					NodeBudget: 0,
-				},
-				seen: map[string]struct{}{},
-			},
-			root:           &testutils.MockNode{I: "node1"},
-			expInvocations: 0,
-			expError:       &ErrBudgetExceeded{},
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			var actualInvocations int
-			visit := func(tr Tracker, n model.Node) error {
-				t.Log("Visiting " + n.ID())
-				actualInvocations++
-				return nil
-			}
-
-			err := c.t.WalkNested(c.root, visit)
+			err := c.t.Walk(context.Background(), handler, c.root)
 			if c.expError != nil {
 				require.ErrorAs(t, err, &c.expError)
 			} else {
@@ -198,16 +127,4 @@ func (m *mockGraph) HasEdgeFromTo(_, _ string) bool {
 
 func (m *mockGraph) NodeByID(_ string) model.Node {
 	return nil
-}
-
-// Mock Matcher
-
-type mockMatcher struct {
-	criteria string
-}
-
-var _ model.Matcher = &mockMatcher{}
-
-func (m *mockMatcher) Matches(n model.Node) (bool, error) {
-	return n.ID() == m.criteria, nil
 }
