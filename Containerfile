@@ -27,7 +27,7 @@ FROM scratch
 COPY --from=builder /rootfs/ /
 
 ARG TARGETARCH
-COPY ../client-linux-${TARGETARCH} /usr/local/bin/client
+COPY uor-client-go-linux-${TARGETARCH} /usr/local/bin/uor-client-go
 RUN set -ex && /usr/local/bin/uor-client-go version
 
 ENTRYPOINT ["/usr/local/bin/uor-client-go"]
