@@ -29,15 +29,15 @@ func NewTracker(root model.Node, budget *Budget) Tracker {
 }
 
 // Walk the nodes of a graph and call the handler for each. If the handler
-// decodes the child nodes for each parent node.
+// decodes the child nodes for each parent node, they are visited as well.
 func Walk(ctx context.Context, handler Handler, node model.Node) error {
 	tracker := NewTracker(node, nil)
 	return tracker.Walk(ctx, handler, node)
 }
 
 // Walk the nodes of a graph  and call the handler for each. If the handler
-// decodes the child nodes for each parent node. Track the node budget and
-// path traversal steps with the tracker.
+// decodes the child nodes for each parent node, they will be visited as well.
+// The node budget and path traversal steps are tracked with the Tracker.
 // This function is based on github.com/containerd/containerd/images.Walk.
 func (t Tracker) Walk(ctx context.Context, handler Handler, nodes ...model.Node) error {
 	for _, node := range nodes {
