@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/model"
 )
 
@@ -14,7 +15,9 @@ var (
 	_ model.Iterator = &Collection{}
 )
 
-// Collection is implementation of a model Node represent one OCI artifact.
+// Collection is implementation of a model Node represent one OCI artifact
+// stored in memory.
+// WARNING: Collection type is not thread-safe.
 type Collection struct {
 	// unique ID for the collection
 	id string
@@ -30,6 +33,8 @@ type Collection struct {
 	Location string
 	// Iterator for the collection node
 	*ByAttributesIterator
+	// attributes for collection
+	attributes attributes.Attributes
 }
 
 // New creates an empty Collection with the specified ID.
@@ -40,6 +45,7 @@ func New(id string) *Collection {
 		from:                 map[string]map[string]model.Edge{},
 		to:                   map[string]map[string]model.Edge{},
 		ByAttributesIterator: NewByAttributesIterator(nil),
+		attributes:           attributes.Attributes{},
 	}
 }
 
@@ -55,15 +61,8 @@ func (c *Collection) Address() string {
 
 // Attributes returns a collection of all the
 // attributes contained within the collection nodes.
-// Because each parent node should inherit the attributes, all
-// the attached child nodes, the root node will contain attributes
-// for the entire collection. If no root node exists, nil is returned.
 func (c *Collection) Attributes() model.AttributeSet {
-	root, err := c.Root()
-	if err == nil {
-		return root.Attributes()
-	}
-	return nil
+	return c.attributes
 }
 
 // NodeByID returns the node based on the ID if the node exists.

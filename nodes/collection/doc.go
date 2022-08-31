@@ -15,7 +15,7 @@ package collection
 
 // This package defines the Collection node type with loading and iteration strategies.
 
-// The Collection type stores model.Node types in a graph structures.
+// The Collection type stores model.Node types in a graph structure.
 // The reference implementation for the Collection node is to store the relationship
 // between linked content within a collection of files (e.g. a collection of static files rendered by a web server).
 
@@ -23,4 +23,4 @@ package collection
 // nodes as a slice in various orders.
 
 // Since Collections can relate to other Collection instances, they implement the model.Node interface as well
-// to allow storage and traversal in a tree structure to represent relation between distributed Collection nodes.
+// to allow storage and traversal of distributed, linked Collection nodes.

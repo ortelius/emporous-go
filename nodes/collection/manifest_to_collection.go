@@ -9,8 +9,8 @@ import (
 	artifactspec "github.com/oras-project/artifacts-spec/specs-go/v1"
 
 	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/model/nodes/descriptor"
 	"github.com/uor-framework/uor-client-go/model/traversal"
+	"github.com/uor-framework/uor-client-go/nodes/descriptor"
 )
 
 // FetcherFunc fetches content for the specified descriptor

@@ -27,11 +27,13 @@ type Remote interface {
 	Pull(context.Context, string, content.Store) (ocispec.Descriptor, error)
 	// GetManifest retrieves the root manifest for a reference.
 	GetManifest(context.Context, string) (ocispec.Descriptor, io.ReadCloser, error)
+	// GetContent retrieves the content for a specified descriptor at a specified reference.
+	GetContent(context.Context, string, ocispec.Descriptor) ([]byte, error)
 }
 
 // Local defines methods to interact with OCI artifacts
 // in a local context. An underlying store can be used to store
-// each descriptor and is returned from Store method for use with
+// each descriptor and is returned the Store method for use with
 // Push and Pull operations.
 type Local interface {
 	DescriptorAdder

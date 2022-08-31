@@ -16,7 +16,7 @@ func NewBuildCmd(rootOpts *RootOptions) *cobra.Command {
 	o := BuildOptions{RootOptions: rootOpts}
 
 	cmd := &cobra.Command{
-		Use:           "build SRC DST",
+		Use:           "build",
 		Short:         "Build and save an OCI artifact from files",
 		SilenceErrors: false,
 		SilenceUsage:  false,

@@ -55,7 +55,7 @@ func NewInspectCmd(rootOpts *RootOptions) *cobra.Command {
 	o := InspectOptions{RootOptions: rootOpts}
 
 	cmd := &cobra.Command{
-		Use:           "inspect SRC",
+		Use:           "inspect",
 		Short:         "Print UOR collection information",
 		Example:       examples.FormatExamples(clientInspectExamples...),
 		SilenceErrors: false,

@@ -16,8 +16,8 @@ package traversal
 // This package defines methods for traversing through a graph of
 // model.Node types.
 //
-// The Tracker types stores node relationship information for traversal
+// The Tracker type stores node relationship information for traversal
 // which includes a node traversal path and a node budget (if set).
 //
-// Walk the nodes of a graph and call the handler for each. If the handler
-// decodes the child nodes for each parent node.
+// Walk walks a graph of node where the child nodes are resolved by the
+// Handler type.

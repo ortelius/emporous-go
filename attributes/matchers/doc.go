@@ -13,4 +13,5 @@ limitations under the License.
 
 package matchers
 
-// This package defines concrete Matcher types for attribute queries.
+// This package contains concrete implementation for
+// model.Matcher for node matching based on attribute.

@@ -7,6 +7,7 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"oras.land/oras-go/v2"
+	orascontent "oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/content/memory"
 
@@ -65,7 +66,7 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client.cache = config.cache
 
 	// We are not allowing this to be configurable since
-	// `oras` file store turn artifacts into descriptors in
+	// oras file stores turn artifacts into descriptors in
 	// specific way we want to reuse.
 	client.artifactStore = file.NewWithFallbackStorage("", memory.New())
 
@@ -121,6 +122,15 @@ func WithPostCopy(postFn func(ctx context.Context, desc ocispec.Descriptor) erro
 func WithPreCopy(preFn func(ctx context.Context, desc ocispec.Descriptor) error) ClientOption {
 	return func(config *ClientConfig) error {
 		config.copyOpts.PreCopy = preFn
+		return nil
+	}
+}
+
+// WithSuccessorFn adds a function to find the child node of the current node if exists.
+// This sets the oras.CopyOptions.FindSuccessor function.
+func WithSuccessorFn(successorFn func(ctx context.Context, fetcher orascontent.Fetcher, desc ocispec.Descriptor) ([]ocispec.Descriptor, error)) ClientOption {
+	return func(config *ClientConfig) error {
+		config.copyOpts.FindSuccessors = successorFn
 		return nil
 	}
 }

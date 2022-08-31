@@ -12,8 +12,8 @@ import (
 
 	"github.com/uor-framework/uor-client-go/builder"
 	"github.com/uor-framework/uor-client-go/builder/parser"
-	"github.com/uor-framework/uor-client-go/model/nodes/basic"
-	"github.com/uor-framework/uor-client-go/model/nodes/collection"
+	"github.com/uor-framework/uor-client-go/nodes/basic"
+	"github.com/uor-framework/uor-client-go/nodes/collection"
 	"github.com/uor-framework/uor-client-go/util/examples"
 	"github.com/uor-framework/uor-client-go/util/workspace"
 )
