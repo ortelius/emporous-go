@@ -39,10 +39,28 @@ type PullOptions struct {
 	AttributeQuery string
 }
 
-var clientPullExamples = examples.Example{
-	RootCommand:   filepath.Base(os.Args[0]),
-	Descriptions:  []string{"Pull artifacts."},
-	CommandString: "pull localhost:5000/myartifacts:latest",
+var clientPullExamples = []examples.Example{
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		CommandString: "pull localhost:5001/test:latest",
+		Descriptions: []string{
+			"Pull collection reference.",
+		},
+	},
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		CommandString: "pull localhost:5001/test:latest --pull-all",
+		Descriptions: []string{
+			"Pull collection reference and all linked references.",
+		},
+	},
+	{
+		RootCommand:   filepath.Base(os.Args[0]),
+		CommandString: "pull localhost:5001/test:latest --attributes attribute-query.yaml",
+		Descriptions: []string{
+			"Pull all content from reference that satisfies the attribute query.",
+		},
+	},
 }
 
 // NewPullCmd creates a new cobra.Command for the pull subcommand.
@@ -52,7 +70,7 @@ func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "pull SRC",
 		Short:         "Pull a UOR collection based on content or attribute address",
-		Example:       examples.FormatExamples(clientPullExamples),
+		Example:       examples.FormatExamples(clientPullExamples...),
 		SilenceErrors: false,
 		SilenceUsage:  false,
 		Args:          cobra.ExactArgs(1),
@@ -121,7 +139,7 @@ func (o *PullOptions) Run(ctx context.Context) error {
 	return nil
 }
 
-// pullCollection will pull a single collections and return the manifest descriptors and an error.
+// pullCollection pulls a single collection and returns the manifest descriptors and an error.
 func (o *PullOptions) pullCollection(ctx context.Context, graph *collection.Collection, matcher model.Matcher) ([]ocispec.Descriptor, error) {
 	// Filter the collection per the matcher criteria
 	if matcher != nil {
@@ -211,7 +229,7 @@ func (o *PullOptions) pullCollection(ctx context.Context, graph *collection.Coll
 	return []ocispec.Descriptor{desc}, cache.Tag(ctx, desc, graph.Address())
 }
 
-// pullCollections pull one or more collections and returns the manifest descriptors and an error.
+// pullCollections pulls one or more collections and returns the manifest descriptors and an error.
 func (o *PullOptions) pullCollections(ctx context.Context, matcher model.Matcher) ([]ocispec.Descriptor, error) {
 	client, err := orasclient.NewClient(
 		orasclient.SkipTLSVerify(o.Insecure),
@@ -256,6 +274,7 @@ func (o *PullOptions) copy(ctx context.Context, root model.Node, client registry
 		successors, err := o.getSuccessors(ctx, node.Address(), client)
 		if err != nil {
 			if errors.Is(err, ocimanifest.ErrNoCollectionLinks) {
+				o.Logger.Debugf("collection %s has no links", node.Address())
 				return nil, nil
 			}
 			return nil, err
@@ -264,6 +283,7 @@ func (o *PullOptions) copy(ctx context.Context, root model.Node, client registry
 		var result []model.Node
 		for _, s := range successors {
 			if _, found := seen[s]; !found {
+				o.Logger.Debugf("found link %s for collection %s", s, node.Address())
 				childNode, err := o.loadFromReference(ctx, s, client)
 				if err != nil {
 					return nil, err
