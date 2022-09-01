@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/model"
 )
 
@@ -33,8 +32,6 @@ type Collection struct {
 	Location string
 	// Iterator for the collection node
 	*ByAttributesIterator
-	// attributes for collection
-	attributes attributes.Attributes
 }
 
 // New creates an empty Collection with the specified ID.
@@ -45,7 +42,6 @@ func New(id string) *Collection {
 		from:                 map[string]map[string]model.Edge{},
 		to:                   map[string]map[string]model.Edge{},
 		ByAttributesIterator: NewByAttributesIterator(nil),
-		attributes:           attributes.Attributes{},
 	}
 }
 
@@ -61,8 +57,18 @@ func (c *Collection) Address() string {
 
 // Attributes returns a collection of all the
 // attributes contained within the collection nodes.
+// Because each parent node should inherit the attributes, all
+// the attached child nodes, the root node will contain attributes
+// for the entire collection. If no root node exists, nil is returned.
+// FIXME(jpower432): Collection are currently not being loaded this way so the
+// collection may not be representing the full attributes content.
+// https://github.com/uor-framework/uor-client-go/issues/80
 func (c *Collection) Attributes() model.AttributeSet {
-	return c.attributes
+	root, err := c.Root()
+	if err == nil {
+		return root.Attributes()
+	}
+	return nil
 }
 
 // NodeByID returns the node based on the ID if the node exists.

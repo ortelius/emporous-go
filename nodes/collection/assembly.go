@@ -16,7 +16,6 @@ func (c *Collection) AddNode(node model.Node) error {
 		return errors.New("node ID collision")
 	}
 	c.nodes[node.ID()] = node
-	c.mergeAttributes(node.Attributes())
 	return nil
 }
 
@@ -49,6 +48,9 @@ func (c *Collection) AddEdge(edge model.Edge) error {
 
 // SubCollection returns a sub-collection with only the nodes that satisfy the matcher.
 func (c *Collection) SubCollection(matcher model.Matcher) (Collection, error) {
+	if matcher == nil {
+		return *c, nil
+	}
 	out := New(c.ID())
 	out.Location = c.Address()
 	for _, node := range c.Nodes() {
@@ -70,18 +72,6 @@ func (c *Collection) SubCollection(matcher model.Matcher) (Collection, error) {
 		}
 	}
 	return *out, nil
-}
-
-func (c *Collection) mergeAttributes(in model.AttributeSet) {
-	if in == nil {
-		return
-	}
-	// TODO(jpower432): Create another AttributeSet concrete implementation for attribute aggregation.
-	for key, val := range in.List() {
-		if _, exists := c.attributes[key]; !exists {
-			c.attributes[key] = val
-		}
-	}
 }
 
 func (c *Collection) setEdgeFrom(edge model.Edge) {

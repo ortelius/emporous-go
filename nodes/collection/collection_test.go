@@ -280,7 +280,7 @@ func TestCollection_Attributes(t *testing.T) {
 				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
 				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
 			},
-			expAttributes: "{\"title\":\"node1\"}",
+			expAttributes: "{\"title\":\"node3\"}",
 		},
 	}
 
