@@ -6,14 +6,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/util/testutils"
+	"github.com/uor-framework/uor-client-go/util/mock"
 )
 
 func TestAdd(t *testing.T) {
-	prev := &testutils.MockNode{I: "node1"}
-	curr := &testutils.MockNode{I: "node2"}
-	currNew := &testutils.MockNode{I: "node3"}
-	root := &testutils.MockNode{I: "root"}
+	prev := &mock.MockNode{I: "node1"}
+	curr := &mock.MockNode{I: "node2"}
+	currNew := &mock.MockNode{I: "node3"}
+	root := &mock.MockNode{I: "root"}
 	p := NewPath(root)
 	p.Add(root, prev)
 	p.Add(prev, curr)
@@ -24,10 +24,10 @@ func TestAdd(t *testing.T) {
 }
 
 func TestPrev(t *testing.T) {
-	prev := &testutils.MockNode{I: "node1"}
-	curr := &testutils.MockNode{I: "node2"}
-	currNew := &testutils.MockNode{I: "node3"}
-	root := &testutils.MockNode{I: "root"}
+	prev := &mock.MockNode{I: "node1"}
+	curr := &mock.MockNode{I: "node2"}
+	currNew := &mock.MockNode{I: "node3"}
+	root := &mock.MockNode{I: "root"}
 	p := NewPath(root)
 	p.Add(root, prev)
 	p.Add(prev, curr)
@@ -38,10 +38,10 @@ func TestPrev(t *testing.T) {
 }
 
 func TestLen(t *testing.T) {
-	prev := &testutils.MockNode{I: "node1"}
-	curr := &testutils.MockNode{I: "node2"}
-	currNew := &testutils.MockNode{I: "node3"}
-	root := &testutils.MockNode{I: "root"}
+	prev := &mock.MockNode{I: "node1"}
+	curr := &mock.MockNode{I: "node2"}
+	currNew := &mock.MockNode{I: "node3"}
+	root := &mock.MockNode{I: "root"}
 	p := NewPath(root)
 	p.Add(root, prev)
 	p.Add(prev, curr)
@@ -51,10 +51,10 @@ func TestLen(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	prev := &testutils.MockNode{I: "node1"}
-	curr := &testutils.MockNode{I: "node2"}
-	currNew := &testutils.MockNode{I: "node3"}
-	root := &testutils.MockNode{I: "root"}
+	prev := &mock.MockNode{I: "node1"}
+	curr := &mock.MockNode{I: "node2"}
+	currNew := &mock.MockNode{I: "node3"}
+	root := &mock.MockNode{I: "root"}
 	p := NewPath(root)
 	p.Add(root, prev)
 	p.Add(prev, curr)

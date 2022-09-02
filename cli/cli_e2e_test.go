@@ -14,7 +14,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
+	"github.com/uor-framework/uor-client-go/cli/build"
 	"github.com/uor-framework/uor-client-go/cli/log"
+	"github.com/uor-framework/uor-client-go/cli/options"
+	"github.com/uor-framework/uor-client-go/cli/pull"
+	"github.com/uor-framework/uor-client-go/cli/push"
 )
 
 func TestCLIE2E(t *testing.T) {
@@ -28,9 +32,9 @@ func TestCLIE2E(t *testing.T) {
 
 	type spec struct {
 		name          string
-		pushOpts      *PushOptions
-		buildOpts     *BuildCollectionOptions
-		pullOpts      *PullOptions
+		pushOpts      *push.Options
+		buildOpts     *build.CollectionOptions
+		pullOpts      *pull.Options
 		expBuildError string
 		expPushError  string
 	}
@@ -38,22 +42,8 @@ func TestCLIE2E(t *testing.T) {
 	cases := []spec{
 		{
 			name: "Success/FlatWorkspace",
-			buildOpts: &BuildCollectionOptions{
-				BuildOptions: &BuildOptions{
-					RootOptions: &RootOptions{
-						IOStreams: genericclioptions.IOStreams{
-							Out:    os.Stdout,
-							In:     os.Stdin,
-							ErrOut: os.Stderr,
-						},
-						Logger: testlogr,
-					},
-					Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
-				},
-				RootDir: "testdata/flatworkspace",
-			},
-			pushOpts: &PushOptions{
-				RootOptions: &RootOptions{
+			buildOpts: &build.CollectionOptions{
+				Common: &options.Common{
 					IOStreams: genericclioptions.IOStreams{
 						Out:    os.Stdout,
 						In:     os.Stdin,
@@ -62,10 +52,10 @@ func TestCLIE2E(t *testing.T) {
 					Logger: testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
-				PlainHTTP:   true,
+				RootDir:     "./testdata/flatworkspace",
 			},
-			pullOpts: &PullOptions{
-				RootOptions: &RootOptions{
+			pushOpts: &push.Options{
+				Common: &options.Common{
 					IOStreams: genericclioptions.IOStreams{
 						Out:    os.Stdout,
 						In:     os.Stdin,
@@ -73,28 +63,43 @@ func TestCLIE2E(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				PlainHTTP: true,
-				Output:    t.TempDir(),
+				Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
+				Remote: options.Remote{
+					PlainHTTP: true,
+				},
+			},
+			pullOpts: &pull.Options{
+				Common: &options.Common{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
+				},
+				Remote: options.Remote{
+					PlainHTTP: true,
+				},
+				Output: t.TempDir(),
 			},
 		},
 		{
 			name: "Success/MultiLevelWorkspace",
-			buildOpts: &BuildCollectionOptions{
-				BuildOptions: &BuildOptions{
-					RootOptions: &RootOptions{
-						IOStreams: genericclioptions.IOStreams{
-							Out:    os.Stdout,
-							In:     os.Stdin,
-							ErrOut: os.Stderr,
-						},
-						Logger: testlogr,
+			buildOpts: &build.CollectionOptions{
+				Common: &options.Common{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
 					},
-					Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
+					Logger: testlogr,
 				},
-				RootDir: "testdata/multi-level-workspace",
+				Remote:      options.Remote{},
+				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
+				RootDir:     "./testdata/multi-level-workspace",
 			},
-			pushOpts: &PushOptions{
-				RootOptions: &RootOptions{
+			pushOpts: &push.Options{
+				Common: &options.Common{
 					IOStreams: genericclioptions.IOStreams{
 						Out:    os.Stdout,
 						In:     os.Stdin,
@@ -103,10 +108,12 @@ func TestCLIE2E(t *testing.T) {
 					Logger: testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-multi-test:latest", u.Host),
-				PlainHTTP:   true,
+				Remote: options.Remote{
+					PlainHTTP: true,
+				},
 			},
-			pullOpts: &PullOptions{
-				RootOptions: &RootOptions{
+			pullOpts: &pull.Options{
+				Common: &options.Common{
 					IOStreams: genericclioptions.IOStreams{
 						Out:    os.Stdout,
 						In:     os.Stdin,
@@ -114,28 +121,16 @@ func TestCLIE2E(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Output:    t.TempDir(),
-				PlainHTTP: true,
+				Remote: options.Remote{
+					PlainHTTP: true,
+				},
+				Output: t.TempDir(),
 			},
 		},
 		{
-			name: "Success/UORParsing",
-			buildOpts: &BuildCollectionOptions{
-				BuildOptions: &BuildOptions{
-					RootOptions: &RootOptions{
-						IOStreams: genericclioptions.IOStreams{
-							Out:    os.Stdout,
-							In:     os.Stdin,
-							ErrOut: os.Stderr,
-						},
-						Logger: testlogr,
-					},
-					Destination: fmt.Sprintf("%s/client-uor-test:latest", u.Host),
-				},
-				RootDir: "testdata/uor-template",
-			},
-			pushOpts: &PushOptions{
-				RootOptions: &RootOptions{
+			name: "Success/UORWorkspace",
+			buildOpts: &build.CollectionOptions{
+				Common: &options.Common{
 					IOStreams: genericclioptions.IOStreams{
 						Out:    os.Stdout,
 						In:     os.Stdin,
@@ -144,10 +139,10 @@ func TestCLIE2E(t *testing.T) {
 					Logger: testlogr,
 				},
 				Destination: fmt.Sprintf("%s/client-uor-test:latest", u.Host),
-				PlainHTTP:   true,
+				RootDir:     "./testdata/uor-template",
 			},
-			pullOpts: &PullOptions{
-				RootOptions: &RootOptions{
+			pushOpts: &push.Options{
+				Common: &options.Common{
 					IOStreams: genericclioptions.IOStreams{
 						Out:    os.Stdout,
 						In:     os.Stdin,
@@ -155,8 +150,24 @@ func TestCLIE2E(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Output:    t.TempDir(),
-				PlainHTTP: true,
+				Destination: fmt.Sprintf("%s/client-uor-test:latest", u.Host),
+				Remote: options.Remote{
+					PlainHTTP: true,
+				},
+			},
+			pullOpts: &pull.Options{
+				Common: &options.Common{
+					IOStreams: genericclioptions.IOStreams{
+						Out:    os.Stdout,
+						In:     os.Stdin,
+						ErrOut: os.Stderr,
+					},
+					Logger: testlogr,
+				},
+				Remote: options.Remote{
+					PlainHTTP: true,
+				},
+				Output: t.TempDir(),
 			},
 		},
 	}
@@ -166,9 +177,9 @@ func TestCLIE2E(t *testing.T) {
 
 			cache := filepath.Join(t.TempDir(), "cache")
 			require.NoError(t, os.MkdirAll(cache, 0750))
-			c.pushOpts.cacheDir = cache
-			c.pullOpts.cacheDir = cache
-			c.buildOpts.cacheDir = cache
+			c.pushOpts.CacheDir = cache
+			c.pullOpts.CacheDir = cache
+			c.buildOpts.CacheDir = cache
 
 			err := c.buildOpts.Run(context.TODO())
 			if c.expBuildError != "" {

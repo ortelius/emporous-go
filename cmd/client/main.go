@@ -7,6 +7,6 @@ import (
 )
 
 func main() {
-	rootCmd := cli.NewRootCmd()
+	rootCmd := cli.NewClientCmd()
 	cobra.CheckErr(rootCmd.Execute())
 }

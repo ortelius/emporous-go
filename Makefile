@@ -1,6 +1,6 @@
 GO := go
 
-GO_BUILD_PACKAGES := ./cmd/...
+GO_BUILD_PACKAGES := ./cmd/client
 GO_BUILD_BINDIR :=./bin
 GIT_COMMIT := $(or $(SOURCE_GIT_COMMIT),$(shell git rev-parse --short HEAD))
 GIT_TAG :="$(shell git tag | sort -V | tail -1)"

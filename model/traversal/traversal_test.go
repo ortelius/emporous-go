@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/util/testutils"
+	"github.com/uor-framework/uor-client-go/util/mock"
 )
 
 func TestTracker_Walk(t *testing.T) {
@@ -29,9 +29,9 @@ func TestTracker_Walk(t *testing.T) {
 				},
 				seen: map[string]struct{}{},
 			},
-			root: &testutils.MockNode{I: "node1"},
+			root: &mock.MockNode{I: "node1"},
 			graph: &mockGraph{nodes: map[string][]model.Node{
-				"node1": {&testutils.MockNode{I: "node2"}}},
+				"node1": {&mock.MockNode{I: "node2"}}},
 			},
 			expInvocations: 2,
 		},
@@ -43,13 +43,13 @@ func TestTracker_Walk(t *testing.T) {
 				},
 				seen: map[string]struct{}{},
 			},
-			root: &testutils.MockNode{I: "node1"},
+			root: &mock.MockNode{I: "node1"},
 			graph: &mockGraph{nodes: map[string][]model.Node{
 				"node1": {
-					&testutils.MockIterableNode{
+					&mock.MockIterableNode{
 						I:     "node2",
 						Index: -1,
-						Nodes: []model.Node{&testutils.MockNode{I: "node1"}}},
+						Nodes: []model.Node{&mock.MockNode{I: "node1"}}},
 				},
 			},
 			},
@@ -64,9 +64,9 @@ func TestTracker_Walk(t *testing.T) {
 				},
 				seen: map[string]struct{}{},
 			},
-			root: &testutils.MockNode{I: "node1"},
+			root: &mock.MockNode{I: "node1"},
 			graph: &mockGraph{nodes: map[string][]model.Node{
-				"node1": {&testutils.MockNode{I: "node2"}}},
+				"node1": {&mock.MockNode{I: "node2"}}},
 			},
 			expInvocations: 0,
 			expError:       &ErrBudgetExceeded{},
@@ -112,7 +112,7 @@ func TestTracker_WalkNested(t *testing.T) {
 				},
 				seen: map[string]struct{}{},
 			},
-			root:           &testutils.MockNode{I: "node1"},
+			root:           &mock.MockNode{I: "node1"},
 			expInvocations: 1,
 		},
 		{
@@ -124,10 +124,10 @@ func TestTracker_WalkNested(t *testing.T) {
 				},
 				seen: map[string]struct{}{},
 			},
-			root: &testutils.MockIterableNode{
+			root: &mock.MockIterableNode{
 				I:     "node2",
 				Index: -1,
-				Nodes: []model.Node{&testutils.MockNode{I: "node3"}}},
+				Nodes: []model.Node{&mock.MockNode{I: "node3"}}},
 			expInvocations: 2,
 		},
 		{
@@ -139,7 +139,7 @@ func TestTracker_WalkNested(t *testing.T) {
 				},
 				seen: map[string]struct{}{},
 			},
-			root:           &testutils.MockNode{I: "node1"},
+			root:           &mock.MockNode{I: "node1"},
 			expInvocations: 0,
 			expError:       &ErrBudgetExceeded{},
 		},

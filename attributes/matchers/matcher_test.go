@@ -4,10 +4,9 @@ import (
 	"testing"
 
 	"github.com/uor-framework/uor-client-go/attributes"
+	"github.com/uor-framework/uor-client-go/util/mock"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/uor-framework/uor-client-go/util/testutils"
 )
 
 func TestPartialMatches(t *testing.T) {
@@ -17,7 +16,7 @@ func TestPartialMatches(t *testing.T) {
 		"another": attributes.NewString("another", "attribute"),
 	}
 
-	n := &testutils.MockNode{A: mockAttributes}
+	n := &mock.MockNode{A: mockAttributes}
 	m := PartialAttributeMatcher{"name": attributes.NewString("name", "fish.jpg")}
 	match, err := m.Matches(n)
 	require.NoError(t, err)

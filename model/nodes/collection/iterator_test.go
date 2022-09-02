@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/uor-framework/uor-client-go/attributes"
+	"github.com/uor-framework/uor-client-go/util/mock"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/util/testutils"
 )
 
 var iteratorTests = []struct {
@@ -18,7 +18,7 @@ var iteratorTests = []struct {
 	{nodes: nil, want: nil},
 	{
 		nodes: []model.Node{
-			&testutils.MockNode{
+			&mock.MockNode{
 				I: "node1",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
@@ -27,7 +27,7 @@ var iteratorTests = []struct {
 			},
 		},
 		want: []model.Node{
-			&testutils.MockNode{
+			&mock.MockNode{
 				I: "node1",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
@@ -38,14 +38,14 @@ var iteratorTests = []struct {
 	},
 	{
 		nodes: []model.Node{
-			&testutils.MockNode{
+			&mock.MockNode{
 				I: "node1",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
 					"name": attributes.NewString("name", "test"),
 				},
 			},
-			&testutils.MockNode{
+			&mock.MockNode{
 				I: "node2",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
@@ -53,13 +53,13 @@ var iteratorTests = []struct {
 			},
 		},
 		want: []model.Node{
-			&testutils.MockNode{
+			&mock.MockNode{
 				I: "node2",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
 				},
 			},
-			&testutils.MockNode{
+			&mock.MockNode{
 				I: "node1",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
