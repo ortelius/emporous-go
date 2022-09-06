@@ -98,7 +98,23 @@ uor-client-go pull localhost:5000/myartifacts:latest -o my-output-directory --at
 
 ## Getting Started
 
-This guide will walk through a basic workflow of using the UOR Client
+This guide will walk through several exercises illustrating the use of the UOR Client
+
+### Environment Setup
+
+While these exercises can be implemented in any operating environment, this guide will make use of a prescriptive environment for which most users should be able to replicate easily.
+
+1. Setting up an image registry
+
+Most of the exercises require the interaction with a image registry. While there are several options available, [registry:2](https://hub.docker.com/_/registry) is the most straightforward to setup and use.
+
+Using your container runtime of choice, start an instance of _registry:2_ (`docker` is used as the runtime here)
+
+```shell
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+```
+
+2. Set `UOR_CLIENT_GO_REPO` environment variable
 
 Set an environment variable called `UOR_CLIENT_GO_REPO` with the current working directory within the repository. It will be used when working through the scenarios below.
 
@@ -112,6 +128,12 @@ Create a directory called `examples` and change into this directory to begin wor
 mkdir ${UOR_CLIENT_GO_REPO}/exercises
 cd ${UOR_CLIENT_GO_REPO}/exercises
 ```
+
+3. Formatting json output using jq
+
+[jq](https://stedolan.github.io/jq/) is a helpful utility for managing json content. It will be used to help format the output from requests to the remote registry.
+
+Download and install the tool as described in the documentation.
 
 ### Basic Collection Publishing
 
@@ -154,25 +176,28 @@ cp ${UOR_CLIENT_GO_REPO}/test/level1/file.txt subdir1/
 
 4. Create a json document where the value of each kv pair is the path to each file within the directory. Multiple json documents can be used to create deep graphs, but a graph must only have one root. Multiple json docs in a build directory is for advanced use cases which will not be covered in this basic example and most just need one json document.
 
-Create a json document called `basic.json` in the current directory with the following content:
+Create a json document called `basic.json` in the current directory:
 
-```json
+```bash
+cat << EOF > basic.json
 {
     "fish": "fish.jpg",
     "text": "subdir1/file.txt",
     "fish2": "subdir1/fish2.jpg"
 }
+EOF
 ```
 
 5. A Dataset Configuration can be use to assign _attributes_ to the various resources within a collection. This file must be located outside of the content directory and refer to the relative paths within the content directory. Add user defined key value pairs as subkeys to the `annotations`section. Each file should have as many attributes as possible. Multiple files can be referenced by using the `*` wildcard.
 
-Navigate up one directory and create a file called `dataset-config.yaml` with the following content:
+Navigate up one directory and create a file called `dataset-config.yaml` to contain the Dataset Configuration for the collection:
 
 ```shell
 cd ..
 ```
 
-```yaml
+```bash
+cat << EOF > dataset-config.yaml
 kind: DataSetConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 collection:
@@ -190,9 +215,10 @@ collection:
     - file: "*.jpg"
       attributes:
         custom: "customval"
+EOF
 ```
 
-6. Run the UOR client _build_ command referencing the dataset config, the content directory, and the destination registry location to the local cache. Each of the examples in this document will make use of a registry located at `localhost:5000`. Be sure to modify as appropriate for your environment including making use of the parameters related to insecure registries or communicating over HTTP.
+6. Run the UOR client _build_ command referencing the dataset config, the content directory, and the destination registry location to the local cache. Each of the examples in this document will make use of the registry located at `localhost:5000` that was started as part [Environment Setup](#environment-setup) section.
 
 ```shell
 uor-client-go build collection basic-collection localhost:5000/exercises/basic:latest --dsconfig dataset-config.yaml 
@@ -200,14 +226,16 @@ uor-client-go build collection basic-collection localhost:5000/exercises/basic:l
 
 7. Run the UOR _push_ command to publish the collection to the remote repository.
 
+NOTE: Since the registry that was used does not exposed a secure transport method (HTTPS), the `--plain-http` flag will need to be specified whenever there is any interaction with the remote registry. Feel free to adjust accordingly to the remote registry that is being used.
+
 ```
-uor-client-go push localhost:5000/exercises/basic:latest
+uor-client-go push --plain-http localhost:5000/exercises/basic:latest
 ```
 
 8. Inspect the OCI manifest of the published collection. The `jq` tool can be used to format the response to make it more readable. Once again, if the remote registry is exposed using HTTP or non trusted certificates, adjust the curl command below accordingly:
 
 ```shell
-curl -H "Accept: application/vnd.oci.image.manifest.v1+json" https://localhost:5000/v2/exercises/basic/manifests/latest
+curl -s -H "Accept: application/vnd.oci.image.manifest.v1+json" http://localhost:5000/v2/exercises/basic/manifests/latest | jq -r
 ```
 
 Notice that each of the files in the workspace are represented as _Layers_ within the Manifest. In addition, the relative location within the workspace along with the _attributes_ are added as _annotations_.
@@ -242,24 +270,26 @@ localhost:5000/exercises/basic:latest
 10. The collection can be pulled from the remote registry to verify the content. Use the UOR _pull_ subcommand to a directory called _my-output-directory_ using the `-o` flag:
 
 ```shell
-uor-client-go pull localhost:5000/exercises/basic:latest -o my-output-directory
+uor-client-go pull --plain-http localhost:5000/exercises/basic:latest -o my-output-directory
 ```
 
 11. Instead of retrieving an entire collection, a subset can be retrieved by creating a `AttributeQuery` resource.
 
-Create a file called `attribute-query.yaml` with the following content:
+Create a file called `attribute-query.yaml` in the current directory:
 
-```yaml
+```bash
+cat << EOF > attribute-query.yaml
 kind: AttributeQuery
 apiVersion: client.uor-framework.io/v1alpha1
 attributes:
   fiction: true
+EOF
 ```
 
 Now use the UOR _pull_ subcommand along with the `--attributes` option placing the contents in a directory titled `my-filtered-output-directory`:
 
 ```shell
-uor-client-go pull localhost:5000/exercises/basic:latest -o my-filtered-output-directory --attributes attribute-query.yaml
+uor-client-go pull localhost:5000/exercises/basic:latest --plain-http -o my-filtered-output-directory --attributes attribute-query.yaml
 ```
 
 Since the `fiction=true` attribute was associated with only the _file.txt_ file it was the only resource retrieved from the collection.
@@ -289,7 +319,8 @@ cd ${UOR_CLIENT_GO_REPO}/exercises/schema
 
 2. Create the Schema Configuration in a file called `schema-config.yaml` to define attribute keys and types for corresponding collections:
 
-```yaml
+```bash
+cat << EOF > schema-config.yaml
 kind: SchemaConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 schema:
@@ -299,6 +330,7 @@ schema:
     "color": string
     "habitat": string
     "mammal": boolean
+EOF
 ```
 
 3. Use the UOR _build_ subcommand to build and save the schema within the local cache:
@@ -310,7 +342,7 @@ uor-client-go build schema schema-config.yaml localhost:5000/exercises/myschema:
 4. Push the schema to the remote registry:
 
 ```
-uor-client-go push localhost:5000/exercises/myschema:latest
+uor-client-go push --plain-http localhost:5000/exercises/myschema:latest
 ```
 
 5. Create a new directory called `schema-collection` to contain a workspace to demonstrate how a schema can be used
@@ -331,11 +363,13 @@ cp ${UOR_CLIENT_GO_REPO}/cli/testdata/uor-template/dog.jpeg subdir1/dog.jpg
 
 7. Create a json document describing the two resources created within the workspace in a file called `schema-collection.json`
 
-```json
+```bash
+cat << EOF > schema-collection.json
 {
     "fish": "fish.jpg",
     "dog": "subdir1/dog.jpg",
 }
+EOF
 ```
 
 8. Navigate up one directory so that the Dataset Configuration file can be created:
@@ -346,7 +380,8 @@ cd ..
 
 Create the `dataset-config.yaml` for the collection with the following content. Notice that the schema previously published is referenced in the `schemaAddress` property:
 
-```yaml
+```bash
+cat << EOF > dataset-config.yaml
 kind: DataSetConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 collection:
@@ -366,19 +401,21 @@ collection:
         size: "medium"
         color: "brown"
         mammal: "true"
+EOF
 ```
 
 9. Use the UOR client _build_ subcommand referencing the dataset config, the content directory, and the destination registry location. The attributes specified will be validated against the schema provided.
 
 ```shell
-uor-client-go build collection schema-collection localhost:5000/exercises/schemacollection:latest --dsconfig dataset-config.yaml 
+uor-client-go build collection schema-collection --plain-http localhost:5000/exercises/schemacollection:latest --dsconfig dataset-config.yaml 
 ```
 
 A validation error occurred since the _mammal_ attribute in the Dataset Configuration specified a string value instead of a boolean as defined in the schema.
 
 In order to be able to build the schema, modify the _mammal_ attribute of the `dataset-config.yaml` file by removing the surrounding quotes as shown below in the updated Dataset Configuration:
 
-```yaml
+```bash
+cat << EOF > dataset-config.yaml
 kind: DataSetConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 collection:
@@ -398,24 +435,25 @@ collection:
         size: "medium"
         color: "brown"
         mammal: true
+EOF
 ```
 
 With a valid Dataset Configuration now in place, the collection should build successfully:
 
 ```shell
-uor-client-go build collection schema-collection localhost:5000/examples/schemacollection:latest --dsconfig dataset-config.yaml 
+uor-client-go build collection schema-collection --plain-http localhost:5000/exercises/schemacollection:latest --dsconfig dataset-config.yaml
 ```
 
 10. Use the UOR client _push_ subcommand to publish the collection to the remote repository
 
 ```shell
-uor-client-go push localhost:5000/exercises/schemacollection:latest
+uor-client-go push --plain-http localhost:5000/exercises/schemacollection:latest
 ```
 
 11. Inspect the OCI manifest of the published dataset
 
 ```shell
-curl -H "Accept: application/vnd.oci.image.manifest.v1+json" https://localhost:5000/v2/exercises/schemacollection/manifests/latest
+curl -s -H "Accept: application/vnd.oci.image.manifest.v1+json" http://localhost:5000/v2/exercises/schemacollection/manifests/latest | jq -r
 ```
 
 Note that the schema is an annotation within the manifest:
@@ -423,7 +461,7 @@ Note that the schema is an annotation within the manifest:
 ```json
 ...
 "annotations": {
-  "uor.schema": "localhost:5000/myschema:latest"
+  "uor.schema": "localhost:5000/exercises/myschema:latest"
 }
 ...
 ```
@@ -446,6 +484,7 @@ cd ${UOR_CLIENT_GO_REPO}/exercises/linked
 2. Create a `schema-config.yaml` file with the following contents to define the schema for the collection:
 
 ```yaml
+cat << EOF > schema-config.yaml
 kind: SchemaConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 schema:
@@ -455,13 +494,14 @@ schema:
     "color": string
     "habitat": string
     "type": string
+EOF
 ```
 
 3. Build and push the schema to the remote registry
 
 ```bash
 uor-client-go build schema schema-config.yaml localhost:5000/exercises/linkedschema:latest
-uor-client-go push localhost:5000/exercises/linkedschema:latest
+uor-client-go push --plain-http localhost:5000/exercises/linkedschema:latest
 ```
 
 4. To demonstrate Linked Collections, start creating a leaf collection by creating a workspace directory called `leaf-workspace`.
@@ -478,7 +518,8 @@ echo "leaf" > leaf-workspace/leaf.txt
 
 6. Create the Dataset Configuration within a file called `leaf-dataset-config.yaml` with the following content:
 
-```yaml
+```bash
+cat << EOF > leaf-dataset-config.yaml
 kind: DataSetConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 collection:
@@ -491,13 +532,14 @@ collection:
         size: "small"
         color: "blue"
         type: "leaf"
+EOF
 ```
 
 7. Build and push the leaf collection to the remote registry
 
 ```bash
-uor-client-go build collection leaf-workspace localhost:5000/exercises/leaf:latest --dsconfig leaf-dataset-config.yaml
-uor-client-go push localhost:5000/exercises/leaf:latest
+uor-client-go build collection leaf-workspace --plain-http localhost:5000/exercises/leaf:latest --dsconfig leaf-dataset-config.yaml
+uor-client-go push --plain-http localhost:5000/exercises/leaf:latest
 ```
 
 8. Build a Root collection and link the previously built collection
@@ -516,7 +558,8 @@ echo "root" > root-workspace/root.txt
 
 10. Create the Dataset Configuration within a file called `root-dataset-config.yaml` with the following content:
 
-```yaml
+```bash
+cat << EOF > root-dataset-config.yaml
 kind: DataSetConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 collection:
@@ -531,19 +574,20 @@ collection:
         size: "small"
         color: "orange"
         type: "root"
+EOF
 ```
 
 11. Build and push the root collection to the remote registry
 
 ```bash
-uor-client-go build collection root-workspace localhost:5000/exercises/root:latest --dsconfig root-dataset-config.yaml
-uor-client-go push localhost:5000/exercises/root:latest
+uor-client-go build collection root-workspace --plain-http localhost:5000/exercises/root:latest --dsconfig root-dataset-config.yaml
+uor-client-go push --plain-http localhost:5000/exercises/root:latest
 ```
 
 12. Pull the collection into a directory called `linked-output`
 
 ```bash
-uor-client-go pull localhost:5000/exercises/root:latest -o linked-output
+uor-client-go pull --plain-http localhost:5000/exercises/root:latest -o linked-output
 ```
 
 13. Inspect the contents of the `linked-output` directory
@@ -559,7 +603,7 @@ root.txt
 Notice that only the contents of the root collection was retrieved in the prior step. To pull the content of both the root and any leaf collections, use the `--pull-all` flag of the UOR client `pull` subcommand into a directory called `all-linked-output`.
 
 ```bash
-uor-client-go pull localhost:5000/exercises/root:latest --pull-all -o all-linked-output
+uor-client-go pull --plain-http localhost:5000/exercises/root:latest --pull-all -o all-linked-output
 ```
 
 15. Inspect the content of the `all-linked-output` directory
