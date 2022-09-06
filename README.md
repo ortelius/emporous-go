@@ -616,17 +616,19 @@ leaf.txt root.txt
 
 16. Pulling by attributes can also be specified when referencing Linked Collections. Create a file called `color-query.yaml` to content that has the attribute `color=orange`
 
-```yaml
+```bash
+cat << EOF > color-query.yaml
 kind: AttributeQuery
 apiVersion: client.uor-framework.io/v1alpha1
 attributes:
   "color": "orange"
+EOF
 ```
 
 17. Pull the contents from the linked collection using the Attribute Query into a directory called `color-output`:
 
 ```bash
-uor-client-go pull localhost:5000/root:latest --pull-all --attributes color-query.yaml -o color-output
+uor-client-go pull --plain-http localhost:5000/exercises/root:latest --pull-all --attributes color-query.yaml -o color-output
 ```
 
 18. Inspect the content of the `color-output` directory
