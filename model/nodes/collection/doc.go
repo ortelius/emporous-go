@@ -13,7 +13,7 @@ limitations under the License.
 
 package collection
 
-// This package defines the Collection node type with building and iteration strategies.
+// This package defines the Collection node type with loading and iteration strategies.
 
 // The Collection type stores model.Node types in a graph structures.
 // The reference implementation for the Collection node is to store the relationship

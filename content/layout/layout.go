@@ -27,8 +27,9 @@ import (
 )
 
 var (
-	_ content.Store      = &Layout{}
-	_ content.GraphStore = &Layout{}
+	_ content.Store          = &Layout{}
+	_ content.GraphStore     = &Layout{}
+	_ content.AttributeStore = &Layout{}
 )
 
 const indexFile = "index.json"
@@ -80,9 +81,12 @@ func (l *Layout) Push(ctx context.Context, desc ocispec.Descriptor, content io.R
 		return err
 	}
 
+	fetcherFn := func(ctx context.Context, desc ocispec.Descriptor) ([]byte, error) {
+		return orascontent.FetchAll(ctx, l, desc)
+	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	return addManifest(ctx, l.graph, l.internal, desc)
+	return collection.AddManifest(ctx, l.graph, fetcherFn, desc)
 }
 
 // Exists returns whether a descriptor exits in the file store.
@@ -126,23 +130,29 @@ func (l *Layout) ResolveByAttribute(ctx context.Context, reference string, match
 		return nil, err
 	}
 
-	node := l.graph.NodeByID(desc.Digest.String())
-	if node == nil {
+	root := l.graph.NodeByID(desc.Digest.String())
+	if root == nil {
 		return nil, fmt.Errorf("node %q does not exist in graph", reference)
 	}
-	err = traversal.Walk(node, l.graph, func(_ traversal.Tracker, n model.Node) error {
-		match, err := matcher.Matches(n)
+	tracker := traversal.NewTracker(root, nil)
+	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
+		match, err := matcher.Matches(node)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if match {
-			desc, ok := n.(*descriptor.Node)
+			desc, ok := node.(*descriptor.Node)
 			if ok {
 				res = append(res, desc.Descriptor())
 			}
 		}
-		return nil
+		return l.graph.From(node.ID()), nil
 	})
+
+	if err := tracker.Walk(ctx, handler, root); err != nil {
+		return nil, err
+	}
+
 	return res, err
 }
 
@@ -153,22 +163,25 @@ func (l *Layout) AttributeSchema(ctx context.Context, reference string) (ocispec
 		return ocispec.Descriptor{}, err
 	}
 
-	node := l.graph.NodeByID(desc.Digest.String())
-	if node == nil {
+	root := l.graph.NodeByID(desc.Digest.String())
+	if root == nil {
 		return ocispec.Descriptor{}, fmt.Errorf("node %q does not exist in graph", reference)
 	}
 	var res ocispec.Descriptor
 	var stopErr = errors.New("stop")
-	err = traversal.Walk(node, l.graph, func(_ traversal.Tracker, n model.Node) error {
-		desc, ok := n.(*descriptor.Node)
+	tracker := traversal.NewTracker(root, nil)
+	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
+		desc, ok := node.(*descriptor.Node)
 		if ok {
 			if desc.Descriptor().MediaType == ocimanifest.UORSchemaMediaType {
 				res = desc.Descriptor()
-				return stopErr
+				return nil, stopErr
 			}
 		}
-		return nil
+		return l.graph.From(node.ID()), nil
 	})
+
+	err = tracker.Walk(ctx, handler, root)
 	if err == nil {
 		return ocispec.Descriptor{}, fmt.Errorf("reference %s is not a schema address", reference)
 	}
@@ -191,16 +204,8 @@ func (l *Layout) ResolveLinks(ctx context.Context, reference string) ([]string, 
 	if err != nil {
 		return nil, err
 	}
-	var manifest ocispec.Manifest
-	if err := json.NewDecoder(r).Decode(&manifest); err != nil {
-		return nil, err
-	}
-	links, ok := manifest.Annotations[ocimanifest.AnnotationCollectionLinks]
-	if !ok || len(links) == 0 {
-		return nil, ocimanifest.ErrNoCollectionLinks
-	}
-	splitLinks := strings.Split(links, ocimanifest.Separator)
-	return splitLinks, nil
+	defer r.Close()
+	return ocimanifest.ResolveCollectionLinks(r)
 }
 
 // Tag tags a descriptor with a reference string.
@@ -285,8 +290,11 @@ func (l *Layout) loadIndex(ctx context.Context) error {
 			l.resolver.Store(key, d)
 		}
 
+		fetcherFn := func(ctx context.Context, desc ocispec.Descriptor) ([]byte, error) {
+			return orascontent.FetchAll(ctx, l, desc)
+		}
 		l.mu.Lock()
-		if err := ManifestToCollection(ctx, l.graph, l.internal, d); err != nil {
+		if err := collection.LoadFromManifest(ctx, l.graph, fetcherFn, d); err != nil {
 			return err
 		}
 		l.mu.Unlock()
