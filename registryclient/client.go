@@ -7,6 +7,7 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/uor-framework/uor-client-go/content"
+	"github.com/uor-framework/uor-client-go/nodes/collection"
 )
 
 // Client defines methods to interact with OCI artifacts
@@ -29,6 +30,8 @@ type Remote interface {
 	GetManifest(context.Context, string) (ocispec.Descriptor, io.ReadCloser, error)
 	// GetContent retrieves the content for a specified descriptor at a specified reference.
 	GetContent(context.Context, string, ocispec.Descriptor) ([]byte, error)
+	// LoadCollection loads a collection from a remote reference.
+	LoadCollection(context.Context, string) (collection.Collection, error)
 }
 
 // Local defines methods to interact with OCI artifacts

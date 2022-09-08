@@ -22,6 +22,7 @@ import (
 	"github.com/uor-framework/uor-client-go/model"
 	"github.com/uor-framework/uor-client-go/model/traversal"
 	"github.com/uor-framework/uor-client-go/nodes/collection"
+	"github.com/uor-framework/uor-client-go/nodes/collection/loader"
 	"github.com/uor-framework/uor-client-go/nodes/descriptor"
 	"github.com/uor-framework/uor-client-go/ocimanifest"
 )
@@ -86,7 +87,7 @@ func (l *Layout) Push(ctx context.Context, desc ocispec.Descriptor, content io.R
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	return collection.AddManifest(ctx, l.graph, fetcherFn, desc)
+	return loader.AddManifest(ctx, l.graph, fetcherFn, desc)
 }
 
 // Exists returns whether a descriptor exits in the file store.
@@ -305,7 +306,7 @@ func (l *Layout) loadIndex(ctx context.Context) error {
 			return orascontent.FetchAll(ctx, l, desc)
 		}
 		l.mu.Lock()
-		if err := collection.LoadFromManifest(ctx, l.graph, fetcherFn, d); err != nil {
+		if err := loader.LoadFromManifest(ctx, l.graph, fetcherFn, d); err != nil {
 			return err
 		}
 		l.mu.Unlock()

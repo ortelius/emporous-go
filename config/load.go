@@ -9,84 +9,100 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/uor-framework/uor-client-go/api/v1alpha1"
+	"github.com/uor-framework/uor-client-go/api/client/v1alpha1"
 )
 
 // ReadDataSetConfig reads the specified config into a DataSetConfiguration type.
 func ReadDataSetConfig(configPath string) (v1alpha1.DataSetConfiguration, error) {
-	var configuration v1alpha1.DataSetConfiguration
-	data, err := readInConfig(configPath, v1alpha1.DataSetConfigurationKind)
+	data, err := ioutil.ReadFile(filepath.Clean(configPath))
 	if err != nil {
+		return v1alpha1.DataSetConfiguration{}, err
+	}
+
+	return LoadDataSetConfig(data)
+}
+
+// LoadDataSetConfig loads a DataSetConfigurationType from input.
+func LoadDataSetConfig(data []byte) (configuration v1alpha1.DataSetConfiguration, err error) {
+	if data, err = yaml.YAMLToJSON(data); err != nil {
+		return configuration, err
+	}
+
+	if err = checkMeta(data, v1alpha1.DataSetConfigurationKind); err != nil {
 		return configuration, err
 	}
 
 	dec := json.NewDecoder(bytes.NewBuffer(data))
 	dec.DisallowUnknownFields()
-	if err := dec.Decode(&configuration); err != nil {
+	if err = dec.Decode(&configuration); err != nil {
 		return configuration, err
 	}
-
-	return configuration, nil
+	return configuration, err
 }
 
 // ReadSchemaConfig reads the specified config into a SchemaConfiguration type.
 func ReadSchemaConfig(configPath string) (v1alpha1.SchemaConfiguration, error) {
-	var configuration v1alpha1.SchemaConfiguration
-	data, err := readInConfig(configPath, v1alpha1.SchemaConfigurationKind)
+	data, err := ioutil.ReadFile(filepath.Clean(configPath))
 	if err != nil {
+		return v1alpha1.SchemaConfiguration{}, err
+	}
+
+	return LoadSchemaConfig(data)
+}
+
+// LoadSchemaConfig loads a SchemaConfiguration type from input.
+func LoadSchemaConfig(data []byte) (configuration v1alpha1.SchemaConfiguration, err error) {
+	if data, err = yaml.YAMLToJSON(data); err != nil {
+		return configuration, err
+	}
+
+	if err = checkMeta(data, v1alpha1.SchemaConfigurationKind); err != nil {
 		return configuration, err
 	}
 
 	dec := json.NewDecoder(bytes.NewBuffer(data))
 	dec.DisallowUnknownFields()
-	if err := dec.Decode(&configuration); err != nil {
+	if err = dec.Decode(&configuration); err != nil {
 		return configuration, err
 	}
-
-	return configuration, nil
+	return configuration, err
 }
 
 // ReadAttributeQuery reads the specified config into a AttributeQuery type.
 func ReadAttributeQuery(configPath string) (v1alpha1.AttributeQuery, error) {
-	var configuration v1alpha1.AttributeQuery
-	data, err := readInConfig(configPath, v1alpha1.AttributeQueryKind)
+	data, err := ioutil.ReadFile(filepath.Clean(configPath))
 	if err != nil {
+		return v1alpha1.AttributeQuery{}, err
+	}
+
+	return LoadAttributeQuery(data)
+}
+
+// LoadAttributeQuery loads an AttributeQuery type from input.
+func LoadAttributeQuery(data []byte) (configuration v1alpha1.AttributeQuery, err error) {
+	if data, err = yaml.YAMLToJSON(data); err != nil {
+		return configuration, err
+	}
+
+	if err = checkMeta(data, v1alpha1.AttributeQueryKind); err != nil {
 		return configuration, err
 	}
 
 	dec := json.NewDecoder(bytes.NewBuffer(data))
 	dec.DisallowUnknownFields()
-	if err := dec.Decode(&configuration); err != nil {
+	if err = dec.Decode(&configuration); err != nil {
 		return configuration, err
 	}
-
-	return configuration, nil
+	return configuration, err
 }
 
-// readInConfig open the file from the given path and check the type metadata.
-func readInConfig(configPath, kind string) ([]byte, error) {
-	data, err := ioutil.ReadFile(filepath.Clean(configPath))
-	if err != nil {
-		return nil, err
-	}
-
-	if data, err = yaml.YAMLToJSON(data); err != nil {
-		return nil, err
-	}
-
-	typeMeta, err := getTypeMeta(data)
-	if err != nil {
-		return nil, err
+func checkMeta(data []byte, kind string) error {
+	var typeMeta v1alpha1.TypeMeta
+	if err := json.Unmarshal(data, &typeMeta); err != nil {
+		return fmt.Errorf("get type meta: %v", err)
 	}
 	if typeMeta.Kind != kind {
-		return nil, fmt.Errorf("config kind %s, does not match expected %s", typeMeta.Kind, kind)
+		return fmt.Errorf("config kind %s, does not match expected %s", typeMeta.Kind, kind)
 	}
-	return data, nil
-}
-
-func getTypeMeta(data []byte) (typeMeta v1alpha1.TypeMeta, err error) {
-	if err := json.Unmarshal(data, &typeMeta); err != nil {
-		return typeMeta, fmt.Errorf("get type meta: %v", err)
-	}
-	return typeMeta, nil
+	return nil
 }

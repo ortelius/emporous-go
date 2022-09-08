@@ -14,7 +14,10 @@ import (
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/content/memory"
 
+	"github.com/uor-framework/uor-client-go/attributes"
+	"github.com/uor-framework/uor-client-go/attributes/matchers"
 	"github.com/uor-framework/uor-client-go/ocimanifest"
+	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
 func TestAddFiles(t *testing.T) {
@@ -110,27 +113,6 @@ func TestPushPull(t *testing.T) {
 	ctx := context.TODO()
 
 	t.Run("Success/PushOneImage", func(t *testing.T) {
-		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
-		c, err := NewClient(WithPlainHTTP(true))
-		require.NoError(t, err)
-		descs, err := c.AddFiles(ctx, "", testdata)
-		require.NoError(t, err)
-		configDesc, err := c.AddContent(ctx, ocimanifest.UORConfigMediaType, []byte("{}"), nil)
-		require.NoError(t, err)
-
-		mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
-		require.NoError(t, err)
-
-		source, err := c.Store()
-		require.NoError(t, err)
-		desc, err := c.Push(context.TODO(), source, ref)
-		require.NoError(t, err)
-		require.Equal(t, mdesc.Digest.String(), desc.Digest.String())
-		require.Equal(t, expDigest, desc.Digest.String())
-		require.NoError(t, c.Destroy())
-	})
-
-	t.Run("Success/PushOneImage", func(t *testing.T) {
 		cache := memory.New()
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		c, err := NewClient(WithPlainHTTP(true), WithCache(cache))
@@ -159,6 +141,15 @@ func TestPushPull(t *testing.T) {
 		desc, err := c.Pull(context.TODO(), ref, memory.New())
 		require.NoError(t, err)
 		require.Equal(t, expDigest, desc.Digest.String())
+		require.NoError(t, c.Destroy())
+	})
+
+	t.Run("Failure/FilteredImage", func(t *testing.T) {
+		matcher := matchers.PartialAttributeMatcher{"test": attributes.NewString("test", "fail")}
+		c, err := NewClient(WithPlainHTTP(true), WithPullableAttributes(matcher))
+		require.NoError(t, err)
+		_, err = c.Pull(context.TODO(), ref, memory.New())
+		require.ErrorIs(t, err, registryclient.ErrNoMatch)
 		require.NoError(t, c.Destroy())
 	})
 

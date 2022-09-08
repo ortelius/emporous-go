@@ -3,10 +3,10 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/uor-framework/uor-client-go/cli"
+	"github.com/uor-framework/uor-client-go/cmd/client/commands"
 )
 
 func main() {
-	rootCmd := cli.NewRootCmd()
+	rootCmd := commands.NewRootCmd()
 	cobra.CheckErr(rootCmd.Execute())
 }
