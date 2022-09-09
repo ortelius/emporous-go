@@ -10,7 +10,7 @@ import (
 	"oras.land/oras-go/v2/content"
 )
 
-// TODO(jpower432): Reimplement for UOR needs. Pulled from https://github.com/oras-project/oras/blob/main/internal/cache/target.go
+// Pulled from https://github.com/oras-project/oras/blob/main/internal/cache/target.go
 // to use with oras.Copy command.
 
 /*

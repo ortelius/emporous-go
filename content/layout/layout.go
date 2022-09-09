@@ -20,9 +20,9 @@ import (
 
 	"github.com/uor-framework/uor-client-go/content"
 	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/model/nodes/collection"
-	"github.com/uor-framework/uor-client-go/model/nodes/descriptor"
 	"github.com/uor-framework/uor-client-go/model/traversal"
+	"github.com/uor-framework/uor-client-go/nodes/collection"
+	"github.com/uor-framework/uor-client-go/nodes/descriptor"
 	"github.com/uor-framework/uor-client-go/ocimanifest"
 )
 
@@ -134,6 +134,7 @@ func (l *Layout) ResolveByAttribute(ctx context.Context, reference string, match
 	if root == nil {
 		return nil, fmt.Errorf("node %q does not exist in graph", reference)
 	}
+
 	tracker := traversal.NewTracker(root, nil)
 	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
 		match, err := matcher.Matches(node)
@@ -143,9 +144,19 @@ func (l *Layout) ResolveByAttribute(ctx context.Context, reference string, match
 		if match {
 			desc, ok := node.(*descriptor.Node)
 			if ok {
-				res = append(res, desc.Descriptor())
+				// Check that the blob actually exists within the file
+				// store. This will filter out blobs in the event that this is a
+				// sparse manifest.
+				exists, err := l.internal.Exists(ctx, desc.Descriptor())
+				if err != nil {
+					return nil, err
+				}
+				if exists {
+					res = append(res, desc.Descriptor())
+				}
 			}
 		}
+
 		return l.graph.From(node.ID()), nil
 	})
 

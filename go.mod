@@ -11,7 +11,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.0.3-0.20220114050600-8b9d41f48198
-	github.com/oras-project/artifacts-spec v1.0.0-rc.1.0.20220707054150-eddd1d8790c9
+	github.com/oras-project/artifacts-spec v1.0.0-rc.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.8.2
 	github.com/spf13/cobra v1.4.0
@@ -19,7 +19,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	k8s.io/cli-runtime v0.24.0
 	k8s.io/kubectl v0.24.0
-	oras.land/oras-go/v2 v2.0.0-rc.1.0.20220720102610-b898737f6fb5
+	oras.land/oras-go/v2 v2.0.0-rc.2
 	sigs.k8s.io/yaml v1.2.0
 )
 

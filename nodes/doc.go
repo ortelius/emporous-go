@@ -13,5 +13,5 @@ limitations under the License.
 
 package nodes
 
-// This package defines node types that implement a model.Node
-// interface.
+// This package is a grouping package that contains
+// concrete implementation of type model.Node.

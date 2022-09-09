@@ -14,7 +14,9 @@ var (
 	_ model.Iterator = &Collection{}
 )
 
-// Collection is implementation of a model Node represent one OCI artifact.
+// Collection is implementation of a model Node represent one OCI artifact
+// stored in memory.
+// WARNING: Collection type is not thread-safe.
 type Collection struct {
 	// unique ID for the collection
 	id string
@@ -58,6 +60,9 @@ func (c *Collection) Address() string {
 // Because each parent node should inherit the attributes, all
 // the attached child nodes, the root node will contain attributes
 // for the entire collection. If no root node exists, nil is returned.
+// FIXME(jpower432): Collection are currently not being loaded this way so the
+// collection may not be representing the full attributes content.
+// https://github.com/uor-framework/uor-client-go/issues/80
 func (c *Collection) Attributes() model.AttributeSet {
 	root, err := c.Root()
 	if err == nil {

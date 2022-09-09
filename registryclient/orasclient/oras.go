@@ -15,6 +15,7 @@ import (
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2"
+	orascontent "oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
@@ -131,6 +132,19 @@ func (c *orasClient) GetManifest(ctx context.Context, reference string) (ocispec
 		return ocispec.Descriptor{}, nil, fmt.Errorf("could not create registry target: %w", err)
 	}
 	return repo.FetchReference(ctx, reference)
+}
+
+// GetContent retrieves the content for a specified descriptor at a specified reference.
+func (c *orasClient) GetContent(ctx context.Context, reference string, desc ocispec.Descriptor) ([]byte, error) {
+	repo, err := c.setupRepo(reference)
+	if err != nil {
+		return nil, fmt.Errorf("could not create registry target: %w", err)
+	}
+	r, err := repo.Fetch(ctx, desc)
+	if err != nil {
+		return nil, err
+	}
+	return orascontent.ReadAll(r, desc)
 }
 
 // Store returns the source storage being used to store

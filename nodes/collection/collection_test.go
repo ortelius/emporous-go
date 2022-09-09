@@ -255,7 +255,7 @@ func TestCollection_Attributes(t *testing.T) {
 
 	cases := []spec{
 		{
-			name: "Success/RootExists",
+			name: "Success/WithSubNodes",
 			nodes: []model.Node{
 				&testutils.MockNode{
 					I: "node1",
@@ -281,16 +281,6 @@ func TestCollection_Attributes(t *testing.T) {
 				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
 			},
 			expAttributes: "{\"title\":\"node3\"}",
-		},
-		{
-			name:  "Failure/NotRootExists",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
-			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
-				&Edge{T: &testutils.MockNode{I: "node3"}, F: &testutils.MockNode{I: "node2"}},
-			},
-			expAttributes: "",
 		},
 	}
 

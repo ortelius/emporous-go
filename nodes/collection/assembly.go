@@ -6,6 +6,10 @@ import (
 	"github.com/uor-framework/uor-client-go/model"
 )
 
+// ErrNodesNotExist is an error that is thrown if an edge
+// is added without existing nodes.
+var ErrNodesNotExist = errors.New("not all nodes exist")
+
 // AddNode adds a new node to the graph.
 func (c *Collection) AddNode(node model.Node) error {
 	if _, exists := c.nodes[node.ID()]; exists {
@@ -29,7 +33,7 @@ func (c *Collection) AddEdge(edge model.Edge) error {
 
 	// return an error if one of the nodes doesn't exist
 	if n1 == nil || n2 == nil {
-		return errors.New("not all nodes exist")
+		return ErrNodesNotExist
 	}
 
 	if c.HasEdgeFromTo(from, to) {
@@ -40,6 +44,34 @@ func (c *Collection) AddEdge(edge model.Edge) error {
 	c.setEdgeTo(edge)
 
 	return nil
+}
+
+// SubCollection returns a sub-collection with only the nodes that satisfy the matcher.
+func (c *Collection) SubCollection(matcher model.Matcher) (Collection, error) {
+	if matcher == nil {
+		return *c, nil
+	}
+	out := New(c.ID())
+	out.Location = c.Address()
+	for _, node := range c.Nodes() {
+		match, err := matcher.Matches(node)
+		if err != nil {
+			return *out, err
+		}
+		if match {
+			if err := out.AddNode(node); err != nil {
+				return Collection{}, err
+			}
+		}
+	}
+
+	for _, edge := range c.Edges() {
+		err := out.AddEdge(edge)
+		if err != nil && !errors.Is(err, ErrNodesNotExist) {
+			return *out, err
+		}
+	}
+	return *out, nil
 }
 
 func (c *Collection) setEdgeFrom(edge model.Edge) {
