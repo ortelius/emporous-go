@@ -100,7 +100,11 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	cache, err := layout.NewWithContext(ctx, o.cacheDir)
+	absCache, err := filepath.Abs(o.cacheDir)
+	if err != nil {
+		return err
+	}
+	cache, err := layout.NewWithContext(ctx, absCache)
 	if err != nil {
 		return err
 	}

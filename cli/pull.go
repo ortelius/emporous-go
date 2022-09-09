@@ -139,8 +139,82 @@ func (o *PullOptions) Run(ctx context.Context) error {
 	return nil
 }
 
+// pullCollections pulls one or more collections and returns the manifest descriptors and an error.
+func (o *PullOptions) pullCollections(ctx context.Context, matcher model.Matcher) ([]ocispec.Descriptor, error) {
+	client, err := orasclient.NewClient(
+		orasclient.SkipTLSVerify(o.Insecure),
+		orasclient.WithAuthConfigs(o.Configs),
+		orasclient.WithPlainHTTP(o.PlainHTTP),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("error configuring client: %v", err)
+	}
+	defer func() {
+		if err := client.Destroy(); err != nil {
+			o.Logger.Errorf(err.Error())
+		}
+	}()
+	root, err := o.loadFromReference(ctx, o.Source, client)
+	if err != nil {
+		return nil, err
+	}
+	return o.copy(ctx, root, client, matcher)
+}
+
+// copy performs graph traversal of linked collections and performs collection copies filtered by the matcher.
+func (o *PullOptions) copy(ctx context.Context, root model.Node, client registryclient.Remote, matcher model.Matcher) ([]ocispec.Descriptor, error) {
+	seen := map[string]struct{}{}
+	var manifestDesc []ocispec.Descriptor
+
+	tracker := traversal.NewTracker(root, nil)
+	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
+
+		c := node.(*collection.Collection)
+		descs, err := o.pullCollection(ctx, *c, matcher)
+		if err != nil {
+			return nil, err
+		}
+		manifestDesc = append(manifestDesc, descs...)
+
+		// Do not descend into the linked collection graph if
+		// pull all is false.
+		if !o.PullAll {
+			return nil, nil
+		}
+
+		successors, err := o.getSuccessors(ctx, node.Address(), client)
+		if err != nil {
+			if errors.Is(err, ocimanifest.ErrNoCollectionLinks) {
+				o.Logger.Debugf("collection %s has no links", node.Address())
+				return nil, nil
+			}
+			return nil, err
+		}
+
+		var result []model.Node
+		for _, s := range successors {
+			if _, found := seen[s]; !found {
+				o.Logger.Debugf("found link %s for collection %s", s, node.Address())
+				childNode, err := o.loadFromReference(ctx, s, client)
+				if err != nil {
+					return nil, err
+				}
+				result = append(result, childNode)
+				seen[s] = struct{}{}
+			}
+		}
+		return result, nil
+	})
+
+	if err := tracker.Walk(ctx, handler, root); err != nil {
+		return nil, err
+	}
+
+	return manifestDesc, nil
+}
+
 // pullCollection pulls a single collection and returns the manifest descriptors and an error.
-func (o *PullOptions) pullCollection(ctx context.Context, graph *collection.Collection, matcher model.Matcher) ([]ocispec.Descriptor, error) {
+func (o *PullOptions) pullCollection(ctx context.Context, graph collection.Collection, matcher model.Matcher) ([]ocispec.Descriptor, error) {
 	// Filter the collection per the matcher criteria
 	if matcher != nil {
 		var matchedLeaf int
@@ -175,7 +249,7 @@ func (o *PullOptions) pullCollection(ctx context.Context, graph *collection.Coll
 		})
 
 		var err error
-		*graph, err = graph.SubCollection(matchFn)
+		graph, err = graph.SubCollection(matchFn)
 		if err != nil {
 			return nil, err
 		}
@@ -227,79 +301,6 @@ func (o *PullOptions) pullCollection(ctx context.Context, graph *collection.Coll
 	}
 
 	return []ocispec.Descriptor{desc}, cache.Tag(ctx, desc, graph.Address())
-}
-
-// pullCollections pulls one or more collections and returns the manifest descriptors and an error.
-func (o *PullOptions) pullCollections(ctx context.Context, matcher model.Matcher) ([]ocispec.Descriptor, error) {
-	client, err := orasclient.NewClient(
-		orasclient.SkipTLSVerify(o.Insecure),
-		orasclient.WithAuthConfigs(o.Configs),
-		orasclient.WithPlainHTTP(o.PlainHTTP),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("error configuring client: %v", err)
-	}
-	defer func() {
-		if err := client.Destroy(); err != nil {
-			o.Logger.Errorf(err.Error())
-		}
-	}()
-	root, err := o.loadFromReference(ctx, o.Source, client)
-	if err != nil {
-		return nil, err
-	}
-	return o.copy(ctx, root, client, matcher)
-}
-
-// copy performs graph traversal of linked collections and performs collection copies filtered by the matcher.
-func (o *PullOptions) copy(ctx context.Context, root model.Node, client registryclient.Remote, matcher model.Matcher) ([]ocispec.Descriptor, error) {
-	seen := map[string]struct{}{}
-	var manifestDesc []ocispec.Descriptor
-
-	tracker := traversal.NewTracker(root, nil)
-	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
-
-		descs, err := o.pullCollection(ctx, node.(*collection.Collection), matcher)
-		if err != nil {
-			return nil, err
-		}
-		manifestDesc = append(manifestDesc, descs...)
-
-		// Do not descend into the linked collection graph if
-		// pull all is false.
-		if !o.PullAll {
-			return nil, nil
-		}
-
-		successors, err := o.getSuccessors(ctx, node.Address(), client)
-		if err != nil {
-			if errors.Is(err, ocimanifest.ErrNoCollectionLinks) {
-				o.Logger.Debugf("collection %s has no links", node.Address())
-				return nil, nil
-			}
-			return nil, err
-		}
-
-		var result []model.Node
-		for _, s := range successors {
-			if _, found := seen[s]; !found {
-				o.Logger.Debugf("found link %s for collection %s", s, node.Address())
-				childNode, err := o.loadFromReference(ctx, s, client)
-				if err != nil {
-					return nil, err
-				}
-				result = append(result, childNode)
-				seen[s] = struct{}{}
-			}
-		}
-		return result, nil
-	})
-
-	if err := tracker.Walk(ctx, handler, root); err != nil {
-		return nil, err
-	}
-
-	return manifestDesc, nil
 }
 
 // getSuccessors retrieves all referenced collections from a source collection.
