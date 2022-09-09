@@ -21,3 +21,6 @@ tags
 *.swp
 .vscode
 dist
+
+# Exercises
+exercises
