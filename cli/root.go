@@ -91,7 +91,6 @@ func NewRootCmd() *cobra.Command {
 	f.StringVarP(&o.LogLevel, "loglevel", "l", "info",
 		"Log level (debug, info, warn, error, fatal)")
 
-	cmd.AddCommand(NewRenderCmd(&o))
 	cmd.AddCommand(NewInspectCmd(&o))
 	cmd.AddCommand(NewBuildCmd(&o))
 	cmd.AddCommand(NewPushCmd(&o))
