@@ -93,7 +93,7 @@ uor-client-go pull localhost:5000/myartifacts:latest -o my-output-directory
 Pull a portion of a collection by filtering for a set of attribute:
 
 ```shell
-uor-client-go pull localhost:5000/myartifacts:latest -o my-output-directory --attributes key=value
+uor-client-go pull localhost:5000/myartifacts:latest -o my-output-directory --attributes attribute-query.yaml
 ```
 
 ## Getting Started
