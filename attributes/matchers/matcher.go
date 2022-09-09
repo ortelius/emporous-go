@@ -7,9 +7,7 @@ import (
 	"github.com/uor-framework/uor-client-go/model"
 )
 
-var (
-	_ model.Matcher = &PartialAttributeMatcher{}
-)
+var _ model.Matcher = PartialAttributeMatcher{}
 
 // PartialAttributeMatcher contains configuration data for searching for a node by attribute.
 // This matcher will check that the node attributes

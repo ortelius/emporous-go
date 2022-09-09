@@ -68,9 +68,9 @@ uor.schema.linked
 uor.collections.linked
 ```
 
-## Why not use the manifest referrers-api?
+#### Why not use the Manifest Referrers API?
 [Info here](https://github.com/oras-project/artifacts-spec/blob/main/manifest-referrers-api.md)
 
 Collections can refer to other collections, but this linkage does not fit into the scope of the referrers API because these
-references must be mutable. They can be coupled with existing collection, but there is not a one-to-many relationship
-between collections.
+references must be mutable. Collections can be linked with existing collections, but there is not a one-to-many relationship
+between collections. Collection linkage can also be cross-repository and currently the Manifest Referrers API is scoped to a repository.

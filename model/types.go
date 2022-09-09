@@ -79,10 +79,17 @@ type Iterator interface {
 	Error() error
 }
 
-// Matcher defines methods used for node searching.
+// Matcher defines an interface used for node filtering.
 type Matcher interface {
-	// Matches evaluates the current node against the criteria.
 	Matches(node Node) (bool, error)
+}
+
+// MatcherFunc is function signature that implements the Matcher interface.
+type MatcherFunc func(node Node) (bool, error)
+
+// Matches filters nodes by matcher criteria.
+func (fn MatcherFunc) Matches(node Node) (bool, error) {
+	return fn(node)
 }
 
 // AttributeSet defines methods for manipulating attribute sets.
