@@ -289,6 +289,7 @@ func (o *PullOptions) copy(ctx context.Context, root model.Node, client registry
 					return nil, err
 				}
 				result = append(result, childNode)
+				seen[s] = struct{}{}
 			}
 		}
 		return result, nil
