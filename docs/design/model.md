@@ -1,6 +1,6 @@
-Design: Model
-===
-- [Design: Model](#design-model)
+# Model
+
+- [Model](#design-model)
 - [Interface types defined in the model package.](#interface-types-defined-in-the-model-package)
 - [Node](#node)
 - [NodeBuilder](#nodebuilder)
@@ -15,31 +15,31 @@ The model package and the sub-package contains all types and methods that can be
 
 # Interface types defined in the model package.
 
-# Node
+## Node
 
 Node is an interface that is used to represent different types of self-describing addressable data (typically stored in
 files locally or remotely). The methods defined in this interface are intended to be read-only. For methods that
 manipulate or assemble nodes, see NodeBuilder.
 
-# NodeBuilder
+## NodeBuilder
 
 NodeBuilder is an interface that defines methods for building immutable Node types.
 
-# Iterator
+## Iterator
 
 Nodes can be iterable (e.g. a UOR Collection). Using the iterator interface allows these structures to be iterated over
 during traversal.
 
-# Matcher
+## Matcher
 
 Matcher is an interface that defines methods for node searching/matching that can guide Node graph traversal.
 
-# Attribute
+## Attribute
 
 Attribute is an interface that defines a single attribute values with a key that is a type of string and a value that
 can be a string, boolean, integer, number, or null value.
 
-# AttributeSet
+## AttributeSet
 
 AttributeSet is an interface that represents the methods that would be used by a structure containing a set of Node
 attributes.
