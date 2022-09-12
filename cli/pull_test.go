@@ -132,6 +132,7 @@ func TestPullRun(t *testing.T) {
 				},
 				Source:    fmt.Sprintf("%s/client-test:latest", u.Host),
 				PlainHTTP: true,
+				NoVerify:  true,
 			},
 			assertFunc: func(path string) bool {
 				actual := filepath.Join(path, "hello.txt")
@@ -153,6 +154,7 @@ func TestPullRun(t *testing.T) {
 				Source:    fmt.Sprintf("%s/client-linked:latest", u.Host),
 				PlainHTTP: true,
 				PullAll:   true,
+				NoVerify:  true,
 			},
 			assertFunc: func(path string) bool {
 				actual := filepath.Join(path, "hello.txt")
@@ -185,6 +187,7 @@ func TestPullRun(t *testing.T) {
 				PlainHTTP:      true,
 				PullAll:        true,
 				AttributeQuery: "testdata/configs/link.yaml",
+				NoVerify:       true,
 			},
 			assertFunc: func(path string) bool {
 				actual := filepath.Join(path, "hello.linked.txt")
@@ -206,6 +209,7 @@ func TestPullRun(t *testing.T) {
 				Source:         fmt.Sprintf("%s/client-test:latest", u.Host),
 				AttributeQuery: "testdata/configs/match.yaml",
 				PlainHTTP:      true,
+				NoVerify:       true,
 			},
 			assertFunc: func(path string) bool {
 				actual := filepath.Join(path, "hello.txt")
@@ -227,6 +231,7 @@ func TestPullRun(t *testing.T) {
 				Source:         fmt.Sprintf("%s/client-test:latest", u.Host),
 				AttributeQuery: "testdata/configs/nomatch.yaml",
 				PlainHTTP:      true,
+				NoVerify:       true,
 			},
 			assertFunc: func(path string) bool {
 				actual := filepath.Join(path, "hello.txt")

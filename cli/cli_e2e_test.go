@@ -75,6 +75,7 @@ func TestCLIE2E(t *testing.T) {
 				},
 				PlainHTTP: true,
 				Output:    t.TempDir(),
+				NoVerify:  true,
 			},
 		},
 		{
@@ -116,6 +117,7 @@ func TestCLIE2E(t *testing.T) {
 				},
 				Output:    t.TempDir(),
 				PlainHTTP: true,
+				NoVerify:  true,
 			},
 		},
 		{
@@ -157,6 +159,7 @@ func TestCLIE2E(t *testing.T) {
 				},
 				Output:    t.TempDir(),
 				PlainHTTP: true,
+				NoVerify:  true,
 			},
 		},
 	}

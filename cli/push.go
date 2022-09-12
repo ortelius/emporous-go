@@ -23,6 +23,7 @@ type PushOptions struct {
 	PlainHTTP   bool
 	Configs     []string
 	DSConfig    string
+	Sign        bool
 }
 
 var clientPushExamples = examples.Example{
@@ -52,6 +53,7 @@ func NewPushCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd.Flags().StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths when contacting registries")
 	cmd.Flags().BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to registries SSL registry without certs")
 	cmd.Flags().BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https when contacting registries")
+	cmd.Flags().BoolVarP(&o.Sign, "sign", "", o.Sign, "keyless OIDC signing of UOR Collections with Sigstore")
 
 	return cmd
 }
@@ -86,6 +88,14 @@ func (o *PushOptions) Run(ctx context.Context) error {
 	desc, err := client.Push(ctx, cache, o.Destination)
 	if err != nil {
 		return fmt.Errorf("error publishing content to %s: %v", o.Destination, err)
+	}
+
+	if o.Sign {
+		o.Logger.Infof("Signing Collection")
+		err = signCollection(ctx, o)
+		if err != nil {
+			return err
+		}
 	}
 
 	o.Logger.Infof("Artifact %s published to %s\n", desc.Digest, o.Destination)
