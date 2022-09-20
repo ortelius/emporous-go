@@ -26,11 +26,11 @@ func TestLoadFromManifest(t *testing.T) {
 		Digest:    digest.Digest("sha256:5410e32d6fdd0b638ae95c0c88326a6afe62105f2db1505ded397d2074dcbeb5"),
 	}
 
-	collection := collection.New("test")
-	err := LoadFromManifest(context.Background(), collection, testFetcher, root)
+	graph := collection.New("test")
+	err := LoadFromManifest(context.Background(), graph, testFetcher, root)
 	require.NoError(t, err)
 	var ids []string
-	for _, node := range collection.Nodes() {
+	for _, node := range graph.Nodes() {
 		ids = append(ids, node.ID())
 	}
 	sortIDS(ids)
@@ -44,7 +44,7 @@ func sortIDS(ids []string) {
 	})
 }
 
-func testFetcher(ctx context.Context, desc ocispec.Descriptor) ([]byte, error) {
+func testFetcher(_ context.Context, desc ocispec.Descriptor) ([]byte, error) {
 	s := `{
   "schemaVersion": 2,
   "mediaType": "application/vnd.oci.image.manifest.v1+json",

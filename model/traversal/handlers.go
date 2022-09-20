@@ -34,7 +34,7 @@ func (fn HandlerFunc) Handle(ctx context.Context, tracker Tracker, node model.No
 // A handler may return `ErrStopHandler` to stop calling additional handlers.
 // Note: Handlers with `github.com/containerd/containerd/images.ErrStopHandler`
 // cannot be used in this function.
-func Handlers(tracker *Tracker, handlers ...Handler) HandlerFunc {
+func Handlers(handlers ...Handler) HandlerFunc {
 	return func(ctx context.Context, tracker Tracker, node model.Node) ([]model.Node, error) {
 		var successors []model.Node
 		for _, handler := range handlers {

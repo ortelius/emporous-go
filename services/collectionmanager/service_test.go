@@ -62,21 +62,21 @@ collection:
 `
 	cases := []struct {
 		name          string
-		pubAssertFunc func(managerapi.Publish_Response) bool
+		pubAssertFunc func(*managerapi.Publish_Response) bool
 		workspace     string
 		config        []byte
 		filter        map[string]interface{}
-		resAssertFunc func(managerapi.Retrieve_Response, string) bool
+		resAssertFunc func(*managerapi.Retrieve_Response, string) bool
 		sev           managerapi.Diagnostic_Severity
 		errMes        string
 	}{
 		{
 			name:      "Success/ValidWorkspace",
 			workspace: "testdata/workspace",
-			pubAssertFunc: func(resp managerapi.Publish_Response) bool {
+			pubAssertFunc: func(resp *managerapi.Publish_Response) bool {
 				return resp.Digest == "sha256:2f0e884ddba718cba5eb540e3c0cb448ac0e72738a872be1618d839168b39032"
 			},
-			resAssertFunc: func(_ managerapi.Retrieve_Response, root string) bool {
+			resAssertFunc: func(_ *managerapi.Retrieve_Response, root string) bool {
 				_, err := os.Stat(path.Join(root, "fish.jpg"))
 				return err == nil
 			},
@@ -86,11 +86,11 @@ collection:
 			workspace: "testdata/workspace",
 			filter:    map[string]interface{}{"animal": true},
 			config:    []byte(testCfg),
-			pubAssertFunc: func(resp managerapi.Publish_Response) bool {
+			pubAssertFunc: func(resp *managerapi.Publish_Response) bool {
 				fmt.Println(resp.Digest)
 				return resp.Digest == "sha256:d23771ac05a0427c00498b5b8dc240811c8e91abd1522c12305874ceae09323f"
 			},
-			resAssertFunc: func(_ managerapi.Retrieve_Response, root string) bool {
+			resAssertFunc: func(_ *managerapi.Retrieve_Response, root string) bool {
 				_, err := os.Stat(path.Join(root, "fish.jpg"))
 				return err == nil
 			},
@@ -101,10 +101,10 @@ collection:
 			errMes:    "",
 			filter:    map[string]interface{}{"test": "test"},
 			workspace: "testdata/workspace",
-			pubAssertFunc: func(resp managerapi.Publish_Response) bool {
+			pubAssertFunc: func(resp *managerapi.Publish_Response) bool {
 				return resp.Digest == "sha256:2f0e884ddba718cba5eb540e3c0cb448ac0e72738a872be1618d839168b39032"
 			},
-			resAssertFunc: func(resp managerapi.Retrieve_Response, _ string) bool {
+			resAssertFunc: func(resp *managerapi.Retrieve_Response, _ string) bool {
 				return len(resp.Diagnostics) != 0 && resp.Diagnostics[0].Severity == 2
 			},
 		},
@@ -138,7 +138,7 @@ collection:
 
 			} else {
 				require.NoError(t, err)
-				require.True(t, c.pubAssertFunc(*pResp))
+				require.True(t, c.pubAssertFunc(pResp))
 			}
 
 			require.NoError(t, err)
@@ -159,7 +159,7 @@ collection:
 				require.EqualError(t, err, c.errMes)
 			} else {
 				require.NoError(t, err)
-				require.True(t, c.resAssertFunc(*rResp, destination))
+				require.True(t, c.resAssertFunc(rResp, destination))
 			}
 		})
 	}
@@ -171,10 +171,10 @@ type testContentStore struct {
 	content.Store
 }
 
-func (t testContentStore) ResolveByAttribute(ctx context.Context, s string, matcher model.Matcher) ([]ocispec.Descriptor, error) {
+func (t testContentStore) ResolveByAttribute(_ context.Context, _ string, _ model.Matcher) ([]ocispec.Descriptor, error) {
 	return nil, nil
 }
 
-func (t testContentStore) AttributeSchema(ctx context.Context, s string) (ocispec.Descriptor, error) {
+func (t testContentStore) AttributeSchema(_ context.Context, _ string) (ocispec.Descriptor, error) {
 	return ocispec.Descriptor{}, nil
 }
