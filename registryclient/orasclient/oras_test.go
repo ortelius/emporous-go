@@ -17,7 +17,6 @@ import (
 	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/attributes/matchers"
 	"github.com/uor-framework/uor-client-go/ocimanifest"
-	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
 func TestAddFiles(t *testing.T) {
@@ -138,30 +137,34 @@ func TestPushPull(t *testing.T) {
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
-		desc, err := c.Pull(context.TODO(), ref, memory.New())
+		root, descs, err := c.Pull(context.TODO(), ref, memory.New())
 		require.NoError(t, err)
-		require.Equal(t, expDigest, desc.Digest.String())
+		require.Equal(t, expDigest, root.Digest.String())
+		require.Len(t, descs, 4)
 		require.NoError(t, c.Destroy())
 	})
 
-	t.Run("Failure/FilteredImage", func(t *testing.T) {
+	t.Run("Success/FilteredImage", func(t *testing.T) {
+		expDigest := ""
 		matcher := matchers.PartialAttributeMatcher{"test": attributes.NewString("test", "fail")}
 		c, err := NewClient(WithPlainHTTP(true), WithPullableAttributes(matcher))
 		require.NoError(t, err)
-		_, err = c.Pull(context.TODO(), ref, memory.New())
-		require.ErrorIs(t, err, registryclient.ErrNoMatch)
+		root, descs, err := c.Pull(context.TODO(), ref, memory.New())
+		require.NoError(t, err)
+		require.Equal(t, expDigest, root.Digest.String())
+		require.Len(t, descs, 0)
 		require.NoError(t, c.Destroy())
 	})
 
 	t.Run("Success/PullWithCache", func(t *testing.T) {
-		cache := memory.New()
-
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		cache := memory.New()
 		c, err := NewClient(WithPlainHTTP(true), WithCache(cache))
 		require.NoError(t, err)
-		desc, err := c.Pull(context.TODO(), ref, memory.New())
+		root, descs, err := c.Pull(context.TODO(), ref, memory.New())
 		require.NoError(t, err)
-		require.Equal(t, expDigest, desc.Digest.String())
+		require.Equal(t, expDigest, root.Digest.String())
+		require.Len(t, descs, 3)
 		require.NoError(t, c.Destroy())
 	})
 
@@ -192,7 +195,7 @@ func TestPushPull(t *testing.T) {
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
 		for _, ref := range images {
-			_, err := c.Pull(context.TODO(), ref, destination)
+			_, _, err := c.Pull(context.TODO(), ref, destination)
 			require.NoError(t, err)
 			_, err = os.Stat(filepath.Join(tmp, testdata))
 			require.NoError(t, err)
@@ -203,7 +206,7 @@ func TestPushPull(t *testing.T) {
 	t.Run("Failure/ImageDoesNotExist", func(t *testing.T) {
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
-		_, err = c.Pull(context.TODO(), notExistRef, memory.New())
+		_, _, err = c.Pull(context.TODO(), notExistRef, memory.New())
 		require.EqualError(t, err, fmt.Sprintf("%s: not found", notExistTag))
 		require.NoError(t, c.Destroy())
 	})

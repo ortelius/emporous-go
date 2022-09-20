@@ -58,7 +58,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 			return "", fmt.Errorf("error configuring client: %v", err)
 		}
 
-		_, err = client.Pull(ctx, config.Collection.SchemaAddress, d.store)
+		_, _, err = client.Pull(ctx, config.Collection.SchemaAddress, d.store)
 		if err != nil {
 			return "", err
 		}

@@ -13,49 +13,57 @@ import (
 	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
-func (d DefaultManager) Pull(ctx context.Context, source string, remote registryclient.Remote, destination content.Store) error {
-	_, err := d.pullCollection(ctx, source, destination, remote)
+func (d DefaultManager) Pull(ctx context.Context, source string, remote registryclient.Remote, destination content.Store) ([]string, error) {
+	descs, err := d.pullCollection(ctx, source, destination, remote)
 	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (d DefaultManager) PullAll(ctx context.Context, source string, remote registryclient.Remote, destination content.Store) error {
-	_, err := d.pullCollections(ctx, source, destination, remote)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// pullCollection pulls a single collection and returns the manifest descriptors and an error.
-func (d DefaultManager) pullCollection(ctx context.Context, reference string, destination content.Store, remote registryclient.Remote) ([]ocispec.Descriptor, error) {
-	desc, err := remote.Pull(ctx, reference, destination)
-	if err != nil {
-		if errors.Is(err, registryclient.ErrNoMatch) {
-			d.logger.Infof("No matches found for collection %s", reference)
-			return nil, nil
-		}
 		return nil, err
 	}
-	// Ensure the store is tagged with the new reference.
-	return []ocispec.Descriptor{desc}, d.store.Tag(ctx, desc, reference)
+
+	var digests []string
+	for _, desc := range descs {
+		digests = append(digests, desc.Digest.String())
+		d.logger.Infof("Found %s", desc.Digest)
+	}
+	return digests, nil
 }
 
-// pullCollections pulls two or more collections and returns the manifest descriptors and an error.
-func (d DefaultManager) pullCollections(ctx context.Context, source string, destination content.Store, remote registryclient.Remote) ([]ocispec.Descriptor, error) {
+func (d DefaultManager) PullAll(ctx context.Context, source string, remote registryclient.Remote, destination content.Store) ([]string, error) {
 	root, err := remote.LoadCollection(ctx, source)
 	if err != nil {
 		return nil, err
 	}
-	return d.copy(ctx, &root, destination, remote)
+	descs, err := d.copyCollections(ctx, &root, destination, remote)
+	if err != nil {
+		return nil, err
+	}
+
+	var digests []string
+	for _, desc := range descs {
+		digests = append(digests, desc.Digest.String())
+		d.logger.Infof("Found %s", desc.Digest)
+	}
+	return digests, nil
+}
+
+// pullCollection pulls a single collection and returns the manifest descriptors and an error.
+func (d DefaultManager) pullCollection(ctx context.Context, reference string, destination content.Store, remote registryclient.Remote) ([]ocispec.Descriptor, error) {
+	rootDesc, descs, err := remote.Pull(ctx, reference, destination)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ensure the store is tagged with the new reference.
+	if len(rootDesc.Digest) != 0 {
+		return descs, d.store.Tag(ctx, rootDesc, reference)
+	}
+
+	return descs, nil
 }
 
 // copy performs graph traversal of linked collections and performs collection copies filtered by the matcher.
-func (d DefaultManager) copy(ctx context.Context, root model.Node, destination content.Store, remote registryclient.Remote) ([]ocispec.Descriptor, error) {
+func (d DefaultManager) copyCollections(ctx context.Context, root model.Node, destination content.Store, remote registryclient.Remote) ([]ocispec.Descriptor, error) {
 	seen := map[string]struct{}{}
-	var manifestDesc []ocispec.Descriptor
+	var allDescs []ocispec.Descriptor
 
 	tracker := traversal.NewTracker(root, nil)
 	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
@@ -64,7 +72,7 @@ func (d DefaultManager) copy(ctx context.Context, root model.Node, destination c
 		if err != nil {
 			return nil, err
 		}
-		manifestDesc = append(manifestDesc, descs...)
+		allDescs = append(allDescs, descs...)
 
 		successors, err := getSuccessors(ctx, node.Address(), remote)
 		if err != nil {
@@ -94,7 +102,7 @@ func (d DefaultManager) copy(ctx context.Context, root model.Node, destination c
 		return nil, err
 	}
 
-	return manifestDesc, nil
+	return allDescs, nil
 }
 
 // getSuccessors retrieves all referenced collections from a source collection.

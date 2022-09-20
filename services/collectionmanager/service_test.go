@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
+	"google.golang.org/protobuf/types/known/structpb"
 	"oras.land/oras-go/v2/content/memory"
 
 	managerapi "github.com/uor-framework/uor-client-go/api/services/collectionmanager/v1alpha1"
@@ -50,26 +51,61 @@ func TestCollectionManagerServer_All(t *testing.T) {
 	u, err := url.Parse(server.URL)
 	require.NoError(t, err)
 
+	testCfg := `
+kind: DataSetConfiguration
+apiVersion: client.uor-framework.io/v1alpha1
+collection:
+  files:
+  - file: "*.jpg"
+    attributes:
+      animal: true
+`
 	cases := []struct {
 		name          string
-		pubAssertFunc func(string) bool
+		pubAssertFunc func(managerapi.Publish_Response) bool
 		workspace     string
 		config        []byte
-		resAssertFunc func(string) bool
+		filter        map[string]interface{}
+		resAssertFunc func(managerapi.Retrieve_Response, string) bool
 		sev           managerapi.Diagnostic_Severity
 		errMes        string
 	}{
 		{
 			name:      "Success/ValidWorkspace",
-			sev:       0,
-			errMes:    "",
 			workspace: "testdata/workspace",
-			pubAssertFunc: func(s string) bool {
-				return s == "sha256:2f0e884ddba718cba5eb540e3c0cb448ac0e72738a872be1618d839168b39032"
+			pubAssertFunc: func(resp managerapi.Publish_Response) bool {
+				return resp.Digest == "sha256:2f0e884ddba718cba5eb540e3c0cb448ac0e72738a872be1618d839168b39032"
 			},
-			resAssertFunc: func(root string) bool {
+			resAssertFunc: func(_ managerapi.Retrieve_Response, root string) bool {
 				_, err := os.Stat(path.Join(root, "fish.jpg"))
 				return err == nil
+			},
+		},
+		{
+			name:      "Success/WithConfig",
+			workspace: "testdata/workspace",
+			filter:    map[string]interface{}{"animal": true},
+			config:    []byte(testCfg),
+			pubAssertFunc: func(resp managerapi.Publish_Response) bool {
+				fmt.Println(resp.Digest)
+				return resp.Digest == "sha256:d23771ac05a0427c00498b5b8dc240811c8e91abd1522c12305874ceae09323f"
+			},
+			resAssertFunc: func(_ managerapi.Retrieve_Response, root string) bool {
+				_, err := os.Stat(path.Join(root, "fish.jpg"))
+				return err == nil
+			},
+		},
+		{
+			name:      "Warning/FilteredCollection",
+			sev:       2,
+			errMes:    "",
+			filter:    map[string]interface{}{"test": "test"},
+			workspace: "testdata/workspace",
+			pubAssertFunc: func(resp managerapi.Publish_Response) bool {
+				return resp.Digest == "sha256:2f0e884ddba718cba5eb540e3c0cb448ac0e72738a872be1618d839168b39032"
+			},
+			resAssertFunc: func(resp managerapi.Retrieve_Response, _ string) bool {
+				return len(resp.Diagnostics) != 0 && resp.Diagnostics[0].Severity == 2
 			},
 		},
 	}
@@ -99,25 +135,31 @@ func TestCollectionManagerServer_All(t *testing.T) {
 
 			pResp, err := client.PublishContent(ctx, pRequest, opts...)
 			if c.errMes != "" {
-				require.EqualError(t, err, c.errMes)
+
 			} else {
 				require.NoError(t, err)
-				require.True(t, c.pubAssertFunc(pResp.Digest))
+				require.True(t, c.pubAssertFunc(*pResp))
 			}
 
+			require.NoError(t, err)
 			destination := t.TempDir()
 			rRequest := &managerapi.Retrieve_Request{
 				Source:      fmt.Sprintf("%s/test:latest", u.Host),
 				Destination: destination,
 			}
 
+			if c.filter != nil {
+				filter, err := structpb.NewStruct(c.filter)
+				require.NoError(t, err)
+				rRequest.Filter = filter
+			}
+
 			rResp, err := client.RetrieveContent(ctx, rRequest, opts...)
 			if c.errMes != "" {
-				rResp.Diagnostics[0].Severity = c.sev
 				require.EqualError(t, err, c.errMes)
 			} else {
 				require.NoError(t, err)
-				require.True(t, c.resAssertFunc(destination))
+				require.True(t, c.resAssertFunc(*rResp, destination))
 			}
 		})
 	}

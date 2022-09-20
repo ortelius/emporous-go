@@ -132,11 +132,13 @@ func (c *orasClient) LoadCollection(ctx context.Context, reference string) (coll
 }
 
 // Pull performs a copy of OCI artifacts to a local location from a remote location.
-func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) (ocispec.Descriptor, error) {
+func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) (ocispec.Descriptor, []ocispec.Descriptor, error) {
+	var allDescs []ocispec.Descriptor
+
 	var from oras.Target
 	repo, err := c.setupRepo(ref)
 	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("could not create registry target: %w", err)
+		return ocispec.Descriptor{}, allDescs, fmt.Errorf("could not create registry target: %w", err)
 	}
 	from = repo
 
@@ -146,7 +148,7 @@ func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) 
 
 	graph, err := c.LoadCollection(ctx, ref)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return ocispec.Descriptor{}, allDescs, err
 	}
 
 	// Filter the collection per the matcher criteria
@@ -190,11 +192,11 @@ func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) 
 		var err error
 		graph, err = graph.SubCollection(matchFn)
 		if err != nil {
-			return ocispec.Descriptor{}, err
+			return ocispec.Descriptor{}, allDescs, err
 		}
 
 		if matchedLeaf == 0 {
-			return ocispec.Descriptor{}, registryclient.ErrNoMatch
+			return ocispec.Descriptor{}, allDescs, nil
 		}
 	}
 
@@ -202,7 +204,9 @@ func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) 
 	successorFn := func(_ context.Context, fetcher orascontent.Fetcher, desc ocispec.Descriptor) ([]ocispec.Descriptor, error) {
 		mu.Lock()
 		successors := graph.From(desc.Digest.String())
+		allDescs = append(allDescs, desc)
 		mu.Unlock()
+
 		var result []ocispec.Descriptor
 		for _, s := range successors {
 			d, ok := s.(*descriptor.Node)
@@ -218,7 +222,12 @@ func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) 
 	cCopyOpts := c.copyOpts
 	cCopyOpts.FindSuccessors = successorFn
 
-	return oras.Copy(ctx, from, ref, store, ref, cCopyOpts)
+	desc, err := oras.Copy(ctx, from, ref, store, ref, cCopyOpts)
+	if err != nil {
+		return ocispec.Descriptor{}, allDescs, err
+	}
+
+	return desc, allDescs, nil
 }
 
 // Push performs a copy of OCI artifacts to a remote location.

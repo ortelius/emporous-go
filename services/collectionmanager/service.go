@@ -151,7 +151,7 @@ func (s *service) RetrieveContent(ctx context.Context, message *managerapi.Retri
 			},
 		}, err
 	}
-	err = s.mg.PullAll(ctx, message.Source, client, file.New(message.Destination))
+	output, err := s.mg.PullAll(ctx, message.Source, client, file.New(message.Destination))
 	if err != nil {
 		return &managerapi.Retrieve_Response{
 			Diagnostics: []*managerapi.Diagnostic{
@@ -162,6 +162,18 @@ func (s *service) RetrieveContent(ctx context.Context, message *managerapi.Retri
 				},
 			},
 		}, err
+	}
+
+	if len(output) == 0 {
+		return &managerapi.Retrieve_Response{
+			Diagnostics: []*managerapi.Diagnostic{
+				{
+					Severity: 2,
+					Summary:  "RetrieveWarning",
+					Detail:   "No matching collections found",
+				},
+			},
+		}, nil
 	}
 
 	return &managerapi.Retrieve_Response{}, nil

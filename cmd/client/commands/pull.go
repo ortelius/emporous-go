@@ -148,14 +148,21 @@ func (o *PullOptions) Run(ctx context.Context) error {
 
 	manager := defaultmanager.New(cache, o.Logger)
 
+	var digests []string
 	if !o.PullAll {
-		err = manager.Pull(ctx, o.Source, client, file.New(o.Output))
+		digests, err = manager.Pull(ctx, o.Source, client, file.New(o.Output))
 	} else {
-		err = manager.PullAll(ctx, o.Source, client, file.New(o.Output))
+		digests, err = manager.PullAll(ctx, o.Source, client, file.New(o.Output))
 	}
 	if err != nil {
 		return err
 	}
+
+	if len(digests) == 0 {
+		o.Logger.Infof("No matching collections found for %s", o.Source)
+	}
+
+	o.Logger.Infof("Copied collection(s) to %s", o.Output)
 
 	return nil
 }

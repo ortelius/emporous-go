@@ -13,7 +13,7 @@ package manager;
 // CollectionManager is an endpoint that can retrieve and publish Collection
 // contents for clients.
 service CollectionManager {
-  // PublisheContent publishes content based on the request.
+  // PublishContent publishes content based on the request.
   rpc PublishContent(Publish.Request) returns (Publish.Response) {}
   // RetrieveContent retrieves content based on the request.
   rpc RetrieveContent(Retrieve.Request) returns (Retrieve.Response) {}
