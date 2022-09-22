@@ -3,6 +3,8 @@ package collectionmanager
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"oras.land/oras-go/v2/content/file"
 
 	"github.com/uor-framework/uor-client-go/api/client/v1alpha1"
@@ -48,70 +50,34 @@ func (s *service) PublishContent(ctx context.Context, message *managerapi.Publis
 		orasclient.WithAuthConfigs(s.options.AuthConfigs),
 		orasclient.SkipTLSVerify(s.options.Insecure))
 	if err != nil {
-		return &managerapi.Publish_Response{
-			Diagnostics: []*managerapi.Diagnostic{
-				{
-					Severity: 1,
-					Summary:  "PublishError",
-					Detail:   err.Error(),
-				},
-			},
-		}, err
+		return &managerapi.Publish_Response{}, status.Error(codes.Internal, err.Error())
 	}
 
 	space, err := workspace.NewLocalWorkspace(message.Source)
 	if err != nil {
-		return &managerapi.Publish_Response{
-			Diagnostics: []*managerapi.Diagnostic{
-				{
-					Severity: 1,
-					Summary:  "PublishError",
-					Detail:   err.Error(),
-				},
-			},
-		}, err
+		return &managerapi.Publish_Response{}, status.Error(codes.Internal, err.Error())
 	}
 
 	var dsConfig v1alpha1.DataSetConfiguration
 	if message.Json != nil {
 		dsConfig, err = config.LoadDataSetConfig(message.Json)
 		if err != nil {
-			return &managerapi.Publish_Response{
-				Diagnostics: []*managerapi.Diagnostic{
-					{
-						Severity: 1,
-						Summary:  "PublishError",
-						Detail:   err.Error(),
-					},
-				},
-			}, err
+			return &managerapi.Publish_Response{}, status.Error(codes.Internal, err.Error())
 		}
 	}
 
 	_, err = s.mg.Build(ctx, space, dsConfig, message.Destination, client)
 	if err != nil {
-		return &managerapi.Publish_Response{
-			Diagnostics: []*managerapi.Diagnostic{
-				{
-					Severity: 1,
-					Summary:  "PublishError",
-					Detail:   err.Error(),
-				},
-			},
-		}, err
+		if err != nil {
+			return &managerapi.Publish_Response{}, status.Error(codes.Internal, err.Error())
+		}
 	}
 
 	digest, err := s.mg.Push(ctx, message.Destination, client)
 	if err != nil {
-		return &managerapi.Publish_Response{
-			Diagnostics: []*managerapi.Diagnostic{
-				{
-					Severity: 1,
-					Summary:  "PublishError",
-					Detail:   err.Error(),
-				},
-			},
-		}, err
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
 
 	return &managerapi.Publish_Response{Digest: digest}, nil
@@ -121,15 +87,7 @@ func (s *service) PublishContent(ctx context.Context, message *managerapi.Publis
 func (s *service) RetrieveContent(ctx context.Context, message *managerapi.Retrieve_Request) (*managerapi.Retrieve_Response, error) {
 	attrSet, err := config.ConvertToModel(message.Filter.AsMap())
 	if err != nil {
-		return &managerapi.Retrieve_Response{
-			Diagnostics: []*managerapi.Diagnostic{
-				{
-					Severity: 1,
-					Summary:  "RetrieveError",
-					Detail:   err.Error(),
-				},
-			},
-		}, err
+		return &managerapi.Retrieve_Response{}, status.Error(codes.Internal, err.Error())
 	}
 
 	var matcher matchers.PartialAttributeMatcher = attrSet.List()
@@ -141,31 +99,17 @@ func (s *service) RetrieveContent(ctx context.Context, message *managerapi.Retri
 		orasclient.WithPullableAttributes(matcher),
 	)
 	if err != nil {
-		return &managerapi.Retrieve_Response{
-			Diagnostics: []*managerapi.Diagnostic{
-				{
-					Severity: 1,
-					Summary:  "RetrieveError",
-					Detail:   err.Error(),
-				},
-			},
-		}, err
-	}
-	output, err := s.mg.PullAll(ctx, message.Source, client, file.New(message.Destination))
-	if err != nil {
-		return &managerapi.Retrieve_Response{
-			Diagnostics: []*managerapi.Diagnostic{
-				{
-					Severity: 1,
-					Summary:  "RetrieveError",
-					Detail:   err.Error(),
-				},
-			},
-		}, err
+		return &managerapi.Retrieve_Response{}, status.Error(codes.Internal, err.Error())
 	}
 
-	if len(output) == 0 {
+	digests, err := s.mg.PullAll(ctx, message.Source, client, file.New(message.Destination))
+	if err != nil {
+		return &managerapi.Retrieve_Response{}, status.Error(codes.Internal, err.Error())
+	}
+
+	if len(digests) == 0 {
 		return &managerapi.Retrieve_Response{
+			Digests: nil,
 			Diagnostics: []*managerapi.Diagnostic{
 				{
 					Severity: 2,
@@ -176,5 +120,5 @@ func (s *service) RetrieveContent(ctx context.Context, message *managerapi.Retri
 		}, nil
 	}
 
-	return &managerapi.Retrieve_Response{}, nil
+	return &managerapi.Retrieve_Response{Digests: digests}, nil
 }

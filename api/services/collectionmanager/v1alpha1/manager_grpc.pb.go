@@ -22,8 +22,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CollectionManagerClient interface {
+	// PublishContent publishes content based on the request.
 	PublishContent(ctx context.Context, in *Publish_Request, opts ...grpc.CallOption) (*Publish_Response, error)
-	// RetrieveContent retrieve content based on the Control Message.
+	// RetrieveContent retrieves content based on the request.
 	RetrieveContent(ctx context.Context, in *Retrieve_Request, opts ...grpc.CallOption) (*Retrieve_Response, error)
 }
 
@@ -57,8 +58,9 @@ func (c *collectionManagerClient) RetrieveContent(ctx context.Context, in *Retri
 // All implementations must embed UnimplementedCollectionManagerServer
 // for forward compatibility
 type CollectionManagerServer interface {
+	// PublishContent publishes content based on the request.
 	PublishContent(context.Context, *Publish_Request) (*Publish_Response, error)
-	// RetrieveContent retrieve content based on the Control Message.
+	// RetrieveContent retrieves content based on the request.
 	RetrieveContent(context.Context, *Retrieve_Request) (*Retrieve_Response, error)
 	mustEmbedUnimplementedCollectionManagerServer()
 }
