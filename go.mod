@@ -4,7 +4,6 @@ go 1.17
 
 require (
 	github.com/adrg/xdg v0.4.0
-	github.com/buger/jsonparser v1.1.1
 	github.com/docker/cli v20.10.16+incompatible
 	github.com/gabriel-vasile/mimetype v1.4.0
 	github.com/google/go-containerregistry v0.10.0
