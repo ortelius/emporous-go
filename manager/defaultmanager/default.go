@@ -6,7 +6,7 @@ import (
 	"github.com/uor-framework/uor-client-go/manager"
 )
 
-// DefaultManager is the default implementation for a collection router.
+// DefaultManager is the default implementation for a collection manager.
 type DefaultManager struct {
 	store  content.AttributeStore
 	logger log.Logger
