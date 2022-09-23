@@ -5,7 +5,10 @@ import (
 	"errors"
 	"net"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"sync"
+	"syscall"
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -68,6 +71,9 @@ func (o *ServeOptions) Validate() error {
 }
 
 func (o *ServeOptions) Run(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	rpc := grpc.NewServer()
 
 	cache, err := layout.NewWithContext(ctx, o.CacheDir)
@@ -93,8 +99,32 @@ func (o *ServeOptions) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	var wg sync.WaitGroup
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		select {
+		case <-sigCh:
+			s := <-sigCh
+			o.Logger.Debugf("got signal %v, attempting graceful shutdown", s)
+			cancel()
+			rpc.GracefulStop()
+		case <-ctx.Done():
+		}
+	}()
+
 	if err := rpc.Serve(lis); err != nil {
 		return err
 	}
+
+	wg.Wait()
+
 	return nil
+
 }
