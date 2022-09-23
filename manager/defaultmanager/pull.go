@@ -22,7 +22,7 @@ func (d DefaultManager) Pull(ctx context.Context, source string, remote registry
 	var digests []string
 	for _, desc := range descs {
 		digests = append(digests, desc.Digest.String())
-		d.logger.Infof("Found %s", desc.Digest)
+		d.logger.Infof("Found matching digest %s", desc.Digest)
 	}
 	return digests, nil
 }
@@ -40,7 +40,7 @@ func (d DefaultManager) PullAll(ctx context.Context, source string, remote regis
 	var digests []string
 	for _, desc := range descs {
 		digests = append(digests, desc.Digest.String())
-		d.logger.Infof("Found %s", desc.Digest)
+		d.logger.Infof("Found matching digest %s", desc.Digest)
 	}
 	return digests, nil
 }

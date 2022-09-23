@@ -160,6 +160,7 @@ func (o *PullOptions) Run(ctx context.Context) error {
 
 	if len(digests) == 0 {
 		o.Logger.Infof("No matching collections found for %s", o.Source)
+		return nil
 	}
 
 	o.Logger.Infof("Copied collection(s) to %s", o.Output)
