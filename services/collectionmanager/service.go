@@ -2,6 +2,7 @@ package collectionmanager
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -52,6 +53,11 @@ func (s *service) PublishContent(ctx context.Context, message *managerapi.Publis
 	if err != nil {
 		return &managerapi.Publish_Response{}, status.Error(codes.Internal, err.Error())
 	}
+	defer func() {
+		if err := client.Destroy(); err != nil {
+			fmt.Println(err.Error())
+		}
+	}()
 
 	space, err := workspace.NewLocalWorkspace(message.Source)
 	if err != nil {
@@ -117,6 +123,11 @@ func (s *service) RetrieveContent(ctx context.Context, message *managerapi.Retri
 	if err != nil {
 		return &managerapi.Retrieve_Response{}, status.Error(codes.Internal, err.Error())
 	}
+	defer func() {
+		if err := client.Destroy(); err != nil {
+			fmt.Println(err.Error())
+		}
+	}()
 
 	digests, err := s.mg.PullAll(ctx, message.Source, client, file.New(message.Destination))
 	if err != nil {
