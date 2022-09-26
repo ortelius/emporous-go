@@ -22,5 +22,7 @@ type Manager interface {
 	Pull(ctx context.Context, source string, remote registryclient.Remote, destination content.Store) ([]string, error)
 	// PullAll pulls linked collection to a specified storage destination.
 	// If successful, the file locations are returned.
+	// PullAll is similar to Pull with the exception that it walks a graph of linked collections
+	// starting with the source collection reference.
 	PullAll(ctx context.Context, source string, remote registryclient.Remote, destination content.Store) ([]string, error)
 }

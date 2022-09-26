@@ -47,10 +47,22 @@ message Publish {
   message Request {
     string source = 1;
     string destination = 2;
-    bytes json = 3;
+    Collection collection = 3;
+
   }
   message Response {
     string digest = 1;
     repeated Diagnostic diagnostics = 2;
   }
+}
+
+message Collection {
+  string schemaAddress = 1;
+  repeated string linkedCollections = 2;
+  repeated File files = 3;
+}
+
+message File {
+  string file = 1;
+  google.protobuf.Struct attributes = 2;
 }

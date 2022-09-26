@@ -51,20 +51,11 @@ func TestCollectionManagerServer_All(t *testing.T) {
 	u, err := url.Parse(server.URL)
 	require.NoError(t, err)
 
-	testCfg := `
-kind: DataSetConfiguration
-apiVersion: client.uor-framework.io/v1alpha1
-collection:
-  files:
-  - file: "*.jpg"
-    attributes:
-      animal: true
-`
 	cases := []struct {
 		name          string
 		pubAssertFunc func(*managerapi.Publish_Response) bool
 		workspace     string
-		config        []byte
+		collection    map[string]map[string]interface{}
 		filter        map[string]interface{}
 		resAssertFunc func(*managerapi.Retrieve_Response, string) bool
 		sev           managerapi.Diagnostic_Severity
@@ -84,10 +75,13 @@ collection:
 		{
 			name:      "Success/WithConfig",
 			workspace: "testdata/workspace",
-			filter:    map[string]interface{}{"animal": true},
-			config:    []byte(testCfg),
+			collection: map[string]map[string]interface{}{
+				"*.jpg": {
+					"animal": true,
+				},
+			},
+			filter: map[string]interface{}{"animal": true},
 			pubAssertFunc: func(resp *managerapi.Publish_Response) bool {
-				fmt.Println(resp.Digest)
 				return resp.Digest == "sha256:d23771ac05a0427c00498b5b8dc240811c8e91abd1522c12305874ceae09323f"
 			},
 			resAssertFunc: func(_ *managerapi.Retrieve_Response, root string) bool {
@@ -127,15 +121,32 @@ collection:
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+
 			pRequest := &managerapi.Publish_Request{
 				Source:      c.workspace,
 				Destination: fmt.Sprintf("%s/test:latest", u.Host),
-				Json:        c.config,
+			}
+
+			if c.collection != nil {
+				var files []*managerapi.File
+				for file, attr := range c.collection {
+					a, err := structpb.NewStruct(attr)
+					require.NoError(t, err)
+					f := &managerapi.File{
+						File:       file,
+						Attributes: a,
+					}
+					files = append(files, f)
+				}
+
+				pRequest.Collection = &managerapi.Collection{
+					Files: files,
+				}
 			}
 
 			pResp, err := client.PublishContent(ctx, pRequest, opts...)
 			if c.errMes != "" {
-
+				require.EqualError(t, err, c.errMes)
 			} else {
 				require.NoError(t, err)
 				require.True(t, c.pubAssertFunc(pResp))

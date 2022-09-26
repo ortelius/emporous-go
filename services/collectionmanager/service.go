@@ -59,10 +59,26 @@ func (s *service) PublishContent(ctx context.Context, message *managerapi.Publis
 	}
 
 	var dsConfig v1alpha1.DataSetConfiguration
-	if message.Json != nil {
-		dsConfig, err = config.LoadDataSetConfig(message.Json)
-		if err != nil {
-			return &managerapi.Publish_Response{}, status.Error(codes.Internal, err.Error())
+	if message.Collection != nil {
+		var files []v1alpha1.File
+		for _, file := range message.Collection.Files {
+			f := v1alpha1.File{
+				File:       file.File,
+				Attributes: file.Attributes.AsMap(),
+			}
+			files = append(files, f)
+		}
+
+		dsConfig = v1alpha1.DataSetConfiguration{
+			TypeMeta: v1alpha1.TypeMeta{
+				Kind:       v1alpha1.DataSetConfigurationKind,
+				APIVersion: v1alpha1.GroupVersion,
+			},
+			Collection: v1alpha1.DataSetConfigurationSpec{
+				SchemaAddress:     message.Collection.SchemaAddress,
+				LinkedCollections: message.Collection.LinkedCollections,
+				Files:             files,
+			},
 		}
 	}
 

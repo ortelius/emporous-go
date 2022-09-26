@@ -48,6 +48,10 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 		attributesByFile[file.File] = set
 	}
 
+	if len(files) == 0 {
+		return "", fmt.Errorf("path %q empty workspace", space.Path("."))
+	}
+
 	// If a schema is present, pull it and do the validation before
 	// processing the files to get quick feedback to the user.
 	collectionManifestAnnotations := map[string]string{}
