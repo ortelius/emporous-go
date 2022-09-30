@@ -30,6 +30,8 @@ func signCollection(ctx context.Context, o *PushOptions) error {
 		OIDCIssuer:      "https://oauth2.sigstore.dev/auth",
 		FulcioURL:       "https://fulcio.sigstore.dev",
 	}
+
+	// Required by sigstore / cosign for keyless signing at the time of writing
 	os.Setenv("COSIGN_EXPERIMENTAL", "1")
 
 	regopts := options.RegistryOptions{
@@ -93,6 +95,7 @@ func verifyCollection(o *PullOptions, ctx context.Context) error {
 		RegistryOptions: regopts,
 	}
 
+	// Required by sigstore / cosign for keyless signing at the time of writing
 	os.Setenv("COSIGN_EXPERIMENTAL", "1")
 
 	if err := v.Exec(ctx, []string{o.Source}); err != nil {
