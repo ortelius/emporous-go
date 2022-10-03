@@ -24,6 +24,7 @@ import (
 type BuildCollectionOptions struct {
 	*BuildOptions
 	options.Remote
+	options.RemoteAuth
 	RootDir string
 	// Dataset Config
 	DSConfig string
@@ -61,6 +62,7 @@ func NewBuildCollectionCmd(buildOpts *BuildOptions) *cobra.Command {
 	}
 
 	o.Remote.BindFlags(cmd.Flags())
+	o.RemoteAuth.BindFlags(cmd.Flags())
 	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "", o.DSConfig, "config path for artifact building and dataset configuration")
 
 	return cmd

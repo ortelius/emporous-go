@@ -35,7 +35,7 @@ message Retrieve {
     string source = 1;
     string destination = 2;
     google.protobuf.Struct filter = 3;
-
+    AuthConfig auth = 4;
   }
   message Response {
     repeated string digests = 1;
@@ -48,6 +48,7 @@ message Publish {
     string source = 1;
     string destination = 2;
     Collection collection = 3;
+    AuthConfig auth = 4;
 
   }
   message Response {
@@ -56,13 +57,26 @@ message Publish {
   }
 }
 
+// Collection contains configuration information for a collection.
 message Collection {
   string schemaAddress = 1;
   repeated string linkedCollections = 2;
   repeated File files = 3;
 }
 
+// File contains a regular expression for file name matching and associated
+// attributes to apply the the descriptor for matching file.
 message File {
   string file = 1;
   google.protobuf.Struct attributes = 2;
 }
+
+// AuthConfig contains authorization information for connecting to a registry.
+message AuthConfig {
+  string username = 1;
+  string password = 2;
+  string server_address = 3;
+  string access_token = 4;
+  string refresh_token = 5;
+}
+

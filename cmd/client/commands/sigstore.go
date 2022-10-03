@@ -23,7 +23,7 @@ import (
 )
 
 // Sign applies keyless OIDC signatures to sign UOR Collections
-func signCollection(_ context.Context, reference string, remoteOpts options.Remote) error {
+func signCollection(_ context.Context, reference string, authConfigs []string, remoteOpts options.Remote) error {
 
 	ko := cosignopts.KeyOpts{
 		RekorURL:        "https://rekor.sigstore.dev",
@@ -43,9 +43,9 @@ func signCollection(_ context.Context, reference string, remoteOpts options.Remo
 		regopts.AllowInsecure = true
 	}
 
-	if len(remoteOpts.Configs) != 0 {
+	if len(authConfigs) != 0 {
 		var err error
-		regopts.Keychain, err = buildKeychain(remoteOpts.Configs)
+		regopts.Keychain, err = buildKeychain(authConfigs)
 		if err != nil {
 			return err
 		}
@@ -64,7 +64,7 @@ func signCollection(_ context.Context, reference string, remoteOpts options.Remo
 }
 
 // Verify performs signature verification of keyless signatures
-func verifyCollection(ctx context.Context, reference string, remoteOpts options.Remote) error {
+func verifyCollection(ctx context.Context, reference string, authConfigs []string, remoteOpts options.Remote) error {
 
 	regopts := cosignopts.RegistryOptions{
 		Keychain: authn.DefaultKeychain,
@@ -74,9 +74,9 @@ func verifyCollection(ctx context.Context, reference string, remoteOpts options.
 		regopts.AllowInsecure = true
 	}
 
-	if len(remoteOpts.Configs) != 0 {
+	if len(authConfigs) != 0 {
 		var err error
-		regopts.Keychain, err = buildKeychain(remoteOpts.Configs)
+		regopts.Keychain, err = buildKeychain(authConfigs)
 		if err != nil {
 			return err
 		}

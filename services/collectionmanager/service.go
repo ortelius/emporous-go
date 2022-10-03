@@ -29,10 +29,9 @@ type service struct {
 // ServiceOptions configure the collection router service with default remote
 // and collection caching options.
 type ServiceOptions struct {
-	Insecure    bool
-	PlainHTTP   bool
-	AuthConfigs []string
-	PullCache   content.Store
+	Insecure  bool
+	PlainHTTP bool
+	PullCache content.Store
 }
 
 // FromManager returns a CollectionManager API server from a Manager type.
@@ -45,10 +44,11 @@ func FromManager(mg manager.Manager, serviceOptions ServiceOptions) managerapi.C
 
 // PublishContent publishes collection content to a storage provide based on client input.
 func (s *service) PublishContent(ctx context.Context, message *managerapi.Publish_Request) (*managerapi.Publish_Response, error) {
+	authConf := authConfig{message.Auth}
 	client, err := orasclient.NewClient(
 		orasclient.WithCache(s.options.PullCache),
 		orasclient.WithPlainHTTP(s.options.PlainHTTP),
-		orasclient.WithAuthConfigs(s.options.AuthConfigs),
+		orasclient.WithCredentialFunc(authConf.Credential),
 		orasclient.SkipTLSVerify(s.options.Insecure))
 	if err != nil {
 		return &managerapi.Publish_Response{}, status.Error(codes.Internal, err.Error())
@@ -112,10 +112,11 @@ func (s *service) RetrieveContent(ctx context.Context, message *managerapi.Retri
 		return &managerapi.Retrieve_Response{}, status.Error(codes.Internal, err.Error())
 	}
 
+	authConf := authConfig{message.Auth}
 	var matcher matchers.PartialAttributeMatcher = attrSet.List()
 	client, err := orasclient.NewClient(
 		orasclient.WithCache(s.options.PullCache),
-		orasclient.WithAuthConfigs(s.options.AuthConfigs),
+		orasclient.WithCredentialFunc(authConf.Credential),
 		orasclient.WithPlainHTTP(s.options.PlainHTTP),
 		orasclient.SkipTLSVerify(s.options.Insecure),
 		orasclient.WithPullableAttributes(matcher),

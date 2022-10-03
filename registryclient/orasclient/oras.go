@@ -31,8 +31,8 @@ import (
 
 type orasClient struct {
 	plainHTTP     bool
-	copyOpts      oras.CopyOptions
 	authClient    *auth.Client
+	copyOpts      oras.CopyOptions
 	artifactStore *file.Store
 	cache         content.Store
 	// collection will store a cache of

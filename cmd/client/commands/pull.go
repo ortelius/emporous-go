@@ -24,6 +24,7 @@ import (
 type PullOptions struct {
 	*options.Common
 	options.Remote
+	options.RemoteAuth
 	Source         string
 	Output         string
 	PullAll        bool
@@ -74,6 +75,7 @@ func NewPullCmd(common *options.Common) *cobra.Command {
 	}
 
 	o.Remote.BindFlags(cmd.Flags())
+	o.RemoteAuth.BindFlags(cmd.Flags())
 	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "output location for artifacts")
 	cmd.Flags().StringVar(&o.AttributeQuery, "attributes", o.AttributeQuery, "attribute query config path")
 	cmd.Flags().BoolVar(&o.PullAll, "pull-all", o.PullAll, "pull all linked collections")
@@ -105,7 +107,7 @@ func (o *PullOptions) Run(ctx context.Context) error {
 
 	if !o.NoVerify {
 		o.Logger.Infof("Checking signature of %s", o.Source)
-		if err := verifyCollection(ctx, o.Source, o.Remote); err != nil {
+		if err := verifyCollection(ctx, o.Source, o.RemoteAuth.Configs, o.Remote); err != nil {
 			return err
 		}
 

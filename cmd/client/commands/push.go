@@ -21,6 +21,7 @@ import (
 type PushOptions struct {
 	*options.Common
 	options.Remote
+	options.RemoteAuth
 	Destination string
 	Sign        bool
 }
@@ -50,6 +51,8 @@ func NewPushCmd(common *options.Common) *cobra.Command {
 	}
 
 	o.Remote.BindFlags(cmd.Flags())
+	o.RemoteAuth.BindFlags(cmd.Flags())
+
 	cmd.Flags().BoolVarP(&o.Sign, "sign", "", o.Sign, "keyless OIDC signing of UOR Collections with Sigstore")
 
 	return cmd
@@ -93,7 +96,7 @@ func (o *PushOptions) Run(ctx context.Context) error {
 
 	if o.Sign {
 		o.Logger.Infof("Signing collection")
-		err = signCollection(ctx, o.Destination, o.Remote)
+		err = signCollection(ctx, o.Destination, o.RemoteAuth.Configs, o.Remote)
 		if err != nil {
 			return err
 		}

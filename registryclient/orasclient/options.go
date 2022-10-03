@@ -26,6 +26,7 @@ type ClientOption func(o *ClientConfig) error
 type ClientConfig struct {
 	outputDir  string
 	configs    []string
+	credFn     func(context.Context, string) (auth.Credential, error)
 	plainHTTP  bool
 	insecure   bool
 	cache      content.Store
@@ -61,13 +62,6 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 		return
 	}
 
-	client.plainHTTP = config.plainHTTP
-	client.copyOpts = config.copyOpts
-	client.outputDir = config.outputDir
-	client.destroy = destroy
-	client.cache = config.cache
-	client.attributes = config.attributes
-
 	// Setup auth client based on config inputs
 	authClient := &auth.Client{
 		Client: &http.Client{
@@ -80,12 +74,23 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 		Cache: auth.NewCache(),
 	}
 
-	store, err := NewAuthStore(config.configs...)
-	if err != nil {
-		return nil, err
+	if config.credFn != nil {
+		authClient.Credential = config.credFn
+	} else {
+		store, err := NewAuthStore(config.configs...)
+		if err != nil {
+			return nil, err
+		}
+		authClient.Credential = store.Credential
 	}
-	authClient.Credential = store.Credential
+
 	client.authClient = authClient
+	client.plainHTTP = config.plainHTTP
+	client.copyOpts = config.copyOpts
+	client.outputDir = config.outputDir
+	client.destroy = destroy
+	client.cache = config.cache
+	client.attributes = config.attributes
 
 	// We are not allowing this to be configurable since
 	// oras file stores turn artifacts into descriptors in
@@ -93,6 +98,15 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client.artifactStore = file.NewWithFallbackStorage("", memory.New())
 
 	return client, nil
+}
+
+// WithCredentialFunc overrides the default credential function. Using this option will override
+// WithAuthConfigs.
+func WithCredentialFunc(credFn func(context.Context, string) (auth.Credential, error)) ClientOption {
+	return func(config *ClientConfig) error {
+		config.credFn = credFn
+		return nil
+	}
 }
 
 // WithAuthConfigs adds configuration files

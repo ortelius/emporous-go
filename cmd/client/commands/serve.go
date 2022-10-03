@@ -84,10 +84,9 @@ func (o *ServeOptions) Run(ctx context.Context) error {
 	manager := defaultmanager.New(cache, o.Logger)
 
 	opts := collectionmanager.ServiceOptions{
-		Insecure:    o.Insecure,
-		PlainHTTP:   o.PlainHTTP,
-		AuthConfigs: o.Configs,
-		PullCache:   cache,
+		Insecure:  o.Insecure,
+		PlainHTTP: o.PlainHTTP,
+		PullCache: cache,
 	}
 	service := collectionmanager.FromManager(manager, opts)
 
