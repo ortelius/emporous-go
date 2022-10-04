@@ -2,9 +2,12 @@ package orasclient
 
 import (
 	"context"
+	"crypto/tls"
+	"net/http"
 	"sync"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	"oras.land/oras-go/v2/registry/remote/auth"
 
 	"oras.land/oras-go/v2"
 	orascontent "oras.land/oras-go/v2/content"
@@ -57,13 +60,30 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 		return
 	}
 
-	client.insecure = config.insecure
-	client.configs = config.configs
 	client.plainHTTP = config.plainHTTP
 	client.copyOpts = config.copyOpts
 	client.outputDir = config.outputDir
 	client.destroy = destroy
 	client.cache = config.cache
+
+	// Setup auth client based on config inputs
+	authClient := &auth.Client{
+		Client: &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: config.insecure,
+				},
+			},
+		},
+		Cache: auth.NewCache(),
+	}
+
+	store, err := NewAuthStore(config.configs...)
+	if err != nil {
+		return nil, err
+	}
+	authClient.Credential = store.Credential
+	client.authClient = authClient
 
 	// We are not allowing this to be configurable since
 	// oras file stores turn artifacts into descriptors in
