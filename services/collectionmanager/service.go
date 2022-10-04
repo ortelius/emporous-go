@@ -26,7 +26,7 @@ type service struct {
 	options ServiceOptions
 }
 
-// ServiceOptions configure the collection router service with default remote
+// ServiceOptions configure the collection manager service with default remote
 // and collection caching options.
 type ServiceOptions struct {
 	Insecure  bool

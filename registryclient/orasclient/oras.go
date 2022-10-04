@@ -33,6 +33,7 @@ type orasClient struct {
 	plainHTTP     bool
 	authClient    *auth.Client
 	copyOpts      oras.CopyOptions
+	prePullFn     func(context.Context, string) error
 	artifactStore *file.Store
 	cache         content.Store
 	// collection will store a cache of
@@ -134,6 +135,12 @@ func (c *orasClient) LoadCollection(ctx context.Context, reference string) (coll
 // Pull performs a copy of OCI artifacts to a local location from a remote location.
 func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) (ocispec.Descriptor, []ocispec.Descriptor, error) {
 	var allDescs []ocispec.Descriptor
+
+	if c.prePullFn != nil {
+		if err := c.prePullFn(ctx, ref); err != nil {
+			return ocispec.Descriptor{}, nil, err
+		}
+	}
 
 	var from oras.Target
 	repo, err := c.setupRepo(ref)
