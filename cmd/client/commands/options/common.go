@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mitchellh/go-homedir"
+	"github.com/adrg/xdg"
 	"github.com/spf13/pflag"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
@@ -41,14 +41,12 @@ func (o *Common) Init() error {
 	o.Logger = logger
 
 	cacheEnv := os.Getenv("UOR_CACHE")
-	if cacheEnv != "" {
+	switch {
+	case cacheEnv != "":
 		o.CacheDir = cacheEnv
-	} else {
-		home, err := homedir.Dir()
-		if err != nil {
-			return err
-		}
-		o.CacheDir = filepath.Join(home, ".uor", "cache")
+	default:
+		o.CacheDir = filepath.Join(xdg.CacheHome, "uor")
 	}
+
 	return nil
 }
