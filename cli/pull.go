@@ -37,6 +37,7 @@ type PullOptions struct {
 	PlainHTTP      bool
 	Configs        []string
 	AttributeQuery string
+	NoVerify       bool
 }
 
 var clientPullExamples = []examples.Example{
@@ -87,6 +88,7 @@ func NewPullCmd(rootOpts *RootOptions) *cobra.Command {
 	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "output location for artifacts")
 	cmd.Flags().StringVar(&o.AttributeQuery, "attributes", o.AttributeQuery, "attribute query config path")
 	cmd.Flags().BoolVar(&o.PullAll, "pull-all", o.PullAll, "pull all linked collections")
+	cmd.Flags().BoolVarP(&o.NoVerify, "no-verify", "", o.NoVerify, "skip collection signature verification")
 
 	return cmd
 }
@@ -125,6 +127,14 @@ func (o *PullOptions) Run(ctx context.Context) error {
 			return err
 		}
 		matcher = attributeSet.List()
+	}
+
+	if !o.NoVerify {
+		o.Logger.Infof("Checking signature of %s", o.Source)
+		if err := verifyCollection(o, ctx); err != nil {
+			return err
+		}
+
 	}
 
 	manifestDescs, err := o.pullCollections(ctx, matcher)
