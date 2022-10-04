@@ -99,6 +99,12 @@ func AnnotationsFromAttributeSet(set model.AttributeSet) (map[string]string, err
 // UpdateLayerDescriptors updates layers descriptor annotations with attributes from an AttributeSet. The key in the fileAttributes
 // argument can be a regular expression or the name of a single file.
 func UpdateLayerDescriptors(descs []ocispec.Descriptor, fileAttributes map[string]model.AttributeSet) ([]ocispec.Descriptor, error) {
+
+	// Fail fast
+	if len(fileAttributes) == 0 {
+		return descs, nil
+	}
+
 	// Process each key into a regular expression and store it.
 	regexpByFilename := map[string]*regexp.Regexp{}
 	for file := range fileAttributes {
@@ -119,6 +125,12 @@ func UpdateLayerDescriptors(descs []ocispec.Descriptor, fileAttributes map[strin
 
 	var updateDescs []ocispec.Descriptor
 	for _, desc := range descs {
+
+		var sets []model.AttributeSet
+		if desc.Annotations == nil {
+			desc.Annotations = map[string]string{}
+		}
+
 		filename, ok := desc.Annotations[ocispec.AnnotationTitle]
 		if !ok {
 			// skip any descriptor with no name attached
@@ -128,16 +140,36 @@ func UpdateLayerDescriptors(descs []ocispec.Descriptor, fileAttributes map[strin
 		for file, set := range fileAttributes {
 			nameSearch := regexpByFilename[file]
 			if nameSearch.Match([]byte(filename)) {
-				annotations, err := AnnotationsFromAttributeSet(set)
-				if err != nil {
-					return nil, err
-				}
-				for key, value := range annotations {
-					desc.Annotations[key] = value
-				}
+				sets = append(sets, set)
 			}
 		}
+
+		if len(sets) > 0 {
+			mergedSet := mergeAttributes(sets)
+			desc.Annotations[AnnotationUORAttributes] = string(mergedSet.AsJSON())
+		}
+
 		updateDescs = append(updateDescs, desc)
 	}
 	return updateDescs, nil
+}
+
+func mergeAttributes(sets []model.AttributeSet) model.AttributeSet {
+	newSet := attributes.Attributes{}
+
+	if len(sets) == 0 {
+		return newSet
+	}
+
+	if len(sets) == 1 {
+		return sets[0]
+	}
+
+	for _, set := range sets {
+		for key, value := range set.List() {
+			newSet[key] = value
+		}
+	}
+
+	return newSet
 }
