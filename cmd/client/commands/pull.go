@@ -106,6 +106,9 @@ func (o *PullOptions) Validate() error {
 }
 
 func (o *PullOptions) Run(ctx context.Context) error {
+	if err := o.Remote.LoadRegistryConfig(); err != nil {
+		return err
+	}
 
 	matcher := matchers.PartialAttributeMatcher{}
 	if o.AttributeQuery != "" {
@@ -132,7 +135,9 @@ func (o *PullOptions) Run(ctx context.Context) error {
 		orasclient.WithPlainHTTP(o.PlainHTTP),
 		orasclient.WithCache(cache),
 		orasclient.WithPullableAttributes(matcher),
+		orasclient.WithRegistryConfig(o.RegistryConfig),
 	}
+
 
 	if !o.NoVerify {
 		verificationFn := func(ctx context.Context, reference string) error {

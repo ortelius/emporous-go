@@ -110,7 +110,8 @@ func TestCollectionManagerServer_All(t *testing.T) {
 	require.NoError(t, err)
 
 	manager := defaultmanager.New(testContentStore{Store: memory.New()}, testlogr)
-	srv := FromManager(manager, ServiceOptions{PlainHTTP: true})
+	srv, err := FromManager(manager, ServiceOptions{PlainHTTP: true})
+	require.NoError(t, err)
 
 	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer(srv)))
 	require.NoError(t, err)
