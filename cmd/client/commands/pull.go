@@ -79,6 +79,7 @@ func NewPullCmd(common *options.Common) *cobra.Command {
 	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "output location for artifacts")
 	cmd.Flags().StringVar(&o.AttributeQuery, "attributes", o.AttributeQuery, "attribute query config path")
 	cmd.Flags().BoolVar(&o.PullAll, "pull-all", o.PullAll, "pull all linked collections")
+	cmd.Flags().BoolVarP(&o.NoVerify, "no-verify", "", o.NoVerify, "skip collection signature verification")
 
 	return cmd
 }
