@@ -2,4 +2,16 @@ kind: SchemaConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 schema:
   attributeTypes:
-    "test": "string"
+    "model_name": "string"
+    "model_version": "semver"
+    "model_percision": "string"
+    "model_type": "string"
+    "model_loss": "string"
+    "model_optimizer": "string"
+    "model_epochs": "integer"
+    "model_bstch_size": "integer"
+    "model_verbose": "integer"
+    "model_shuffle": "string"
+    "model_return_sequences": string
+    "model_save_weights": string
+    "model_load_weights": string
