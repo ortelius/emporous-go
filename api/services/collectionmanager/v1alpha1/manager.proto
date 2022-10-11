@@ -59,8 +59,8 @@ message Publish {
 
 // Collection contains configuration information for a collection.
 message Collection {
-  string schemaAddress = 1;
-  repeated string linkedCollections = 2;
+  string schema_address = 1;
+  repeated string linked_collections = 2;
   repeated File files = 3;
 }
 
