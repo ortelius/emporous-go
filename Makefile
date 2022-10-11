@@ -1,6 +1,6 @@
 GO := go
 
-GO_BUILD_PACKAGES := ./cmd/...
+GO_BUILD_PACKAGES := ./cmd/client
 GO_BUILD_BINDIR :=./bin
 GIT_COMMIT := $(or $(SOURCE_GIT_COMMIT),$(shell git rev-parse --short HEAD))
 GIT_TAG :="$(shell git tag | sort -V | tail -1)"
@@ -78,6 +78,10 @@ format:
 vet: 
 	$(GO) vet ./...
 .PHONY: vet
+
+generate:
+	protoc api/services/*/*/*.proto --go-grpc_out=. --go-grpc_opt=paths=source_relative --go_out=. --go_opt=paths=source_relative --proto_path=.
+.PHONY: generate
 
 all: clean vendor test-unit build
 .PHONY: all

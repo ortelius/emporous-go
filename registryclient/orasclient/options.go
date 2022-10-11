@@ -10,11 +10,11 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 
 	"oras.land/oras-go/v2"
-	orascontent "oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/content/memory"
 
 	"github.com/uor-framework/uor-client-go/content"
+	"github.com/uor-framework/uor-client-go/model"
 	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
@@ -24,12 +24,14 @@ type ClientOption func(o *ClientConfig) error
 
 // ClientConfig contains configuration data for the registry client.
 type ClientConfig struct {
-	outputDir string
-	configs   []string
-	plainHTTP bool
-	insecure  bool
-	cache     content.Store
-	copyOpts  oras.CopyOptions
+	outputDir  string
+	configs    []string
+	credFn     func(context.Context, string) (auth.Credential, error)
+	plainHTTP  bool
+	insecure   bool
+	cache      content.Store
+	copyOpts   oras.CopyOptions
+	attributes model.Matcher
 }
 
 func (c *ClientConfig) apply(options []ClientOption) error {
@@ -60,12 +62,6 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 		return
 	}
 
-	client.plainHTTP = config.plainHTTP
-	client.copyOpts = config.copyOpts
-	client.outputDir = config.outputDir
-	client.destroy = destroy
-	client.cache = config.cache
-
 	// Setup auth client based on config inputs
 	authClient := &auth.Client{
 		Client: &http.Client{
@@ -78,12 +74,23 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 		Cache: auth.NewCache(),
 	}
 
-	store, err := NewAuthStore(config.configs...)
-	if err != nil {
-		return nil, err
+	if config.credFn != nil {
+		authClient.Credential = config.credFn
+	} else {
+		store, err := NewAuthStore(config.configs...)
+		if err != nil {
+			return nil, err
+		}
+		authClient.Credential = store.Credential
 	}
-	authClient.Credential = store.Credential
+
 	client.authClient = authClient
+	client.plainHTTP = config.plainHTTP
+	client.copyOpts = config.copyOpts
+	client.outputDir = config.outputDir
+	client.destroy = destroy
+	client.cache = config.cache
+	client.attributes = config.attributes
 
 	// We are not allowing this to be configurable since
 	// oras file stores turn artifacts into descriptors in
@@ -91,6 +98,15 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client.artifactStore = file.NewWithFallbackStorage("", memory.New())
 
 	return client, nil
+}
+
+// WithCredentialFunc overrides the default credential function. Using this option will override
+// WithAuthConfigs.
+func WithCredentialFunc(credFn func(context.Context, string) (auth.Credential, error)) ClientOption {
+	return func(config *ClientConfig) error {
+		config.credFn = credFn
+		return nil
+	}
 }
 
 // WithAuthConfigs adds configuration files
@@ -146,11 +162,11 @@ func WithPreCopy(preFn func(ctx context.Context, desc ocispec.Descriptor) error)
 	}
 }
 
-// WithSuccessorFn adds a function to find the child node of the current node if exists.
-// This sets the oras.CopyOptions.FindSuccessor function.
-func WithSuccessorFn(successorFn func(ctx context.Context, fetcher orascontent.Fetcher, desc ocispec.Descriptor) ([]ocispec.Descriptor, error)) ClientOption {
+// WithPullableAttributes adds a filter when pulling blob and allows not matching
+// blobs to be skipped.
+func WithPullableAttributes(filter model.Matcher) ClientOption {
 	return func(config *ClientConfig) error {
-		config.copyOpts.FindSuccessors = successorFn
+		config.attributes = filter
 		return nil
 	}
 }

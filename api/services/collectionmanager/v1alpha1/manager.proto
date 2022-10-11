@@ -1,0 +1,82 @@
+// Events RPC protocol version v1alpha1
+//
+// This file defines version v1alpha of the RPC protocol. To implement a plugin
+// against this protocol, copy this definition into your own codebase and
+// use protoc to generate stubs for your target language.
+
+syntax = "proto3";
+import "google/protobuf/struct.proto";
+option go_package = "github.com/uor-framework/uor-client-go/api/services/collectionmanager/v1alpha1";
+
+package manager;
+
+// CollectionManager is an endpoint that can retrieve and publish Collection
+// contents for clients.
+service CollectionManager {
+  // PublishContent publishes content based on the request.
+  rpc PublishContent(Publish.Request) returns (Publish.Response) {}
+  // RetrieveContent retrieves content based on the request.
+  rpc RetrieveContent(Retrieve.Request) returns (Retrieve.Response) {}
+}
+
+message Diagnostic {
+  enum Severity {
+    INVALID = 0;
+    ERROR = 1;
+    WARNING = 2;
+  }
+  Severity severity = 1;
+  string summary = 2;
+  string detail = 3;
+}
+
+message Retrieve {
+  message Request {
+    string source = 1;
+    string destination = 2;
+    google.protobuf.Struct filter = 3;
+    AuthConfig auth = 4;
+  }
+  message Response {
+    repeated string digests = 1;
+    repeated Diagnostic diagnostics = 2;
+  }
+}
+
+message Publish {
+  message Request {
+    string source = 1;
+    string destination = 2;
+    Collection collection = 3;
+    AuthConfig auth = 4;
+
+  }
+  message Response {
+    string digest = 1;
+    repeated Diagnostic diagnostics = 2;
+  }
+}
+
+// Collection contains configuration information for a collection.
+message Collection {
+  string schema_address = 1;
+  repeated string linked_collections = 2;
+  repeated File files = 3;
+}
+
+// File contains a regular expression for file name matching and associated
+// attributes to apply the the descriptor for matching file.
+message File {
+  string file = 1;
+  google.protobuf.Struct attributes = 2;
+}
+
+// AuthConfig contains authorization information for connecting to a registry.
+message AuthConfig {
+  string username = 1;
+  string password = 2;
+  string server_address = 3;
+  string access_token = 4;
+  string refresh_token = 5;
+}
+

@@ -1,25 +1,17 @@
 package ocimanifest
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"strings"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-
-	"github.com/uor-framework/uor-client-go/registryclient"
 )
 
-// FetchSchemaLinks fetches schema information for a reference.
-func FetchSchemaLinks(ctx context.Context, reference string, client registryclient.Remote) (string, []string, error) {
-	_, manBytes, err := client.GetManifest(ctx, reference)
-	if err != nil {
-		return "", nil, err
-	}
-
+// FetchSchemaLinks fetches schema information from a given input.
+func FetchSchemaLinks(input io.Reader) (string, []string, error) {
 	var manifest ocispec.Manifest
-	if err := json.NewDecoder(manBytes).Decode(&manifest); err != nil {
+	if err := json.NewDecoder(input).Decode(&manifest); err != nil {
 		return "", nil, err
 	}
 

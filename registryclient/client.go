@@ -7,6 +7,7 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/uor-framework/uor-client-go/content"
+	"github.com/uor-framework/uor-client-go/nodes/collection"
 )
 
 // Client defines methods to interact with OCI artifacts
@@ -20,15 +21,17 @@ type Client interface {
 // artifacts in remote contexts.
 type Remote interface {
 	// Push pushes an artifact to a remote registry from a source
-	// content store.
+	// content store and returns the root manifest digest.
 	Push(context.Context, content.Store, string) (ocispec.Descriptor, error)
 	// Pull pulls an artifact from a remote registry to a local
-	// content store.
-	Pull(context.Context, string, content.Store) (ocispec.Descriptor, error)
+	// content store. If successful it returns the root descriptor and all the descriptors pulled.
+	Pull(context.Context, string, content.Store) (ocispec.Descriptor, []ocispec.Descriptor, error)
 	// GetManifest retrieves the root manifest for a reference.
 	GetManifest(context.Context, string) (ocispec.Descriptor, io.ReadCloser, error)
 	// GetContent retrieves the content for a specified descriptor at a specified reference.
 	GetContent(context.Context, string, ocispec.Descriptor) ([]byte, error)
+	// LoadCollection loads a collection from a remote reference.
+	LoadCollection(context.Context, string) (collection.Collection, error)
 }
 
 // Local defines methods to interact with OCI artifacts

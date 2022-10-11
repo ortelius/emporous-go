@@ -8,6 +8,7 @@ import (
 	"io"
 	"path/filepath"
 	"sort"
+	"sync"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/opencontainers/go-digest"
@@ -19,18 +20,29 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 
 	"github.com/uor-framework/uor-client-go/content"
+	"github.com/uor-framework/uor-client-go/model"
+	"github.com/uor-framework/uor-client-go/nodes/collection"
+	collectionloader "github.com/uor-framework/uor-client-go/nodes/collection/loader"
+	"github.com/uor-framework/uor-client-go/nodes/descriptor"
+	"github.com/uor-framework/uor-client-go/ocimanifest"
 	"github.com/uor-framework/uor-client-go/registryclient"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient/internal/cache"
 )
 
 type orasClient struct {
 	plainHTTP     bool
-	copyOpts      oras.CopyOptions
 	authClient    *auth.Client
+	copyOpts      oras.CopyOptions
 	artifactStore *file.Store
 	cache         content.Store
-	destroy       func() error
-	outputDir     string
+	// collection will store a cache of
+	// loaded collections from remote sources.
+	collections sync.Map // map[string]collection.Collection
+	destroy     func() error
+	outputDir   string
+	// attributes is set to filter
+	// collections by attribute.
+	attributes model.Matcher
 }
 
 var _ registryclient.Client = &orasClient{}
@@ -96,12 +108,37 @@ func (c *orasClient) Save(ctx context.Context, ref string, store content.Store) 
 	return oras.Copy(ctx, c.artifactStore, ref, store, ref, c.copyOpts)
 }
 
+// LoadCollection loads a UOR collection type from a remote registry path.
+func (c *orasClient) LoadCollection(ctx context.Context, reference string) (collection.Collection, error) {
+	value, exists := c.collections.Load(reference)
+	if exists {
+		return value.(collection.Collection), nil
+	}
+
+	desc, _, err := c.GetManifest(ctx, reference)
+	if err != nil {
+		return collection.Collection{}, err
+	}
+	fetcherFn := func(ctx context.Context, desc ocispec.Descriptor) ([]byte, error) {
+		return c.GetContent(ctx, reference, desc)
+	}
+	co := collection.New(reference)
+	if err := collectionloader.LoadFromManifest(ctx, co, fetcherFn, desc); err != nil {
+		return collection.Collection{}, err
+	}
+	co.Location = reference
+	c.collections.Store(reference, *co)
+	return *co, nil
+}
+
 // Pull performs a copy of OCI artifacts to a local location from a remote location.
-func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) (ocispec.Descriptor, error) {
+func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) (ocispec.Descriptor, []ocispec.Descriptor, error) {
+	var allDescs []ocispec.Descriptor
+
 	var from oras.Target
 	repo, err := c.setupRepo(ref)
 	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("could not create registry target: %w", err)
+		return ocispec.Descriptor{}, allDescs, fmt.Errorf("could not create registry target: %w", err)
 	}
 	from = repo
 
@@ -109,7 +146,88 @@ func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) 
 		from = cache.New(repo, c.cache)
 	}
 
-	return oras.Copy(ctx, from, ref, store, ref, c.copyOpts)
+	graph, err := c.LoadCollection(ctx, ref)
+	if err != nil {
+		return ocispec.Descriptor{}, allDescs, err
+	}
+
+	// Filter the collection per the matcher criteria
+	if c.attributes != nil {
+		var matchedLeaf int
+		matchFn := model.MatcherFunc(func(node model.Node) (bool, error) {
+			// This check ensure we are not weeding out any manifests needed
+			// for OCI DAG traversal.
+			if len(graph.From(node.ID())) != 0 {
+				return true, nil
+			}
+
+			// Check that this is a descriptor node and the blob is
+			// not a config or schema resource.
+			desc, ok := node.(*descriptor.Node)
+			if !ok {
+				return false, nil
+			}
+
+			switch desc.Descriptor().MediaType {
+			case ocimanifest.UORSchemaMediaType:
+				return true, nil
+			case ocispec.MediaTypeImageConfig:
+				return true, nil
+			case ocimanifest.UORConfigMediaType:
+				return true, nil
+			}
+
+			match, err := c.attributes.Matches(node)
+			if err != nil {
+				return false, err
+			}
+
+			if match {
+				matchedLeaf++
+			}
+
+			return match, nil
+		})
+
+		var err error
+		graph, err = graph.SubCollection(matchFn)
+		if err != nil {
+			return ocispec.Descriptor{}, allDescs, err
+		}
+
+		if matchedLeaf == 0 {
+			return ocispec.Descriptor{}, allDescs, nil
+		}
+	}
+
+	var mu sync.Mutex
+	successorFn := func(_ context.Context, fetcher orascontent.Fetcher, desc ocispec.Descriptor) ([]ocispec.Descriptor, error) {
+		mu.Lock()
+		successors := graph.From(desc.Digest.String())
+		allDescs = append(allDescs, desc)
+		mu.Unlock()
+
+		var result []ocispec.Descriptor
+		for _, s := range successors {
+			d, ok := s.(*descriptor.Node)
+			if ok {
+				result = append(result, d.Descriptor())
+			}
+		}
+		return result, nil
+	}
+
+	// Create a copy of the options so the original copy
+	// options are not modified.
+	cCopyOpts := c.copyOpts
+	cCopyOpts.FindSuccessors = successorFn
+
+	desc, err := oras.Copy(ctx, from, ref, store, ref, cCopyOpts)
+	if err != nil {
+		return ocispec.Descriptor{}, allDescs, err
+	}
+
+	return desc, allDescs, nil
 }
 
 // Push performs a copy of OCI artifacts to a remote location.
