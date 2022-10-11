@@ -81,7 +81,7 @@ vet:
 .PHONY: vet
 
 generate-usage-docs: prep-build-dir
-	# The gendoc executable is build as "uor-client-go" since the
+	# The gendoc executable is built with the name "uor-client-go" since the
     # root command name is built from the base path name of the cli
     # at runtime.
 	$(GO) build -o $(GO_BUILD_BINDIR)/tmp/$(EXECUTABLE_NAME) "./cmd/gendoc"

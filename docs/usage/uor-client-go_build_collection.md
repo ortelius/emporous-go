@@ -20,9 +20,10 @@ uor-client-go build collection SRC DST [flags]
 
 ```
   -c, --configs stringArray   Path(s) to your registry credentials. Defaults to well-known auth locations ~/.docker/config.json and $XDG_RUNTIME_DIR/container/auth.json, in respective order.
-      --dsconfig string       Config path for artifact building and dataset configuration
+  -d, --dsconfig string       config path for artifact building and dataset configuration
   -h, --help                  help for collection
       --insecure              Allow connections to registries SSL registry without certs
+      --no-verify             skip schema signature verification
       --plain-http            Use plain http and not https when contacting registries
 ```
 

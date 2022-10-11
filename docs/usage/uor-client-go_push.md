@@ -20,7 +20,7 @@ uor-client-go push DST [flags]
   -h, --help                  help for push
       --insecure              Allow connections to registries SSL registry without certs
       --plain-http            Use plain http and not https when contacting registries
-      --sign                  keyless OIDC signing of UOR Collections with Sigstore
+  -s, --sign                  keyless OIDC signing of UOR Collections with Sigstore
 ```
 
 ### Options inherited from parent commands
