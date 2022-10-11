@@ -77,10 +77,10 @@ func NewPullCmd(common *options.Common) *cobra.Command {
 	o.Remote.BindFlags(cmd.Flags())
 	o.RemoteAuth.BindFlags(cmd.Flags())
 
-	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "output location for artifacts")
-	cmd.Flags().StringVar(&o.AttributeQuery, "attributes", o.AttributeQuery, "attribute query config path")
-	cmd.Flags().BoolVar(&o.PullAll, "pull-all", o.PullAll, "pull all linked collections")
-	cmd.Flags().BoolVar(&o.NoVerify, "no-verify", o.NoVerify, "skip collection signature verification")
+	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "Output location for artifacts")
+	cmd.Flags().StringVar(&o.AttributeQuery, "attributes", o.AttributeQuery, "Attribute query config path")
+	cmd.Flags().BoolVar(&o.PullAll, "pull-all", o.PullAll, "Pull all linked collections")
+	cmd.Flags().BoolVar(&o.NoVerify, "no-verify", o.NoVerify, "Skip collection signature verification")
 
 	return cmd
 }

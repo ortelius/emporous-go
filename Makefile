@@ -68,7 +68,7 @@ test-unit:
 	$(GO) test $(GO_BUILD_FLAGS) -coverprofile=coverage.out -race -count=1 ./...
 .PHONY: test-unit
 
-sanity: vendor format vet
+sanity: vendor format vet generate-usage-docs
 	git diff --exit-code
 .PHONY: sanity
 

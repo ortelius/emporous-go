@@ -13,8 +13,10 @@ func main() {
 		Short:        "Generate UOR client CLI docs",
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return doc.GenMarkdownTree(commands.NewRootCmd(), args[0])
+		RunE: func(_ *cobra.Command, args []string) error {
+			cmd := commands.NewRootCmd()
+			cmd.DisableAutoGenTag = true
+			return doc.GenMarkdownTree(cmd, args[0])
 		},
 	}
 	cobra.CheckErr(genDocCmd.Execute())
