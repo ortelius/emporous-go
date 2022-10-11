@@ -106,7 +106,7 @@ func TestCollectionManagerServer_All(t *testing.T) {
 
 	ctx := context.Background()
 
-	testlogr, err := log.NewLogger(ioutil.Discard, "debug")
+	testlogr, err := log.NewLogrusLogger(ioutil.Discard, "debug")
 	require.NoError(t, err)
 
 	manager := defaultmanager.New(testContentStore{Store: memory.New()}, testlogr)

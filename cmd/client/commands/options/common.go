@@ -21,7 +21,7 @@ type EnvConfig struct {
 type Common struct {
 	IOStreams genericclioptions.IOStreams
 	LogLevel  string
-	Logger    log.Logger
+	Logger    log.LoggerWithInterceptor
 	CacheDir  string
 	EnvConfig
 }
@@ -34,7 +34,7 @@ func (o *Common) BindFlags(fs *pflag.FlagSet) {
 
 // Init initializes default values for Common options.
 func (o *Common) Init() error {
-	logger, err := log.NewLogger(o.IOStreams.Out, o.LogLevel)
+	logger, err := log.NewLogrusLogger(o.IOStreams.Out, o.LogLevel)
 	if err != nil {
 		return err
 	}
