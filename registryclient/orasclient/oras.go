@@ -30,17 +30,22 @@ import (
 )
 
 type orasClient struct {
-	plainHTTP     bool
-	authClient    *auth.Client
-	copyOpts      oras.CopyOptions
-	prePullFn     func(context.Context, string) error
+	plainHTTP  bool
+	authClient *auth.Client
+	// oras-specific copy options
+	copyOpts oras.CopyOptions
+	// User specified pre-pull actions
+	// (e.g. signature verification).
+	prePullFn func(context.Context, string) error
+	// underlying store for collection
+	// building on disk
 	artifactStore *file.Store
-	cache         content.Store
+	// Location of cached blobs
+	cache content.Store
 	// collection will store a cache of
 	// loaded collections from remote sources.
 	collections sync.Map // map[string]collection.Collection
 	destroy     func() error
-	outputDir   string
 	// attributes is set to filter
 	// collections by attribute.
 	attributes model.Matcher

@@ -24,7 +24,6 @@ type ClientOption func(o *ClientConfig) error
 
 // ClientConfig contains configuration data for the registry client.
 type ClientConfig struct {
-	outputDir  string
 	configs    []string
 	credFn     func(context.Context, string) (auth.Credential, error)
 	prePullFn  func(context.Context, string) error
@@ -88,7 +87,6 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client.authClient = authClient
 	client.plainHTTP = config.plainHTTP
 	client.copyOpts = config.copyOpts
-	client.outputDir = config.outputDir
 	client.destroy = destroy
 	client.cache = config.cache
 	client.attributes = config.attributes
@@ -107,14 +105,6 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 func WithCredentialFunc(credFn func(context.Context, string) (auth.Credential, error)) ClientOption {
 	return func(config *ClientConfig) error {
 		config.credFn = credFn
-		return nil
-	}
-}
-
-// WithPrePull applies a function to a reference before copying it.
-func WithPrePull(prePullFn func(context.Context, string) error) ClientOption {
-	return func(config *ClientConfig) error {
-		config.prePullFn = prePullFn
 		return nil
 	}
 }
@@ -150,6 +140,15 @@ func WithPlainHTTP(plainHTTP bool) ClientOption {
 func WithCache(store content.Store) ClientOption {
 	return func(config *ClientConfig) error {
 		config.cache = store
+		return nil
+	}
+}
+
+// WithPrePullFunc applies a function to a reference before pulling it to a content
+// store.
+func WithPrePullFunc(prePullFn func(context.Context, string) error) ClientOption {
+	return func(config *ClientConfig) error {
+		config.prePullFn = prePullFn
 		return nil
 	}
 }

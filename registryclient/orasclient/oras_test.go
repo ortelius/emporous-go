@@ -2,6 +2,7 @@ package orasclient
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http/httptest"
 	"net/url"
@@ -111,7 +112,7 @@ func TestPushPull(t *testing.T) {
 
 	ctx := context.TODO()
 
-	t.Run("Success/PushOneImage", func(t *testing.T) {
+	t.Run("Success/PushOneCollection", func(t *testing.T) {
 		cache := memory.New()
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		c, err := NewClient(WithPlainHTTP(true), WithCache(cache))
@@ -133,7 +134,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, c.Destroy())
 	})
 
-	t.Run("Success/PullOneImage", func(t *testing.T) {
+	t.Run("Success/PullOneCollection", func(t *testing.T) {
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
@@ -144,7 +145,24 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, c.Destroy())
 	})
 
-	t.Run("Success/FilteredImage", func(t *testing.T) {
+	t.Run("Success/PullWithPrePull", func(t *testing.T) {
+		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		var testRef []string
+		prePullFn := func(ctx context.Context, reference string) error {
+			testRef = append(testRef, reference)
+			return nil
+		}
+		c, err := NewClient(WithPlainHTTP(true), WithPrePullFunc(prePullFn))
+		require.NoError(t, err)
+		root, descs, err := c.Pull(context.TODO(), ref, memory.New())
+		require.NoError(t, err)
+		require.Equal(t, expDigest, root.Digest.String())
+		require.Len(t, descs, 4)
+		require.Equal(t, []string{ref}, testRef)
+		require.NoError(t, c.Destroy())
+	})
+
+	t.Run("Success/PullFilteredCollection", func(t *testing.T) {
 		expDigest := ""
 		matcher := matchers.PartialAttributeMatcher{"test": attributes.NewString("test", "fail")}
 		c, err := NewClient(WithPlainHTTP(true), WithPullableAttributes(matcher))
@@ -168,7 +186,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, c.Destroy())
 	})
 
-	t.Run("Success/PushMultipleImages", func(t *testing.T) {
+	t.Run("Success/PushMultipleCollections", func(t *testing.T) {
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
@@ -189,7 +207,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, c.Destroy())
 	})
 
-	t.Run("Success/PullMultipleImages", func(t *testing.T) {
+	t.Run("Success/PullMultipleCollections", func(t *testing.T) {
 		tmp := t.TempDir()
 		destination := file.New(tmp)
 		c, err := NewClient(WithPlainHTTP(true))
@@ -208,6 +226,17 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, err)
 		_, _, err = c.Pull(context.TODO(), notExistRef, memory.New())
 		require.EqualError(t, err, fmt.Sprintf("%s: not found", notExistTag))
+		require.NoError(t, c.Destroy())
+	})
+
+	t.Run("Failure/PrePullFail", func(t *testing.T) {
+		prePullFn := func(ctx context.Context, reference string) error {
+			return errors.New("I failed")
+		}
+		c, err := NewClient(WithPlainHTTP(true), WithPrePullFunc(prePullFn))
+		require.NoError(t, err)
+		_, _, err = c.Pull(context.TODO(), ref, memory.New())
+		require.EqualError(t, err, "I failed")
 		require.NoError(t, c.Destroy())
 	})
 }

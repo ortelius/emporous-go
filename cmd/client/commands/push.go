@@ -53,7 +53,7 @@ func NewPushCmd(common *options.Common) *cobra.Command {
 	o.Remote.BindFlags(cmd.Flags())
 	o.RemoteAuth.BindFlags(cmd.Flags())
 
-	cmd.Flags().BoolVarP(&o.Sign, "sign", "", o.Sign, "keyless OIDC signing of UOR Collections with Sigstore")
+	cmd.Flags().BoolVarP(&o.Sign, "sign", "s", o.Sign, "keyless OIDC signing of UOR Collections with Sigstore")
 
 	return cmd
 }
