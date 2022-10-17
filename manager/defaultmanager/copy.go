@@ -12,13 +12,13 @@ import (
 	"github.com/uor-framework/uor-client-go/ocimanifest"
 	"github.com/uor-framework/uor-client-go/registryclient"
 	"github.com/uor-framework/uor-client-go/util/workspace"
-	"oras.land/oras-go/v2/content/file"
+	"oras.land/oras-go/v2/content/memory"
 )
 
-func (d DefaultManager) Update(ctx context.Context, space workspace.Workspace, dest string, add bool, remove bool, client registryclient.Client) (string, error) {
+func (d DefaultManager) Update(ctx context.Context, space workspace.Workspace, src string, dest string, add bool, remove bool, client registryclient.Client) (string, error) {
 
 	// Pull the dataset config from the target collection
-	_, manBytes, err := client.GetManifest(ctx, dest)
+	_, manBytes, err := client.GetManifest(ctx, src)
 	if err != nil {
 		return "", err
 	}
@@ -27,7 +27,7 @@ func (d DefaultManager) Update(ctx context.Context, space workspace.Workspace, d
 	if err := json.NewDecoder(manBytes).Decode(&manifest); err != nil {
 		return "", err
 	}
-	manconfig, err := client.GetContent(ctx, dest, manifest.Config)
+	manconfig, err := client.GetContent(ctx, src, manifest.Config)
 	if err != nil {
 		return "", err
 	}
@@ -36,60 +36,40 @@ func (d DefaultManager) Update(ctx context.Context, space workspace.Workspace, d
 	if err != nil {
 		return "", err
 	}
-	d.logger.Infof("Dataset-config %s", config)
-	attributesByFile := map[string]model.AttributeSet{}
 
 	if remove {
-		pruneDescs, err := d.pullCollection(ctx, dest, file.New("./output"), client)
+		pruneDescs, err := d.pullCollection(ctx, src, memory.New(), client)
 		if err != nil {
 			return "", err
 		}
-		d.logger.Infof("prune layers: %s", pruneDescs)
+		pDesc := map[string]struct{}{}
 		for _, s := range pruneDescs {
-			for i, v := range manifest.Layers {
-				if v.Digest == s.Digest {
-					d.logger.Infof("removing: %s", s.Digest)
-					manifest.Layers = append(manifest.Layers[:i], manifest.Layers[i+1:]...)
-				}
+			pDesc[s.Digest.String()] = struct{}{}
+		}
+
+		var newLayers []ocispec.Descriptor
+		for _, v := range manifest.Layers {
+			if _, found := pDesc[v.Digest.String()]; !found {
+				newLayers = append(newLayers, v)
 			}
+			manifest.Layers = newLayers
 		}
 	}
-
+	var attributesByFile map[string]model.AttributeSet
 	var files []string
-	if add {
-		err = space.Walk(func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return fmt.Errorf("traversing %s: %v", path, err)
-			}
-			if info == nil {
-				return fmt.Errorf("no file info")
-			}
 
-			if info.Mode().IsRegular() {
-				files = append(files, path)
-			}
-			return nil
-		})
+	if add {
+		files, attributesByFile, err = addFiles(space, d, config, dest)
 		if err != nil {
 			return "", err
-		}
-
-		for _, file := range config.Collection.Files {
-			set, err := load.ConvertToModel(file.Attributes)
-			if err != nil {
-				return "", err
-			}
-			attributesByFile[file.File] = set
-		}
-
-		if len(files) == 0 {
-			return "", fmt.Errorf("path %q empty workspace", space.Path("."))
 		}
 	}
 
 	// If a schema is present, pull it and do the validation before
 	// processing the files to get quick feedback to the user.
 	collectionManifestAnnotations := map[string]string{}
+	var descs []ocispec.Descriptor
+
 	if config.Collection.SchemaAddress != "" {
 		d.logger.Infof("Validating dataset configuration against schema %s", config.Collection.SchemaAddress)
 		collectionManifestAnnotations[ocimanifest.AnnotationSchema] = config.Collection.SchemaAddress
@@ -116,40 +96,35 @@ func (d DefaultManager) Update(ctx context.Context, space workspace.Workspace, d
 					return "", fmt.Errorf("attributes for file %s are not valid for schema %s", file, config.Collection.SchemaAddress)
 				}
 			}
-		}
-	}
 
-	// To allow the files to be loaded relative to the render
-	// workspace, change to the render directory. This is required
-	// to get path correct in the description annotations.
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
+			// To allow the files to be loaded relative to the render
+			// workspace, change to the render directory. This is required
+			// to get path correct in the description annotations.
+			cwd, err := os.Getwd()
+			if err != nil {
+				return "", err
+			}
 
-	if err := os.Chdir(space.Path()); err != nil {
-		return "", err
-	}
-	defer func() {
-		if err := os.Chdir(cwd); err != nil {
-			d.logger.Errorf("%v", err)
-		}
-	}()
-	var descs []ocispec.Descriptor
-	if add {
-		descs, err = client.AddFiles(ctx, "", files...)
-		if err != nil {
-			return "", err
+			if err := os.Chdir(space.Path()); err != nil {
+				return "", err
+			}
+			defer func() {
+				if err := os.Chdir(cwd); err != nil {
+					d.logger.Errorf("%v", err)
+				}
+			}()
+
+			descs, err = client.AddFiles(ctx, "", files...)
+			if err != nil {
+				return "", err
+			}
 		}
 
-		d.logger.Infof("Pre-update layers %s", manifest.Layers)
 		descs = append(descs, manifest.Layers...)
-		d.logger.Infof("Update layers %s", descs)
 		descs, err = ocimanifest.UpdateLayerDescriptors(descs, attributesByFile)
 		if err != nil {
 			return "", err
 		}
-		d.logger.Infof("updated layer descs: %s", descs)
 	}
 
 	// Store the DataSetConfiguration file in the manifest config of the OCI artifact for
@@ -169,7 +144,6 @@ func (d DefaultManager) Update(ctx context.Context, space workspace.Workspace, d
 	}
 
 	descs = append(descs, linkedDescs...)
-	d.logger.Infof("with links: %s", descs)
 	// Write the root collection attributes
 	if len(linkedDescs) > 0 {
 		collectionManifestAnnotations[ocimanifest.AnnotationSchemaLinks] = formatLinks(linkedSchemas)
