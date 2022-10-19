@@ -41,16 +41,28 @@ func (a intAttribute) AsString() (string, error) {
 	return "", ErrWrongKind
 }
 
-// AsFloat returns the value as a float value and errors if that is not
+// AsFloat returns the value as a float64 value and errors if that is not
 // the underlying type.
 func (a intAttribute) AsFloat() (float64, error) {
 	return 0, ErrWrongKind
 }
 
-// AsInt returns the value as an int value errors and if that is not
+// AsInt returns the value as an int64 value and errors if that is not
 // the underlying type.
 func (a intAttribute) AsInt() (int64, error) {
 	return a.value, nil
+}
+
+// AsList returns the value as a slice and errors if that is not the
+// underlying type.
+func (a intAttribute) AsList() ([]model.AttributeValue, error) {
+	return nil, ErrWrongKind
+}
+
+// AsObject returns the value as a map and errors if that is not the
+// underlying type.
+func (a intAttribute) AsObject() (map[string]model.AttributeValue, error) {
+	return nil, ErrWrongKind
 }
 
 // AsAny returns the value as an interface.

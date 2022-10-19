@@ -112,18 +112,28 @@ type AttributeSet interface {
 type Attribute interface {
 	// Key is the value of the attribute identifier. This must always be a string.
 	Key() string
+	// AttributeValue represent possible attributes which can be primitives, slices,
+	// or maps.
+	AttributeValue
+}
+
+type AttributeValue interface {
 	// Kind represent the value type.
 	Kind() Kind
-	// IsNull will return true if the attribute type is null.
+	// IsNull returns true if the attribute type is null.
 	IsNull() bool
-	// AsBool will return the attribute values as a boolean.
+	// AsBool returns the attribute values as a boolean.
 	AsBool() (bool, error)
-	// AsInt will return the attribute value as an int.
+	// AsInt returns the attribute value as an int.
 	AsInt() (int64, error)
-	// AsFloat will return the attribute value as a float.
+	// AsFloat returns the attribute value as a float.
 	AsFloat() (float64, error)
-	// AsString will return the attribute value as a string.
+	// AsString returns the attribute value as a string.
 	AsString() (string, error)
+	// AsList returns the attribute as a slice of attributes.
+	AsList() ([]AttributeValue, error)
+	// AsObject returns the attributes as an object.
+	AsObject() (map[string]AttributeValue, error)
 	// AsAny returns the value of the attribute with no type checking.
 	AsAny() interface{}
 }
@@ -138,6 +148,8 @@ const (
 	KindInt
 	KindFloat
 	KindString
+	KindList
+	KindObject
 )
 
 // String prints a string representation of the attribute kind.
@@ -155,6 +167,10 @@ func (k Kind) String() string {
 		return "int"
 	case KindString:
 		return "string"
+	case KindList:
+		return "list"
+	case KindObject:
+		return "object"
 	default:
 		panic("invalid kind")
 	}
