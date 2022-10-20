@@ -40,7 +40,7 @@ type RegistryConfig struct {
 
 // FindRegistry returns the registry from the registry config that
 // matches the reference.
-func FindRegistry(registryConfig RegistryConfig, ref string) (*Registry, error) {
+func FindRegistry(registryConfig RegistryConfig, reference string) (*Registry, error) {
 	reg := Registry{}
 	prefixLen := 0
 
@@ -53,7 +53,7 @@ func FindRegistry(registryConfig RegistryConfig, ref string) (*Registry, error) 
 		if err != nil {
 			return nil, err
 		}
-		if prefixExp.MatchString(ref) {
+		if prefixExp.MatchString(reference) {
 			if len(match) > prefixLen {
 				reg = r
 				prefixLen = len(match)
