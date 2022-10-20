@@ -73,9 +73,9 @@ message File {
 
 // RegistryConfig configuration contains configuration information for connecting to a registry.
 message RegistryConfig {
-  bool plain_http = 2;
-  bool skip_tls_verify = 3;
-  AuthConfig auth = 4;
+  bool plain_http = 1;
+  bool skip_tls_verify = 2;
+  AuthConfig auth = 3;
 }
 
 // AuthConfig contains authorization information for connecting to a registry.
@@ -86,6 +86,3 @@ message AuthConfig {
   string access_token = 4;
   string refresh_token = 5;
 }
-
-
-
