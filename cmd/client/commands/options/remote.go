@@ -11,15 +11,15 @@ import (
 
 // Remote describes remote configuration options that can be set.
 type Remote struct {
-	Insecure       bool
+	SkipTLSVerify  bool
 	PlainHTTP      bool
 	RegistryConfig registryclient.RegistryConfig
 }
 
 // BindFlags binds options from a flag set to Remote options.
 func (o *Remote) BindFlags(fs *pflag.FlagSet) {
-	fs.BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to registries SSL registry without certs")
-	fs.BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https when contacting registries")
+	fs.BoolVar(&o.SkipTLSVerify, "skip-tls-verify", o.SkipTLSVerify, "disable TLS certificate verification when contacting registries")
+	fs.BoolVar(&o.PlainHTTP, "plain-http", o.PlainHTTP, "use plain http and not https when contacting registries")
 }
 
 // LoadRegistryConfig loads the registry config from disk.

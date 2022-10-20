@@ -39,7 +39,7 @@ func signCollection(_ context.Context, reference string, authConfigs []string, r
 	regopts := cosignopts.RegistryOptions{
 		Keychain: authn.DefaultKeychain,
 	}
-	if remoteOpts.PlainHTTP || remoteOpts.Insecure {
+	if remoteOpts.PlainHTTP || remoteOpts.SkipTLSVerify {
 		regopts.AllowInsecure = true
 	}
 
@@ -70,7 +70,7 @@ func verifyCollection(ctx context.Context, reference string, authConfigs []strin
 		Keychain: authn.DefaultKeychain,
 	}
 
-	if remoteOpts.PlainHTTP || remoteOpts.Insecure {
+	if remoteOpts.PlainHTTP || remoteOpts.SkipTLSVerify {
 		regopts.AllowInsecure = true
 	}
 

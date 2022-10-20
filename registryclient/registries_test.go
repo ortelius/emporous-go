@@ -22,13 +22,13 @@ func TestFindRegistry(t *testing.T) {
 					{
 						Prefix: "*.example.com",
 						Endpoint: Endpoint{
-							SkipTLS: true,
+							SkipTLSVerify: true,
 						},
 					},
 					{
 						Prefix: "*.not.com",
 						Endpoint: Endpoint{
-							SkipTLS: false,
+							SkipTLSVerify: false,
 						},
 					},
 				},
@@ -37,7 +37,7 @@ func TestFindRegistry(t *testing.T) {
 			expReg: Registry{
 				Prefix: "*.example.com",
 				Endpoint: Endpoint{
-					SkipTLS: true,
+					SkipTLSVerify: true,
 				},
 			},
 		},
@@ -48,13 +48,13 @@ func TestFindRegistry(t *testing.T) {
 					{
 						Prefix: "*.example.com",
 						Endpoint: Endpoint{
-							SkipTLS: true,
+							SkipTLSVerify: true,
 						},
 					},
 					{
 						Prefix: "*",
 						Endpoint: Endpoint{
-							SkipTLS: false,
+							SkipTLSVerify: false,
 						},
 					},
 				},
@@ -63,7 +63,7 @@ func TestFindRegistry(t *testing.T) {
 			expReg: Registry{
 				Prefix: "*.example.com",
 				Endpoint: Endpoint{
-					SkipTLS: true,
+					SkipTLSVerify: true,
 				},
 			},
 		},
@@ -74,13 +74,13 @@ func TestFindRegistry(t *testing.T) {
 					{
 						Prefix: "reg.example.*",
 						Endpoint: Endpoint{
-							SkipTLS: true,
+							SkipTLSVerify: true,
 						},
 					},
 					{
 						Prefix: "*",
 						Endpoint: Endpoint{
-							SkipTLS: false,
+							SkipTLSVerify: false,
 						},
 					},
 				},
@@ -89,7 +89,7 @@ func TestFindRegistry(t *testing.T) {
 			expReg: Registry{
 				Prefix: "reg.example.*",
 				Endpoint: Endpoint{
-					SkipTLS: true,
+					SkipTLSVerify: true,
 				},
 			},
 		},
@@ -100,7 +100,7 @@ func TestFindRegistry(t *testing.T) {
 					{
 						Prefix: "*.not.com",
 						Endpoint: Endpoint{
-							SkipTLS: true,
+							SkipTLSVerify: true,
 						},
 					},
 				},

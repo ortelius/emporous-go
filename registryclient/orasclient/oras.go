@@ -34,7 +34,7 @@ import (
 
 type orasClient struct {
 	plainHTTP    bool
-	insecure     bool
+	skipTLSVerify     bool
 	authCache    auth.Cache
 	credFn       func(context.Context, string) (auth.Credential, error)
 	registryConf registryclient.RegistryConfig
@@ -332,11 +332,11 @@ func (c *orasClient) setupRepo(ctx context.Context, reference string) (registry.
 	switch {
 	case registryConfig == nil:
 		repo.PlainHTTP = c.plainHTTP
-		repo.Client = c.authClient(c.insecure)
+		repo.Client = c.authClient(c.skipTLSVerify)
 		return repo, nil
 	default:
 		repo.PlainHTTP = registryConfig.PlainHTTP
-		repo.Client = c.authClient(registryConfig.SkipTLS)
+		repo.Client = c.authClient(registryConfig.SkipTLSVerify)
 		return repo, nil
 	}
 }

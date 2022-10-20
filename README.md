@@ -61,7 +61,7 @@ Example:
 registries:
   - prefix: "localhost:5001/test"
     location: localhost:5001
-    skipTLS: false
+    skipTLSVerify: false
     plainHTTP: true
 ```
 

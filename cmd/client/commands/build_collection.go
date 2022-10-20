@@ -107,7 +107,7 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 	}
 
 	var clientOpts = []orasclient.ClientOption{
-		orasclient.SkipTLSVerify(o.Insecure),
+		orasclient.SkipTLSVerify(o.SkipTLSVerify),
 		orasclient.WithAuthConfigs(o.Configs),
 		orasclient.WithPlainHTTP(o.PlainHTTP),
 		orasclient.WithRegistryConfig(o.RegistryConfig),

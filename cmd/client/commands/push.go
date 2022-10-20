@@ -81,7 +81,7 @@ func (o *PushOptions) Run(ctx context.Context) error {
 	}
 
 	client, err := orasclient.NewClient(
-		orasclient.SkipTLSVerify(o.Insecure),
+		orasclient.SkipTLSVerify(o.SkipTLSVerify),
 		orasclient.WithAuthConfigs(o.Configs),
 		orasclient.WithPlainHTTP(o.PlainHTTP),
 		orasclient.WithRegistryConfig(o.RegistryConfig),

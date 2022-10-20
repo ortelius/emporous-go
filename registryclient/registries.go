@@ -18,7 +18,7 @@ type Endpoint struct {
 	// The endpoint's remote location.
 	Location string `mapstructure:"location" json:"location"`
 	// If true, certs verification will be skipped.
-	SkipTLS bool `mapstructure:"skipTLS" json:"skipTLS"`
+	SkipTLSVerify bool `mapstructure:"skipTLSVerify" json:"skipTLSVerify"`
 	// If true, the client will use HTTP to
 	// connect to the registry.
 	PlainHTTP bool `mapstructure:"plainHTTP" json:"plainHTTP"`

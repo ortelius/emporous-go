@@ -26,7 +26,7 @@ type ClientConfig struct {
 	configs        []string
 	credFn         func(context.Context, string) (auth.Credential, error)
 	plainHTTP      bool
-	insecure       bool
+	skipTLSVerify  bool
 	cache          content.Store
 	copyOpts       oras.CopyOptions
 	attributes     model.Matcher
@@ -64,7 +64,7 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 
 	client.authCache = auth.NewCache()
 	client.plainHTTP = config.plainHTTP
-	client.insecure = config.insecure
+	client.skipTLSVerify = config.skipTLSVerify
 	client.copyOpts = config.copyOpts
 	client.destroy = destroy
 	client.cache = config.cache
@@ -120,9 +120,9 @@ func WithRegistryConfig(registryConf registryclient.RegistryConfig) ClientOption
 }
 
 // SkipTLSVerify disables TLS certificate checking.
-func SkipTLSVerify(insecure bool) ClientOption {
+func SkipTLSVerify(skipTLSVerify bool) ClientOption {
 	return func(config *ClientConfig) error {
-		config.insecure = insecure
+		config.skipTLSVerify = skipTLSVerify
 		return nil
 	}
 }
