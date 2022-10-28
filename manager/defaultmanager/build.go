@@ -58,13 +58,10 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 	if config.Collection.SchemaAddress != "" {
 		d.logger.Infof("Validating dataset configuration against schema %s", config.Collection.SchemaAddress)
 		collectionManifestAnnotations[ocimanifest.AnnotationSchema] = config.Collection.SchemaAddress
-		if err != nil {
-			return "", fmt.Errorf("error configuring client: %v", err)
-		}
 
 		_, _, err = client.Pull(ctx, config.Collection.SchemaAddress, d.store)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("error configuring client: %v", err)
 		}
 
 		schemaDoc, err := fetchJSONSchema(ctx, config.Collection.SchemaAddress, d.store)
