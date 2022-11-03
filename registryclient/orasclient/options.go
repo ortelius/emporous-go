@@ -24,9 +24,9 @@ type ClientOption func(o *ClientConfig) error
 
 // ClientConfig contains configuration data for the registry client.
 type ClientConfig struct {
-	outputDir  string
 	configs    []string
 	credFn     func(context.Context, string) (auth.Credential, error)
+	prePullFn  func(context.Context, string) error
 	plainHTTP  bool
 	insecure   bool
 	cache      content.Store
@@ -87,10 +87,10 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 	client.authClient = authClient
 	client.plainHTTP = config.plainHTTP
 	client.copyOpts = config.copyOpts
-	client.outputDir = config.outputDir
 	client.destroy = destroy
 	client.cache = config.cache
 	client.attributes = config.attributes
+	client.prePullFn = config.prePullFn
 
 	// We are not allowing this to be configurable since
 	// oras file stores turn artifacts into descriptors in
@@ -144,6 +144,15 @@ func WithCache(store content.Store) ClientOption {
 	}
 }
 
+// WithPrePullFunc applies a function to a reference before pulling it to a content
+// store.
+func WithPrePullFunc(prePullFn func(context.Context, string) error) ClientOption {
+	return func(config *ClientConfig) error {
+		config.prePullFn = prePullFn
+		return nil
+	}
+}
+
 // WithPostCopy applies a function to a descriptor after copying it.
 // This sets the oras.CopyOptions.PostCopy function.
 func WithPostCopy(postFn func(ctx context.Context, desc ocispec.Descriptor) error) ClientOption {
@@ -162,7 +171,7 @@ func WithPreCopy(preFn func(ctx context.Context, desc ocispec.Descriptor) error)
 	}
 }
 
-// WithPullableAttributes adds a filter when pulling blob and allows not matching
+// WithPullableAttributes adds a filter when pulling blobs that allows non-matching
 // blobs to be skipped.
 func WithPullableAttributes(filter model.Matcher) ClientOption {
 	return func(config *ClientConfig) error {

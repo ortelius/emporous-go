@@ -76,10 +76,11 @@ func NewPullCmd(common *options.Common) *cobra.Command {
 
 	o.Remote.BindFlags(cmd.Flags())
 	o.RemoteAuth.BindFlags(cmd.Flags())
+
 	cmd.Flags().StringVarP(&o.Output, "output", "o", o.Output, "output location for artifacts")
 	cmd.Flags().StringVar(&o.AttributeQuery, "attributes", o.AttributeQuery, "attribute query config path")
 	cmd.Flags().BoolVar(&o.PullAll, "pull-all", o.PullAll, "pull all linked collections")
-	cmd.Flags().BoolVarP(&o.NoVerify, "no-verify", "", o.NoVerify, "skip collection signature verification")
+	cmd.Flags().BoolVar(&o.NoVerify, "no-verify", o.NoVerify, "skip collection signature verification")
 
 	return cmd
 }
@@ -106,14 +107,6 @@ func (o *PullOptions) Validate() error {
 
 func (o *PullOptions) Run(ctx context.Context) error {
 
-	if !o.NoVerify {
-		o.Logger.Infof("Checking signature of %s", o.Source)
-		if err := verifyCollection(ctx, o.Source, o.RemoteAuth.Configs, o.Remote); err != nil {
-			return err
-		}
-
-	}
-
 	matcher := matchers.PartialAttributeMatcher{}
 	if o.AttributeQuery != "" {
 		query, err := config.ReadAttributeQuery(o.AttributeQuery)
@@ -133,13 +126,27 @@ func (o *PullOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	client, err := orasclient.NewClient(
+	var clientOpts = []orasclient.ClientOption{
 		orasclient.SkipTLSVerify(o.Insecure),
 		orasclient.WithAuthConfigs(o.Configs),
 		orasclient.WithPlainHTTP(o.PlainHTTP),
 		orasclient.WithCache(cache),
 		orasclient.WithPullableAttributes(matcher),
-	)
+	}
+
+	if !o.NoVerify {
+		verificationFn := func(ctx context.Context, reference string) error {
+			o.Logger.Debugf("Checking signature of %s", reference)
+			err = verifyCollection(ctx, reference, o.RemoteAuth.Configs, o.Remote)
+			if err != nil {
+				return fmt.Errorf("collection %q: %v", reference, err)
+			}
+			return nil
+		}
+		clientOpts = append(clientOpts, orasclient.WithPrePullFunc(verificationFn))
+	}
+
+	client, err := orasclient.NewClient(clientOpts...)
 	if err != nil {
 		return fmt.Errorf("error configuring client: %v", err)
 	}

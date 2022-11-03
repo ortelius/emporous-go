@@ -173,6 +173,7 @@ func TestBuildCollectionRun(t *testing.T) {
 				Remote: options.Remote{
 					PlainHTTP: true,
 				},
+				NoVerify: true,
 			},
 		},
 		{
@@ -194,6 +195,7 @@ func TestBuildCollectionRun(t *testing.T) {
 				Remote: options.Remote{
 					PlainHTTP: true,
 				},
+				NoVerify: true,
 			},
 		},
 		{
@@ -237,6 +239,7 @@ func TestBuildCollectionRun(t *testing.T) {
 				Remote: options.Remote{
 					PlainHTTP: true,
 				},
+				NoVerify: true,
 			},
 			expError: fmt.Sprintf("reference %s/test:latest is not a schema address", u.Host),
 		},

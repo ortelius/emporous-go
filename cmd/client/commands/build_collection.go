@@ -25,7 +25,8 @@ type BuildCollectionOptions struct {
 	*BuildOptions
 	options.Remote
 	options.RemoteAuth
-	RootDir string
+	NoVerify bool
+	RootDir  string
 	// Dataset Config
 	DSConfig string
 }
@@ -63,7 +64,8 @@ func NewBuildCollectionCmd(buildOpts *BuildOptions) *cobra.Command {
 
 	o.Remote.BindFlags(cmd.Flags())
 	o.RemoteAuth.BindFlags(cmd.Flags())
-	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "", o.DSConfig, "config path for artifact building and dataset configuration")
+	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "d", o.DSConfig, "config path for artifact building and dataset configuration")
+	cmd.Flags().BoolVar(&o.NoVerify, "no-verify", o.NoVerify, "skip schema signature verification")
 
 	return cmd
 }
@@ -100,11 +102,25 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 		return err
 	}
 
-	client, err := orasclient.NewClient(
+	var clientOpts = []orasclient.ClientOption{
 		orasclient.SkipTLSVerify(o.Insecure),
 		orasclient.WithAuthConfigs(o.Configs),
 		orasclient.WithPlainHTTP(o.PlainHTTP),
-	)
+	}
+
+	if !o.NoVerify {
+		verificationFn := func(ctx context.Context, reference string) error {
+			o.Logger.Debugf("Checking signature of %s", reference)
+			err = verifyCollection(ctx, reference, o.RemoteAuth.Configs, o.Remote)
+			if err != nil {
+				return fmt.Errorf("collection %q: %v", reference, err)
+			}
+			return nil
+		}
+		clientOpts = append(clientOpts, orasclient.WithPrePullFunc(verificationFn))
+	}
+
+	client, err := orasclient.NewClient(clientOpts...)
 	if err != nil {
 		return fmt.Errorf("error configuring client: %v", err)
 	}

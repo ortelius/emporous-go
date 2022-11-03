@@ -30,16 +30,22 @@ import (
 )
 
 type orasClient struct {
-	plainHTTP     bool
-	authClient    *auth.Client
-	copyOpts      oras.CopyOptions
+	plainHTTP  bool
+	authClient *auth.Client
+	// oras-specific copy options
+	copyOpts oras.CopyOptions
+	// User specified pre-pull actions
+	// (e.g. signature verification).
+	prePullFn func(context.Context, string) error
+	// underlying store for collection
+	// building on disk
 	artifactStore *file.Store
-	cache         content.Store
+	// Location of cached blobs
+	cache content.Store
 	// collection will store a cache of
 	// loaded collections from remote sources.
 	collections sync.Map // map[string]collection.Collection
 	destroy     func() error
-	outputDir   string
 	// attributes is set to filter
 	// collections by attribute.
 	attributes model.Matcher
@@ -134,6 +140,12 @@ func (c *orasClient) LoadCollection(ctx context.Context, reference string) (coll
 // Pull performs a copy of OCI artifacts to a local location from a remote location.
 func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) (ocispec.Descriptor, []ocispec.Descriptor, error) {
 	var allDescs []ocispec.Descriptor
+
+	if c.prePullFn != nil {
+		if err := c.prePullFn(ctx, ref); err != nil {
+			return ocispec.Descriptor{}, nil, err
+		}
+	}
 
 	var from oras.Target
 	repo, err := c.setupRepo(ref)
