@@ -10,6 +10,7 @@ import (
 	"sync"
 	"syscall"
 
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
@@ -74,7 +75,8 @@ func (o *ServeOptions) Run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	rpc := grpc.NewServer()
+	interceptors := o.Logger.WithServerInterceptors()
+	rpc := grpc.NewServer(grpc_middleware.WithUnaryServerChain(interceptors...))
 
 	cache, err := layout.NewWithContext(ctx, o.CacheDir)
 	if err != nil {

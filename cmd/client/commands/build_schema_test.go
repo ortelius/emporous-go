@@ -95,7 +95,7 @@ func TestBuildSchemaValidate(t *testing.T) {
 }
 
 func TestBuildSchemaRun(t *testing.T) {
-	testlogr, err := log.NewLogger(ioutil.Discard, "debug")
+	testlogr, err := log.NewLogrusLogger(ioutil.Discard, "debug")
 	require.NoError(t, err)
 
 	server := httptest.NewServer(registry.New())

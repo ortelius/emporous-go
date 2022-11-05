@@ -104,7 +104,7 @@ func TestPullValidate(t *testing.T) {
 }
 
 func TestPullRun(t *testing.T) {
-	testlogr, err := log.NewLogger(io.Discard, "debug")
+	testlogr, err := log.NewLogrusLogger(io.Discard, "debug")
 	require.NoError(t, err)
 
 	server := httptest.NewServer(registry.New())
