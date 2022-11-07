@@ -138,7 +138,6 @@ func (o *PullOptions) Run(ctx context.Context) error {
 		orasclient.WithRegistryConfig(o.RegistryConfig),
 	}
 
-
 	if !o.NoVerify {
 		verificationFn := func(ctx context.Context, reference string) error {
 			o.Logger.Debugf("Checking signature of %s", reference)

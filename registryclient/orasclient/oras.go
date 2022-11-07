@@ -33,11 +33,11 @@ import (
 )
 
 type orasClient struct {
-	plainHTTP    bool
-	skipTLSVerify     bool
-	authCache    auth.Cache
-	credFn       func(context.Context, string) (auth.Credential, error)
-	registryConf registryclient.RegistryConfig
+	plainHTTP     bool
+	skipTLSVerify bool
+	authCache     auth.Cache
+	credFn        func(context.Context, string) (auth.Credential, error)
+	registryConf  registryclient.RegistryConfig
 	// oras-specific copy options
 	copyOpts oras.CopyOptions
 	// User specified pre-pull actions
