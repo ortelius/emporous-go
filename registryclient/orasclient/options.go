@@ -22,7 +22,6 @@ type ClientOption func(o *ClientConfig) error
 
 // ClientConfig contains configuration data for the registry client.
 type ClientConfig struct {
-	outputDir      string
 	configs        []string
 	credFn         func(context.Context, string) (auth.Credential, error)
 	plainHTTP      bool
@@ -31,7 +30,7 @@ type ClientConfig struct {
 	copyOpts       oras.CopyOptions
 	attributes     model.Matcher
 	registryConfig registryclient.RegistryConfig
-	prePullFn  func(context.Context, string) error
+	prePullFn      func(context.Context, string) error
 }
 
 func (c *ClientConfig) apply(options []ClientOption) error {
@@ -81,7 +80,6 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 		}
 		client.credFn = store.Credential
 	}
-
 
 	// We are not allowing this to be configurable since
 	// oras file stores turn artifacts into descriptors in
