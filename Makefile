@@ -5,10 +5,10 @@ GO_BUILD_BINDIR :=./bin
 GIT_COMMIT := $(or $(SOURCE_GIT_COMMIT),$(shell git rev-parse --short HEAD))
 GIT_TAG :="$(shell git tag | sort -V | tail -1)"
 
-GO_LD_EXTRAFLAGS :=-X github.com/uor-framework/uor-client-go/cli.version="$(shell git tag | sort -V | tail -1)" \
-				   -X github.com/uor-framework/uor-client-go/cli.buildData="dev" \
-				   -X github.com/uor-framework/uor-client-go/cli.commit="$(GIT_COMMIT)" \
-				   -X github.com/uor-framework/uor-client-go/cli.buildDate="$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')"
+GO_LD_EXTRAFLAGS :=-X github.com/uor-framework/uor-client-go/cmd/client/commands.version="$(shell git tag | sort -V | tail -1)" \
+				   -X github.com/uor-framework/uor-client-go/cmd/client/commands.buildData="dev" \
+				   -X github.com/uor-framework/uor-client-go/cmd/client/commands.commit="$(GIT_COMMIT)" \
+				   -X github.com/uor-framework/uor-client-go/cmd/client/commands.buildDate="$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 build: prep-build-dir
 	$(GO) build -o $(GO_BUILD_BINDIR)/uor-client-go  -ldflags="$(GO_LD_EXTRAFLAGS)" $(GO_BUILD_PACKAGES)
