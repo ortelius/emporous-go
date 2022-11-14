@@ -28,9 +28,10 @@ func LoadFromManifest(ctx context.Context, graph *collection.Collection, fetcher
 	// track content status
 	tracker := traversal.NewTracker(root, nil)
 
+	seen := map[string]struct{}{}
 	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
 		// skip the node if it has been indexed
-		if graph.HasNode(node.ID()) {
+		if _, ok := seen[node.ID()]; ok {
 			return nil, traversal.ErrSkip
 		}
 
@@ -39,7 +40,7 @@ func LoadFromManifest(ctx context.Context, graph *collection.Collection, fetcher
 			return nil, traversal.ErrSkip
 		}
 
-		successors, err := getSuccessors(ctx, fetcher, manifest)
+		successors, err := getSuccessors(ctx, fetcher, desc.Descriptor())
 		if err != nil {
 			return nil, err
 		}
@@ -48,6 +49,8 @@ func LoadFromManifest(ctx context.Context, graph *collection.Collection, fetcher
 		if err != nil {
 			return nil, err
 		}
+
+		seen[node.ID()] = struct{}{}
 
 		return nodes, nil
 	})
