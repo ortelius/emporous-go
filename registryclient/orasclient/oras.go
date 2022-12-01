@@ -9,7 +9,6 @@ import (
 	"io"
 	"path/filepath"
 	"sort"
-	"strings"
 	"sync"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -490,30 +489,4 @@ func getDefaultMediaType(file string) (string, error) {
 		return "", err
 	}
 	return mType.String(), nil
-}
-
-func formatDigests(digests []string) string {
-	n := len(digests)
-	switch {
-	case n == 1:
-		return digests[0]
-	case n > 1:
-		dedupLinks := deduplicate(digests)
-		return strings.Join(dedupLinks, ",")
-	default:
-		return ""
-	}
-}
-
-func deduplicate(in []string) []string {
-	links := map[string]struct{}{}
-	var out []string
-	for _, l := range in {
-		if _, ok := links[l]; ok {
-			continue
-		}
-		links[l] = struct{}{}
-		out = append(out, l)
-	}
-	return out
 }
