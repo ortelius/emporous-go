@@ -15,6 +15,7 @@ import (
 
 	clientapi "github.com/emporous/emporous-go/api/client/v1alpha1"
 	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/components"
 	load "github.com/emporous/emporous-go/config"
 	"github.com/emporous/emporous-go/content"
 	"github.com/emporous/emporous-go/model"
@@ -143,6 +144,13 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 		return "", err
 	}
 
+	// Gather workspace file metadata
+	input := fmt.Sprintf("dir:%s", ".")
+	inv, err := components.GenerateInventory(input, config)
+	if err != nil {
+		return "", fmt.Errorf("inventory generation for %s: %w", space.Path(), err)
+	}
+
 	// Create nodes and update node properties
 	var nodes []v2.Node
 	for _, desc := range descs {
@@ -157,6 +165,9 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 			return "", err
 		}
 		node.Location = location
+		if err := components.InventoryToProperties(*inv, location, node.Properties); err != nil {
+			return "", err
+		}
 		nodes = append(nodes, *node)
 	}
 
