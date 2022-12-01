@@ -55,14 +55,8 @@ func (c *Collection) Address() string {
 	return c.Location
 }
 
-// Attributes returns a collection of all the
-// attributes contained within the collection nodes.
-// Because each parent node should inherit the attributes, all
-// the attached child nodes, the root node will contain attributes
-// for the entire collection. If no root node exists, nil is returned.
-// FIXME(jpower432): Collection are currently not being loaded this way so the
-// collection may not be representing the full attributes content.
-// https://github.com/uor-framework/uor-client-go/issues/80
+// Attributes returns the attributes of the collection root
+// node if one exists.
 func (c *Collection) Attributes() model.AttributeSet {
 	root, err := c.Root()
 	if err == nil {

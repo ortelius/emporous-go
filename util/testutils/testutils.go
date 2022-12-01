@@ -5,32 +5,32 @@ import (
 )
 
 var (
-	_ model.Node = &MockNode{}
-	_ model.Node = &MockIterableNode{}
+	_ model.Node = &FakeNode{}
+	_ model.Node = &FakeIterableNode{}
 )
 
-// MockNode implements the model.Node interface for testing.
-type MockNode struct {
+// FakeNode implements the model.Node interface for testing.
+type FakeNode struct {
 	// Node ID
 	I string
 	// Node Attributes
 	A model.AttributeSet
 }
 
-func (m *MockNode) ID() string {
+func (m *FakeNode) ID() string {
 	return m.I
 }
 
-func (m *MockNode) Address() string {
+func (m *FakeNode) Address() string {
 	return "address"
 }
 
-func (m *MockNode) Attributes() model.AttributeSet {
+func (m *FakeNode) Attributes() model.AttributeSet {
 	return m.A
 }
 
-// MockIterableNode implements the model.Node and model.Iterator interface for testing.
-type MockIterableNode struct {
+// FakeIterableNode implements the model.Node and model.Iterator interface for testing.
+type FakeIterableNode struct {
 	// Node ID
 	I string
 	// Iterator Index
@@ -41,26 +41,26 @@ type MockIterableNode struct {
 	Nodes []model.Node
 }
 
-func (m *MockIterableNode) ID() string {
+func (m *FakeIterableNode) ID() string {
 	return m.I
 }
 
-func (m *MockIterableNode) Address() string {
+func (m *FakeIterableNode) Address() string {
 	return "address"
 }
 
-func (m *MockIterableNode) Attributes() model.AttributeSet {
+func (m *FakeIterableNode) Attributes() model.AttributeSet {
 	return m.A
 }
 
-func (m *MockIterableNode) Len() int {
+func (m *FakeIterableNode) Len() int {
 	if m.Index >= len(m.Nodes) {
 		return 0
 	}
 	return len(m.Nodes[m.Index+1:])
 }
 
-func (m *MockIterableNode) Next() bool {
+func (m *FakeIterableNode) Next() bool {
 	if uint(m.Index)+1 < uint(len(m.Nodes)) {
 		m.Index++
 		return true
@@ -69,17 +69,17 @@ func (m *MockIterableNode) Next() bool {
 	return false
 }
 
-func (m *MockIterableNode) Node() model.Node {
+func (m *FakeIterableNode) Node() model.Node {
 	if m.Index >= len(m.Nodes) || m.Index < 0 {
 		return nil
 	}
 	return m.Nodes[m.Index]
 }
 
-func (m *MockIterableNode) Reset() {
+func (m *FakeIterableNode) Reset() {
 	m.Index = -1
 }
 
-func (m *MockIterableNode) Error() error {
+func (m *FakeIterableNode) Error() error {
 	return nil
 }

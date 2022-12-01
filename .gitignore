@@ -7,6 +7,7 @@ sha256sum.txt
 **/test-output
 client-workspace
 dataset-config.yaml
+*query.yaml
 
 
 # Logs.

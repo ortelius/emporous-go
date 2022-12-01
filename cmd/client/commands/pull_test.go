@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -14,14 +15,16 @@ import (
 	"github.com/google/go-containerregistry/pkg/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
+	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/memory"
+	orasregistry "oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 
 	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
 	"github.com/uor-framework/uor-client-go/log"
-	"github.com/uor-framework/uor-client-go/ocimanifest"
+	"github.com/uor-framework/uor-client-go/nodes/descriptor"
 )
 
 func TestPullComplete(t *testing.T) {
@@ -167,12 +170,12 @@ func TestPullRun(t *testing.T) {
 				if err != nil {
 					return false
 				}
-				actual = filepath.Join(path, "hello.linked.txt")
+				actual = filepath.Join(path, "aggregate.txt")
 				_, err = os.Stat(actual)
 				if err != nil {
 					return false
 				}
-				actual = filepath.Join(path, "hello.linked1.txt")
+				actual = filepath.Join(path, "aggregate2.txt")
 				_, err = os.Stat(actual)
 				return err == nil
 			},
@@ -197,7 +200,7 @@ func TestPullRun(t *testing.T) {
 				NoVerify:       true,
 			},
 			assertFunc: func(path string) bool {
-				actual := filepath.Join(path, "hello.linked.txt")
+				actual := filepath.Join(path, "aggregate.txt")
 				_, err = os.Stat(actual)
 				return err == nil
 			},
@@ -256,7 +259,7 @@ func TestPullRun(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			tmp := t.TempDir()
 			c.opts.Output = tmp
-			prepTestArtifact(t, c.opts.Source, u.Host)
+			prepTestArtifact(t, c.opts.Source)
 
 			cache := filepath.Join(t.TempDir(), "cache")
 			require.NoError(t, os.MkdirAll(cache, 0750))
@@ -275,59 +278,98 @@ func TestPullRun(t *testing.T) {
 
 // prepTestArtifact will push a hello.txt artifact into the
 // registry for retrieval. Uses methods from oras-go.
-func prepTestArtifact(t *testing.T, ref string, host string) {
+func prepTestArtifact(t *testing.T, ref string) {
 	fileName := "hello.txt"
-	fileLinkedName := "hello.linked.txt"
-	fileLinked1Name := "hello.linked1.txt"
 	fileContent := []byte("Hello World!\n")
 
-	publishFunc := func(fileName, ref string, fileContent []byte, layerAnnotations, manifestAnnotations map[string]string) {
-		ctx := context.TODO()
-		// Push file(s) w custom mediatype to registry
-		memoryStore := memory.New()
-		layerDesc, err := pushBlob(ctx, ocispec.MediaTypeImageLayer, fileContent, memoryStore)
-		require.NoError(t, err)
-		if layerDesc.Annotations == nil {
-			layerDesc.Annotations = map[string]string{}
-		}
-		layerDesc.Annotations = layerAnnotations
-		layerDesc.Annotations[ocispec.AnnotationTitle] = fileName
+	aggregateRef := fmt.Sprintf("%s-aggregate", ref)
+	aggregateDesc := prepLinks(t, aggregateRef)
 
-		config := []byte("{}")
-		configDesc, err := pushBlob(ctx, ocispec.MediaTypeImageConfig, config, memoryStore)
-		require.NoError(t, err)
+	aggregationJSON, err := json.Marshal(aggregateDesc)
+	require.NoError(t, err)
 
-		manifest, err := generateManifest(configDesc, manifestAnnotations, layerDesc)
-		require.NoError(t, err)
+	manifestAnnotations := map[string]string{
+		uorspec.AnnotationLink: string(aggregationJSON),
+	}
+	_, err = publishFunc(fileName, ref, fileContent, map[string]string{"test": "annotation"}, manifestAnnotations)
+	require.NoError(t, err)
+}
 
-		manifestDesc, err := pushBlob(ctx, ocispec.MediaTypeImageManifest, manifest, memoryStore)
-		require.NoError(t, err)
+// prepLinks will push links into the
+// registry for retrieval. Uses methods from oras-go.
+func prepLinks(t *testing.T, ref string) []ocispec.Descriptor {
+	fileName := "aggregate.txt"
+	fileContent := []byte("Hello Again World!\n")
+	ref1 := fmt.Sprintf("%s-ref1", ref)
 
-		require.NoError(t, memoryStore.Tag(ctx, manifestDesc, ref))
+	r, err := orasregistry.ParseReference(ref)
+	require.NoError(t, err)
+	linkAttr := descriptor.Properties{
+		Link: &uorspec.LinkAttributes{
+			RegistryHint:  r.Registry,
+			NamespaceHint: r.Repository,
+			Transitive:    true,
+		},
+	}
+	linkJSON, err := json.Marshal(linkAttr)
+	require.NoError(t, err)
+	ref1Annotations := map[string]string{
+		uorspec.AnnotationUORAttributes: string(linkJSON),
+	}
+	desc1, err := publishFunc(fileName, ref1, fileContent, map[string]string{"test": "linkedannotation"}, ref1Annotations)
+	require.NoError(t, err)
+	fileName2 := "aggregate2.txt"
+	fileContent2 := []byte("Hello Again Again World !\n")
+	ref2 := fmt.Sprintf("%s-ref2", ref)
+	ref2Annotations := map[string]string{
+		uorspec.AnnotationUORAttributes: string(linkJSON),
+	}
+	desc2, err := publishFunc(fileName2, ref2, fileContent2, map[string]string{"test": "annotation"}, ref2Annotations)
+	require.NoError(t, err)
 
-		repo, err := remote.NewRepository(ref)
-		require.NoError(t, err)
-		repo.PlainHTTP = true
-		_, err = oras.Copy(context.TODO(), memoryStore, ref, repo, "", oras.DefaultCopyOptions)
-		require.NoError(t, err)
+	return []ocispec.Descriptor{desc1, desc2}
+}
+
+func publishFunc(fileName, ref string, fileContent []byte, layerAnnotations, manifestAnnotations map[string]string) (ocispec.Descriptor, error) {
+	ctx := context.TODO()
+	// Push file(s) w custom mediatype to registry
+	memoryStore := memory.New()
+	layerDesc, err := pushBlob(ctx, ocispec.MediaTypeImageLayer, fileContent, memoryStore)
+	if err != nil {
+		return ocispec.Descriptor{}, nil
 	}
 
-	linkAnnotations := map[string]string{
-		ocimanifest.AnnotationSchema: "test.com/schema:latest",
+	layerDesc.Annotations = layerAnnotations
+	if layerDesc.Annotations == nil {
+		layerDesc.Annotations = map[string]string{}
 	}
-	linked1Ref := fmt.Sprintf("%s/linked1:test", host)
-	publishFunc(fileLinked1Name, linked1Ref, fileContent, map[string]string{"test": "linked1annotation"}, linkAnnotations)
-	middleAnnotations := map[string]string{
-		ocimanifest.AnnotationSchema:          "test.com/schema:latest",
-		ocimanifest.AnnotationSchemaLinks:     "test.com/schema:latest",
-		ocimanifest.AnnotationCollectionLinks: linked1Ref,
+	layerDesc.Annotations[ocispec.AnnotationTitle] = fileName
+
+	config := []byte("{}")
+	configDesc, err := pushBlob(ctx, ocispec.MediaTypeImageConfig, config, memoryStore)
+	if err != nil {
+		return ocispec.Descriptor{}, nil
 	}
-	linkedRef := fmt.Sprintf("%s/linked:test", host)
-	publishFunc(fileLinkedName, linkedRef, fileContent, map[string]string{"test": "linkedannotation"}, middleAnnotations)
-	rootAnnotations := map[string]string{
-		ocimanifest.AnnotationSchema:          "test.com/schema:latest",
-		ocimanifest.AnnotationSchemaLinks:     "test.com/schema:latest",
-		ocimanifest.AnnotationCollectionLinks: linkedRef,
+
+	manifest, err := generateManifest(configDesc, manifestAnnotations, layerDesc)
+	if err != nil {
+		return ocispec.Descriptor{}, nil
 	}
-	publishFunc(fileName, ref, fileContent, map[string]string{"test": "annotation"}, rootAnnotations)
+
+	manifestDesc, err := pushBlob(ctx, ocispec.MediaTypeImageManifest, manifest, memoryStore)
+	if err != nil {
+		return ocispec.Descriptor{}, nil
+	}
+
+	err = memoryStore.Tag(ctx, manifestDesc, ref)
+	if err != nil {
+		return ocispec.Descriptor{}, nil
+	}
+
+	repo, err := remote.NewRepository(ref)
+	if err != nil {
+		return ocispec.Descriptor{}, nil
+	}
+	repo.PlainHTTP = true
+	return oras.Copy(context.TODO(), memoryStore, ref, repo, "", oras.DefaultCopyOptions)
 }

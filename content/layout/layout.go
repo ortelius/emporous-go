@@ -14,6 +14,7 @@ import (
 
 	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	orascontent "oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/content/oci"
 	"oras.land/oras-go/v2/errdef"
@@ -23,8 +24,7 @@ import (
 	"github.com/uor-framework/uor-client-go/model/traversal"
 	"github.com/uor-framework/uor-client-go/nodes/collection"
 	"github.com/uor-framework/uor-client-go/nodes/collection/loader"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
-	"github.com/uor-framework/uor-client-go/ocimanifest"
+	"github.com/uor-framework/uor-client-go/nodes/descriptor/v2"
 )
 
 var (
@@ -109,7 +109,7 @@ func (l *Layout) Predecessors(_ context.Context, node ocispec.Descriptor) ([]oci
 	var predecessors []ocispec.Descriptor
 	nodes := l.graph.To(node.Digest.String())
 	for _, n := range nodes {
-		desc, ok := n.(*descriptor.Node)
+		desc, ok := n.(*v2.Node)
 		if ok {
 			predecessors = append(predecessors, desc.Descriptor())
 		}
@@ -143,8 +143,9 @@ func (l *Layout) ResolveByAttribute(ctx context.Context, reference string, match
 			return nil, err
 		}
 		if match {
-			desc, ok := node.(*descriptor.Node)
+			desc, ok := node.(*v2.Node)
 			if ok {
+
 				// Check that the blob actually exists within the file
 				// store. This will filter out blobs in the event that this is a
 				// sparse manifest.
@@ -183,9 +184,9 @@ func (l *Layout) AttributeSchema(ctx context.Context, reference string) (ocispec
 	var stopErr = errors.New("stop")
 	tracker := traversal.NewTracker(root, nil)
 	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
-		desc, ok := node.(*descriptor.Node)
+		desc, ok := node.(*v2.Node)
 		if ok {
-			if desc.Descriptor().MediaType == ocimanifest.UORSchemaMediaType {
+			if desc.Descriptor().MediaType == uorspec.MediaTypeSchemaDescriptor {
 				res = desc.Descriptor()
 				return nil, stopErr
 			}
@@ -203,21 +204,6 @@ func (l *Layout) AttributeSchema(ctx context.Context, reference string) (ocispec
 	}
 
 	return res, nil
-}
-
-// ResolveLinks returns linked collection references for a collection. If the collection
-// has no links, an error is returned.
-func (l *Layout) ResolveLinks(ctx context.Context, reference string) ([]string, error) {
-	desc, err := l.Resolve(ctx, reference)
-	if err != nil {
-		return nil, err
-	}
-	r, err := l.Fetch(ctx, desc)
-	if err != nil {
-		return nil, err
-	}
-	defer r.Close()
-	return ocimanifest.ResolveCollectionLinks(r)
 }
 
 // Tag tags a descriptor with a reference string.
