@@ -19,6 +19,12 @@ func (c *Collection) AddNode(node model.Node) error {
 	return nil
 }
 
+// UpdateNode adds a new node or updates the existing node, if applicable.
+func (c *Collection) UpdateNode(node model.Node) error {
+	c.nodes[node.ID()] = node
+	return nil
+}
+
 // AddEdge adds an edge between two nodes in the graph
 func (c *Collection) AddEdge(edge model.Edge) error {
 	from := edge.From().ID()

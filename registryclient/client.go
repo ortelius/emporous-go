@@ -26,6 +26,9 @@ type Remote interface {
 	// Pull pulls an artifact from a remote registry to a local
 	// content store. If successful it returns the root descriptor and all the descriptors pulled.
 	Pull(context.Context, string, content.Store) (ocispec.Descriptor, []ocispec.Descriptor, error)
+	// PullWithLinks pulls an artifact from a remote registry to a local
+	// content store and follows all the links. If successful it returns the root descriptor and all the descriptors pulled.
+	PullWithLinks(context.Context, string, content.Store) ([]ocispec.Descriptor, error)
 	// GetManifest retrieves the root manifest for a reference.
 	GetManifest(context.Context, string) (ocispec.Descriptor, io.ReadCloser, error)
 	// GetContent retrieves the content for a specified descriptor at a specified reference.
@@ -62,4 +65,7 @@ type DescriptorAdder interface {
 	// AddManifest creates and stores a manifest for an image reference.
 	// This is generated from the config descriptor and artifact descriptors.
 	AddManifest(context.Context, string, ocispec.Descriptor, map[string]string, ...ocispec.Descriptor) (ocispec.Descriptor, error)
+	// AddIndex creates and stores an index manifest for an image reference.
+	// This is generated from the config descriptor and artifact descriptors.
+	AddIndex(context.Context, string, map[string]string, ...ocispec.Descriptor) (ocispec.Descriptor, error)
 }

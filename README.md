@@ -641,6 +641,45 @@ root.txt
 
 Notice how only the _root.txt_ file was retrieved as only this file contained the attribute `color=orange`
 
+# Experimental
+
+## Publish content to use with a container runtime
+#### Steps
+1. Create a simple Go application
+```bash
+cat << EOF > main.go
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello World")
+}
+EOF
+go build -o myworkspace/helloworld main.go 
+```
+2. Create a collection
+```bash
+cat << EOF > dataset-config.yaml
+kind: DataSetConfiguration
+apiVersion: client.uor-framework.io/v1alpha1
+collection:
+  runtime:
+    Cmd:
+      - "./helloworld"
+  files:
+    - file: "helloworld"
+      fileInfo:
+        permissions: 0700
+      attributes:
+        test: "something"
+EOF
+```
+```bash
+uor-client-go build collection myworkspace --plain-http localhost:5000/exercises/runtime:latest --dsconfig dataset-config.yaml
+uor-client-go push --plain-http localhost:5000/exercises/runtime:latest
+```
+
 # Glossary
 
 `collection`: a collection of linked files represented as on OCI artifact

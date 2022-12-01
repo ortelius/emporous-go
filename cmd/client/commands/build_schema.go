@@ -2,16 +2,19 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
 	load "github.com/uor-framework/uor-client-go/config"
 	"github.com/uor-framework/uor-client-go/content/layout"
-	"github.com/uor-framework/uor-client-go/ocimanifest"
+	"github.com/uor-framework/uor-client-go/nodes/descriptor"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
 	"github.com/uor-framework/uor-client-go/schema"
 	"github.com/uor-framework/uor-client-go/util/examples"
@@ -22,6 +25,7 @@ import (
 type BuildSchemaOptions struct {
 	*BuildOptions
 	SchemaConfig string
+	SchemaPath   string
 }
 
 var clientBuildSchemaExamples = []examples.Example{
@@ -95,17 +99,41 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 		}
 	}()
 
-	generatedSchema, err := schema.FromTypes(config.Schema.AttributeTypes)
+	var userSchema schema.Loader
+	if config.Schema.SchemaPath != "" {
+		schemaBytes, err := ioutil.ReadFile(config.Schema.SchemaPath)
+		if err != nil {
+			return err
+		}
+		userSchema, err = schema.FromBytes(schemaBytes)
+		if err != nil {
+			return err
+		}
+	} else {
+		userSchema, err = schema.FromTypes(config.Schema.AttributeTypes)
+		if err != nil {
+			return err
+		}
+	}
+
+	schemaAnnotations := map[string]string{}
+	schemaAttr := descriptor.Properties{
+		Schema: &uorspec.SchemaAttributes{
+			ID:          config.Schema.ID,
+			Description: config.Schema.Description,
+		},
+	}
+	schemaJSON, err := json.Marshal(schemaAttr)
+	if err != nil {
+		return err
+	}
+	schemaAnnotations[uorspec.AnnotationUORAttributes] = string(schemaJSON)
+	desc, err := client.AddContent(ctx, uorspec.MediaTypeSchemaDescriptor, userSchema.Export(), schemaAnnotations)
 	if err != nil {
 		return err
 	}
 
-	desc, err := client.AddContent(ctx, ocimanifest.UORSchemaMediaType, generatedSchema.Export(), nil)
-	if err != nil {
-		return err
-	}
-
-	configDesc, err := client.AddContent(ctx, ocimanifest.UORConfigMediaType, []byte("{}"), nil)
+	configDesc, err := client.AddContent(ctx, uorspec.MediaTypeConfiguration, []byte("{}"), nil)
 	if err != nil {
 		return err
 	}

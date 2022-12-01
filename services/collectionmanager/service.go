@@ -130,7 +130,7 @@ func (s *service) RetrieveContent(ctx context.Context, message *managerapi.Retri
 		}
 	}()
 
-	digests, err := s.mg.PullAll(ctx, message.Source, client, file.New(message.Destination))
+	digests, err := s.mg.Pull(ctx, message.Source, client, file.New(message.Destination))
 	if err != nil {
 		return &managerapi.Retrieve_Response{}, status.Error(codes.Internal, err.Error())
 	}

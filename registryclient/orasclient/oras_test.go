@@ -11,13 +11,15 @@ import (
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/registry"
+	"github.com/opencontainers/go-digest"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
+	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/content/memory"
 
 	"github.com/uor-framework/uor-client-go/attributes"
 	"github.com/uor-framework/uor-client-go/attributes/matchers"
-	"github.com/uor-framework/uor-client-go/ocimanifest"
 )
 
 func TestAddFiles(t *testing.T) {
@@ -55,10 +57,32 @@ func TestAddManifest(t *testing.T) {
 		require.NoError(t, err)
 		desc, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddContent(ctx, ocimanifest.UORConfigMediaType, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, uorspec.MediaTypeConfiguration, []byte("{}"), nil)
 		require.NoError(t, err)
 		mdesc, err := c.AddManifest(ctx, "localhost:5000/test:latest", configDesc, nil, desc...)
 		require.NoError(t, err)
+		require.Equal(t, expDigest, mdesc.Digest.String())
+	})
+}
+
+func TestAddIndex(t *testing.T) {
+	t.Run("Success/OneLink", func(t *testing.T) {
+		ctx := context.TODO()
+		expMediaType := ocispec.MediaTypeImageIndex
+		expDigest := "sha256:1dd97ca7e7c6ac3c931699d8f1ea572d408bfa1ab29a29fb0cad9633f82543ca"
+		c, err := NewClient(WithPlainHTTP(true))
+		require.NoError(t, err)
+
+		d := digest.NewDigestFromEncoded("sha256", "98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a")
+
+		desc := ocispec.Descriptor{
+			Digest:    d,
+			MediaType: ocispec.MediaTypeImageManifest,
+			Size:      1355,
+		}
+		mdesc, err := c.AddIndex(ctx, "localhost:5000/test:latest", nil, desc)
+		require.NoError(t, err)
+		require.Equal(t, expMediaType, mdesc.MediaType)
 		require.Equal(t, expDigest, mdesc.Digest.String())
 	})
 }
@@ -74,13 +98,13 @@ func TestSave(t *testing.T) {
 
 	ctx := context.TODO()
 
-	t.Run("Success/PushOneImage", func(t *testing.T) {
+	t.Run("Success/SaveOneCollection", func(t *testing.T) {
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddContent(ctx, ocimanifest.UORConfigMediaType, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, uorspec.MediaTypeConfiguration, []byte("{}"), nil)
 		require.NoError(t, err)
 
 		mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
@@ -95,6 +119,9 @@ func TestSave(t *testing.T) {
 		desc, err = memStore.Resolve(ctx, ref)
 		require.NoError(t, err)
 		require.Equal(t, expDigest, desc.Digest.String())
+		desc, err = memStore.Resolve(ctx, ref)
+		require.NoError(t, err)
+		require.Equal(t, expDigest, desc.Digest.String())
 	})
 }
 
@@ -104,7 +131,7 @@ func TestPushPull(t *testing.T) {
 	u, err := url.Parse(server.URL)
 	require.NoError(t, err)
 
-	ref := fmt.Sprintf("%s/test:latest", u.Host)
+	ref := fmt.Sprintf("%s/mytest:latest", u.Host)
 	notExistTag := "latest"
 	notExistRef := fmt.Sprintf("%s/notexist:%s", u.Host, notExistTag)
 	images := []string{fmt.Sprintf("%s/test:latest", u.Host), fmt.Sprintf("%s/test2:latest", u.Host)}
@@ -119,7 +146,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddContent(ctx, ocimanifest.UORConfigMediaType, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, uorspec.MediaTypeConfiguration, []byte("{}"), nil)
 		require.NoError(t, err)
 
 		mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
@@ -134,7 +161,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, c.Destroy())
 	})
 
-	t.Run("Success/PullOneCollection", func(t *testing.T) {
+	t.Run("Success/PullOneImage", func(t *testing.T) {
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
@@ -191,7 +218,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddContent(ctx, ocimanifest.UORConfigMediaType, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, uorspec.MediaTypeConfiguration, []byte("{}"), nil)
 		require.NoError(t, err)
 
 		source, err := c.Store()
@@ -221,11 +248,11 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, c.Destroy())
 	})
 
-	t.Run("Failure/ImageDoesNotExist", func(t *testing.T) {
+	t.Run("Failure/CollectionDoesNotExist", func(t *testing.T) {
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
 		_, _, err = c.Pull(context.TODO(), notExistRef, memory.New())
-		require.EqualError(t, err, fmt.Sprintf("%s: not found", notExistTag))
+		require.EqualError(t, err, fmt.Sprintf("%s: not found", notExistRef))
 		require.NoError(t, c.Destroy())
 	})
 

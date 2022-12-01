@@ -1,75 +1,75 @@
 package schema
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
-	"sort"
+	"strings"
 
 	"github.com/xeipuuv/gojsonschema"
+
+	"github.com/uor-framework/uor-client-go/model"
+)
+
+const (
+	UnknownSchemaID   = "unknown"
+	ConvertedSchemaID = "converted"
 )
 
 // Schema representation of properties in a JSON Schema format.
 type Schema struct {
-	JSONSchema *gojsonschema.Schema
-	raw        json.RawMessage
+	jsonSchema *gojsonschema.Schema
 }
 
-// Export returns the json raw message.
-func (s Schema) Export() json.RawMessage {
-	return s.raw
+// Validate performs schema validation against the
+// input attribute set.
+func (s *Schema) Validate(set model.AttributeSet) (bool, error) {
+	attrDoc, err := set.MarshalJSON()
+	if err != nil {
+		return false, err
+	}
+	doc := gojsonschema.NewBytesLoader(attrDoc)
+	result, err := s.jsonSchema.Validate(doc)
+	if err != nil {
+		return false, err
+	}
+	return result.Valid(), aggregateErrors(result.Errors())
 }
 
-// FromTypes builds a JSON Schema from a key with an associated type.
-// All keys provided will be considered required types in the schema when
-// comparing sets of attributes.
-func FromTypes(types Types) (Schema, error) {
-	if err := types.Validate(); err != nil {
-		return Schema{}, err
+func aggregateErrors(errs []gojsonschema.ResultError) error {
+	if len(errs) == 0 {
+		return nil
 	}
-
-	// Build an object in json from the provided types
-	type jsonSchema struct {
-		Type       string                       `json:"type"`
-		Properties map[string]map[string]string `json:"properties"`
-		Required   []string                     `json:"required"`
+	finalErr := errors.New(strings.ToLower(errs[0].String()))
+	for i := 1; i < len(errs); i++ {
+		finalErr = fmt.Errorf("%v:%v", finalErr, strings.ToLower(errs[i].String()))
 	}
+	return finalErr
+}
 
-	// Fill in properties and required keys. At this point
-	// we consider all keys as required.
-	properties := map[string]map[string]string{}
-	var required []string
-	for key, value := range types {
-		properties[key] = map[string]string{"type": value.String()}
-		required = append(required, key)
-	}
-
-	// Make the required slice order deterministic
-	sort.Slice(required, func(i, j int) bool {
-		return required[i] < required[j]
-	})
-
-	tmp := jsonSchema{
-		Type:       "object",
-		Properties: properties,
-		Required:   required,
-	}
-	b, err := json.Marshal(tmp)
+// New create a schema from a Loader
+func New(schemaLoader Loader) (Schema, error) {
+	schema, err := gojsonschema.NewSchema(schemaLoader.loader)
 	if err != nil {
 		return Schema{}, err
-	}
-	return FromBytes(b)
-}
-
-// FromBytes loads data into a JSON Schema that can be used
-// for attribute validation.
-func FromBytes(data []byte) (Schema, error) {
-	loader := gojsonschema.NewBytesLoader(data)
-	schema, err := gojsonschema.NewSchema(loader)
-	if err != nil {
-		return Schema{}, fmt.Errorf("error creating JSON schema: %w", err)
 	}
 	return Schema{
-		JSONSchema: schema,
-		raw:        data,
+		jsonSchema: schema,
+	}, nil
+}
+
+// NewWithMulti creates a multi-schema with a root and additional loaders.
+func NewWithMulti(rootSchema Loader, additionalSchemas ...Loader) (Schema, error) {
+	sl := gojsonschema.NewSchemaLoader()
+	for _, schema := range additionalSchemas {
+		if err := sl.AddSchemas(schema.loader); err != nil {
+			return Schema{}, err
+		}
+	}
+	schema, err := sl.Compile(rootSchema.loader)
+	if err != nil {
+		return Schema{}, err
+	}
+	return Schema{
+		jsonSchema: schema,
 	}, nil
 }
