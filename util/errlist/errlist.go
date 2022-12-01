@@ -72,7 +72,7 @@ func (el errList) Is(target error) bool {
 	})
 }
 
-// visitsErr visits each
+// visitsErr visits each error and stops if a match is found.
 func (el errList) visitErr(f visitErrFunc) bool {
 	for _, err := range el {
 		switch err := err.(type) {
