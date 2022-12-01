@@ -642,6 +642,74 @@ root.txt
 Notice how only the _root.txt_ file was retrieved as only this file contained the attribute `color=orange`
 
 # Experimental
+## Query a V3 registry for content
+### How to test
+
+#### Steps
+1. Create a schema
+```bash
+cat << EOF > schema-config.yaml
+kind: SchemaConfiguration
+apiVersion: client.uor-framework.io/v1alpha1
+schema:
+  id: myanimalschema
+  attributeTypes:
+    "animal": string
+    "size": string
+    "color": string
+    "habitat": string
+    "mammal": boolean
+EOF
+```
+
+```bash
+uor-client-go build schema schema-config.yaml localhost:5000/exercises/myschema:latest
+uor-client-go push --plain-http localhost:5000/exercises/myschema:latest
+```
+2. Create a collection
+```bash
+cat << EOF > dataset-config.yaml
+kind: DataSetConfiguration
+apiVersion: client.uor-framework.io/v1alpha1
+collection:
+  schemaAddress: "localhost:5000/exercises/myschema:latest"
+  files:
+    - file: "fish.jpg"
+      attributes:
+        animal: "fish"
+        habitat: "ocean"
+        size: "small"
+        color: "blue"
+        mammal: false
+    - file: "subdir1/dog.jpg"
+      attributes:
+        animal: "dog"
+        habitat: "house"
+        size: "medium"
+        color: "brown"
+        mammal: true
+EOF
+```
+```bash
+uor-client-go build collection test/ --plain-http localhost:5000/exercises/test:latest --dsconfig dataset-config.yaml --plain-http --no-verify
+uor-client-go push --plain-http localhost:5000/exercises/test:latest
+```
+3. Create an attribute query
+```bash
+cat << EOF > color-query.yaml
+kind: AttributeQuery
+apiVersion: client.uor-framework.io/v1alpha1
+attributes:
+  "color": "blue"
+EOF
+```
+4. Create the aggregate with the query
+```bash
+uor-client-go create aggregate localhost:5000 color-query.yaml -s my-animal-schema
+````
+
+#### Requirements
+- To successfully query a registry, it must implement the attributes API
 
 ## Publish content to use with a container runtime
 #### Steps

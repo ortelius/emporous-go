@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -20,6 +22,8 @@ import (
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
+
+	"github.com/uor-framework/uor-client-go/registryclient/orasclient/internal/queries"
 
 	"github.com/uor-framework/uor-client-go/content"
 	"github.com/uor-framework/uor-client-go/model"
@@ -177,6 +181,43 @@ func (c *orasClient) LoadCollection(ctx context.Context, reference string) (coll
 	co.Location = reference
 	c.collections.Store(reference, *co)
 	return *co, nil
+}
+
+// ResolveQuery sends a query to the v3 attribute endpoint with
+// a predetermined link, digest and attributes query parameters.
+// The links and digests inputs are slice of digest string. The digest query
+// performs a namespace search for all occurrences of a certain digest. A link query will
+// perform a query for all manifest digests that link to the given digest. A json-formatted query
+// containing attributes will be resolved to an index of manifest satisfying the attribute query.
+func (c *orasClient) ResolveQuery(ctx context.Context, registryHost string, links, digests []string, attributes json.RawMessage) (ocispec.Index, error) {
+	var index ocispec.Index
+	queryFN := queries.QueryParamsFn(func(values url.Values) {
+		if len(digests) > 0 {
+			values.Add("digests", formatDigests(digests))
+		}
+
+		if len(links) > 0 {
+			values.Add("links", formatDigests(links))
+		}
+
+		if len(attributes) > 0 {
+			values.Add("attributes", string(attributes))
+		}
+	})
+
+	results, err := queries.ResolveQuery(ctx, registryHost, queryFN, c.authClient, c.plainHTTP)
+	if err != nil {
+		return index, fmt.Errorf("query failure for %s: %w", registryHost, err)
+	}
+
+	if len(results) == 0 {
+		return ocispec.Index{}, nil
+	}
+
+	if err := json.Unmarshal(results, &index); err != nil {
+		return index, err
+	}
+	return index, nil
 }
 
 // PullWithLinks performs a copy of OCI artifacts to a local location from a remote location and follow links to
@@ -489,4 +530,30 @@ func getDefaultMediaType(file string) (string, error) {
 		return "", err
 	}
 	return mType.String(), nil
+}
+
+func formatDigests(digests []string) string {
+	n := len(digests)
+	switch {
+	case n == 1:
+		return digests[0]
+	case n > 1:
+		dedupLinks := deduplicate(digests)
+		return strings.Join(dedupLinks, ",")
+	default:
+		return ""
+	}
+}
+
+func deduplicate(in []string) []string {
+	links := map[string]struct{}{}
+	var out []string
+	for _, l := range in {
+		if _, ok := links[l]; ok {
+			continue
+		}
+		links[l] = struct{}{}
+		out = append(out, l)
+	}
+	return out
 }

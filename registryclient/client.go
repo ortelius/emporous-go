@@ -2,6 +2,7 @@ package registryclient
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -35,6 +36,18 @@ type Remote interface {
 	GetContent(context.Context, string, ocispec.Descriptor) ([]byte, error)
 	// LoadCollection loads a collection from a remote reference.
 	LoadCollection(context.Context, string) (collection.Collection, error)
+	QueryResolver
+}
+
+// QueryResolver resolves queries for v3 compatible registries.
+type QueryResolver interface {
+	// ResolveQuery sends a query to the v3 attribute endpoint with
+	// a predetermined link, digest and attributes query parameters.
+	// The links and digests inputs are slice of digest string. The digest query
+	// performs a namespace search for all occurrences of a certain digest. A link query will
+	// perform a query for all manifest digests that link to the given digest. A json-formatted query
+	// containing attributes will be resolved to an index of manifest satisfying the attribute query.
+	ResolveQuery(ctx context.Context, host string, links, digests []string, attributes json.RawMessage) (ocispec.Index, error)
 }
 
 // Local defines methods to interact with OCI artifacts
