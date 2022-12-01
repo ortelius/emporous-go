@@ -22,15 +22,6 @@ func pushBlob(ctx context.Context, mediaType string, blob []byte, target oras.Ta
 	return desc, target.Push(ctx, desc, bytes.NewReader(blob))
 }
 
-func generateIndex(annotations map[string]string, manifests ...ocispec.Descriptor) ([]byte, error) {
-	manifest := ocispec.Index{
-		Manifests:   manifests,
-		Versioned:   specs.Versioned{SchemaVersion: 2},
-		Annotations: annotations,
-	}
-	return json.Marshal(manifest)
-}
-
 func generateManifest(configDesc ocispec.Descriptor, annotations map[string]string, layers ...ocispec.Descriptor) ([]byte, error) {
 	manifest := ocispec.Manifest{
 		Config:      configDesc,
