@@ -117,6 +117,47 @@ func (l *Layout) Predecessors(_ context.Context, node ocispec.Descriptor) ([]oci
 	return predecessors, nil
 }
 
+// ResolveAll traverses the graph and returns all descriptors starting with the reference as a root node.
+func (l *Layout) ResolveAll(ctx context.Context, reference string) ([]ocispec.Descriptor, error) {
+
+	var res []ocispec.Descriptor
+	desc, err := l.Resolve(ctx, reference)
+	if err != nil {
+		return nil, err
+	}
+
+	root := l.graph.NodeByID(desc.Digest.String())
+	if root == nil {
+		return nil, fmt.Errorf("node %q does not exist in graph", reference)
+	}
+
+	tracker := traversal.NewTracker(root, nil)
+	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
+		desc, ok := node.(*v2.Node)
+		if ok {
+
+			// Check that the blob actually exists within the file
+			// store. This will filter out blobs in the event that this is a
+			// sparse manifest.
+			exists, err := l.internal.Exists(ctx, desc.Descriptor())
+			if err != nil {
+				return nil, err
+			}
+			if exists {
+				res = append(res, desc.Descriptor())
+			}
+		}
+
+		return l.graph.From(node.ID()), nil
+	})
+
+	if err := tracker.Walk(ctx, handler, root); err != nil {
+		return nil, err
+	}
+
+	return res, err
+}
+
 // ResolveByAttribute returns descriptors linked to the reference that satisfy the specified matcher.
 // Matcher is expected to compare attributes of nodes to set criteria. If the matcher is nil, return values
 // are nil.

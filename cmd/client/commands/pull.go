@@ -10,11 +10,11 @@ import (
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/content/file"
 
-	"github.com/uor-framework/uor-client-go/attributes/matchers"
 	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
 	"github.com/uor-framework/uor-client-go/config"
 	"github.com/uor-framework/uor-client-go/content/layout"
 	"github.com/uor-framework/uor-client-go/manager/defaultmanager"
+	"github.com/uor-framework/uor-client-go/nodes/descriptor"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
 	"github.com/uor-framework/uor-client-go/util/examples"
 )
@@ -106,21 +106,6 @@ func (o *PullOptions) Validate() error {
 }
 
 func (o *PullOptions) Run(ctx context.Context) error {
-
-	matcher := matchers.PartialAttributeMatcher{}
-	if o.AttributeQuery != "" {
-		query, err := config.ReadAttributeQuery(o.AttributeQuery)
-		if err != nil {
-			return err
-		}
-
-		attributeSet, err := config.ConvertToModel(query.Attributes)
-		if err != nil {
-			return err
-		}
-		matcher = attributeSet.List()
-	}
-
 	cache, err := layout.NewWithContext(ctx, o.CacheDir)
 	if err != nil {
 		return err
@@ -131,7 +116,15 @@ func (o *PullOptions) Run(ctx context.Context) error {
 		orasclient.WithAuthConfigs(o.Configs),
 		orasclient.WithPlainHTTP(o.PlainHTTP),
 		orasclient.WithCache(cache),
-		orasclient.WithPullableAttributes(matcher),
+	}
+
+	if o.AttributeQuery != "" {
+		query, err := config.ReadAttributeQuery(o.AttributeQuery)
+		if err != nil {
+			return err
+		}
+		matcher := descriptor.JSONSubsetMatcher(query.Attributes)
+		clientOpts = append(clientOpts, orasclient.WithPullableAttributes(matcher))
 	}
 
 	if !o.NoVerify {

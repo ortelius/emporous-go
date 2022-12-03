@@ -65,6 +65,10 @@ type File struct {
 	Attributes Attributes `json:"attributes,omitempty"`
 }
 
+// Attributes is a map structure that holds all
+// attribute information provided by the user.
+type Attributes map[string]interface{}
+
 // UnmarshalJSON sets custom unmarshalling logic to File.
 // In this case it sets the default UID and GID to invalid
 // ID numbers to differentiate between values intentionally set at 0.

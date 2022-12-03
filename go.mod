@@ -27,6 +27,7 @@ require (
 require (
 	github.com/buger/jsonparser v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
+	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	github.com/sigstore/cosign v1.13.1
 	github.com/uor-framework/collection-spec v0.0.0-20221119003036-9b35a7906c8b
 )

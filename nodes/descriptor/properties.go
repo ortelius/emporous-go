@@ -28,8 +28,12 @@ type Properties struct {
 	Others map[string]model.AttributeSet `json:"-"`
 }
 
-// Exists checks for the existence of a key,value pair in the
+// TODO(jpower432): When complex attribute sets are supported include core attributes filtering
+// and searching in the AttributeSet methods.
+
+// Exists checks for the existence of an attribute pair in the
 // AttributeSet in the Properties.
+// Only the "Others" field is evaluated during the search.
 func (p *Properties) Exists(attribute model.Attribute) (bool, error) {
 	for _, set := range p.Others {
 		exists, err := set.Exists(attribute)
@@ -44,8 +48,9 @@ func (p *Properties) Exists(attribute model.Attribute) (bool, error) {
 	return false, nil
 }
 
-// Find searches the AttributeSet in the Properties
-// for a key.
+// Find searches all AttributeSets in the Properties
+// for a key and returns an attribute value.
+// Only the "Others" field is evaluated during the search.
 func (p *Properties) Find(s string) model.Attribute {
 	for _, set := range p.Others {
 		value := set.Find(s)
@@ -56,7 +61,9 @@ func (p *Properties) Find(s string) model.Attribute {
 	return nil
 }
 
-// FindBySchema filters attribute set searches by Schema ID.
+// FindBySchema find the attribute value in the
+// AttributeSet matching the given schema ID.
+// Only the "Others" field is evaluated during the search.
 func (p *Properties) FindBySchema(schema, key string) model.Attribute {
 	set, found := p.Others[schema]
 	if !found {
@@ -65,7 +72,9 @@ func (p *Properties) FindBySchema(schema, key string) model.Attribute {
 	return set.Find(key)
 }
 
-// ExistsBySchema filters attribute set searches by Schema ID.
+// ExistsBySchema checks the existence of the attributes in the
+// AttributeSet matching the given schema ID.
+// Only the "Others" field is evaluated during the search.
 func (p *Properties) ExistsBySchema(schema string, attribute model.Attribute) (bool, error) {
 	set, found := p.Others[schema]
 	if !found {
@@ -106,6 +115,7 @@ func (p *Properties) MarshalJSON() ([]byte, error) {
 // List lists the AttributeSet attributes in the
 // Properties. If the attribute under different schemas
 // cannot merge, nil will be returned.
+// Only the "Others" field is evaluated.
 func (p *Properties) List() map[string]model.Attribute {
 	var sets []model.AttributeSet
 	for _, set := range p.Others {
@@ -119,8 +129,9 @@ func (p *Properties) List() map[string]model.Attribute {
 	return mergedList.List()
 }
 
-// Len returns the length of the AttributeSet
+// Len returns the length of the all AttributeSets
 // in the Properties.
+// Only the "Others" field is evaluated.
 func (p *Properties) Len() int {
 	var otherLen int
 	for _, set := range p.Others {
@@ -129,7 +140,7 @@ func (p *Properties) Len() int {
 	return otherLen
 }
 
-// Merge merges a given AttributeSet with the descriptor AttributeSet.
+// Merge merges a given AttributeSet into the descriptor Others AttributeSets.
 func (p *Properties) Merge(sets map[string]model.AttributeSet) error {
 	if len(sets) == 0 {
 		return nil

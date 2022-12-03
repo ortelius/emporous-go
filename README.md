@@ -249,10 +249,15 @@ Notice that each of the files in the workspace are represented as _Layers_ withi
       "size": 4,
       "annotations": {
         "org.opencontainers.image.title": "subdir1/file.txt",
-        "uor.attributes": "{\"fiction\":true,\"genre\":\"science fiction\"}"
+        "uor.attributes": "{\"converted\":{\"org.opencontainers.image.title\":\"subdir1/file.txt\"}, \"unknown\"{\"fiction\":true,\"genre\":\"science fiction\"}}"
       }
 ...
 ```
+
+> TIP 1: The two root level keys "unknown" and "converted are important. Unknown is the schema ID used when no schema is linked to the collection and converted is used when the attributes are converted from annotations. You will need this information later when completing queries.
+
+> TIP 2: Some other significant schema IDs to know are the following: core-link, core-descriptor, core-runtime, core-schema, and core-file.
+TODO(jpower432) - Provide schemas here
 
 9. The UOR _inspect_ subcommand can be used to view the contents of the local cache. By default, the cache is located at `~/.uor/cache/`.
 
@@ -282,7 +287,8 @@ cat << EOF > attribute-query.yaml
 kind: AttributeQuery
 apiVersion: client.uor-framework.io/v1alpha1
 attributes:
-  fiction: true
+  unknown:
+    fiction: true
 EOF
 ```
 
@@ -324,6 +330,7 @@ cat << EOF > schema-config.yaml
 kind: SchemaConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 schema:
+  id: myschemaid
   attributeTypes:
     "animal": string
     "size": string
@@ -456,12 +463,12 @@ uor-client-go push --plain-http localhost:5000/exercises/schemacollection:latest
 curl -s -H "Accept: application/vnd.oci.image.manifest.v1+json" http://localhost:5000/v2/exercises/schemacollection/manifests/latest | jq -r
 ```
 
-Note that the schema is an annotation within the manifest:
+Note that the schema id is recorded in the attribute annotation within the manifest:
 
 ```json
 ...
 "annotations": {
-  "uor.schema": "localhost:5000/exercises/myschema:latest"
+  "uor.attributes":  "uor.attributes": "{\"myschemaid\"{\"animal\":\"dog\",\"color\":\"brown\",\"habitat\":\"house\",\"mammal\":true,\"size\":\"medium\"}}"
 }
 ...
 ```
@@ -488,6 +495,7 @@ cat << EOF > schema-config.yaml
 kind: SchemaConfiguration
 apiVersion: client.uor-framework.io/v1alpha1
 schema:
+  id: myschemaid
   attributeTypes:
     "animal": string
     "size": string
@@ -621,7 +629,8 @@ cat << EOF > color-query.yaml
 kind: AttributeQuery
 apiVersion: client.uor-framework.io/v1alpha1
 attributes:
-  "color": "orange"
+  "myschemaid":
+     "color": "orange"
 EOF
 ```
 

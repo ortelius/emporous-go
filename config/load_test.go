@@ -27,9 +27,7 @@ func TestReadAttributeQuery(t *testing.T) {
 					Kind:       v1alpha1.AttributeQueryKind,
 					APIVersion: v1alpha1.GroupVersion,
 				},
-				Attributes: map[string]interface{}{
-					"size": "small",
-				},
+				Attributes: []byte(`{"size":"small"}`),
 			},
 		},
 		{

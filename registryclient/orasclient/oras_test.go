@@ -191,7 +191,9 @@ func TestPushPull(t *testing.T) {
 
 	t.Run("Success/PullFilteredCollection", func(t *testing.T) {
 		expDigest := ""
-		matcher := matchers.PartialAttributeMatcher{"test": attributes.NewString("test", "fail")}
+		matcher := matchers.PartialAttributeMatcher{
+			"test": attributes.NewString("test", "fail"),
+		}
 		c, err := NewClient(WithPlainHTTP(true), WithPullableAttributes(matcher))
 		require.NoError(t, err)
 		root, descs, err := c.Pull(context.TODO(), ref, memory.New())

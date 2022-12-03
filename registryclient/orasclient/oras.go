@@ -157,7 +157,7 @@ func (c *orasClient) LoadCollection(ctx context.Context, reference string) (coll
 
 	rootDesc, manifestBytes, err := c.GetManifest(ctx, reference)
 	if err != nil {
-		return collection.Collection{}, nil
+		return collection.Collection{}, err
 	}
 
 	// Get manifest information to obtain annotations

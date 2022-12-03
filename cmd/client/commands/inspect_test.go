@@ -101,10 +101,10 @@ func TestInspectRun(t *testing.T) {
 			annotations: map[string]string{
 				"test": "annotation",
 			},
-			expRes: "Listing matching descriptors for source:  " + u.Host + "/success:latest\nName" +
-				"                                      Digest" +
-				"                                                                   Size  MediaType\nhello.txt" +
-				"                                 sha256:03ba204e50d126e4674c005e04d82e84c21366780af1f43bd54a37816b6ab340" +
+			expRes: "Listing matching descriptors for source:\t" + u.Host + "/success:latest\nName" +
+				"       Digest                    " +
+				"                                               Size  MediaType\nhello.txt" +
+				"  sha256:03ba204e50d126e4674c005e04d82e84c21366780af1f43bd54a37816b6ab340" +
 				"  13    application/vnd.oci.image.layer.v1.tar\n",
 		},
 		{
@@ -121,8 +121,7 @@ func TestInspectRun(t *testing.T) {
 				Source:         fmt.Sprintf("%s/success:latest", u.Host),
 				AttributeQuery: "testdata/configs/nomatch.yaml",
 			},
-			expRes: "Listing matching descriptors for source:  " + u.Host + "/success:latest\nName" +
-				"                                      Digest  Size  MediaType\n",
+			expRes: "Listing matching descriptors for source:\t" + u.Host + "/success:latest\nName  Digest  Size  MediaType\n",
 		},
 		{
 			name: "Failure/NotStored",

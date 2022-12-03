@@ -2,6 +2,7 @@ package collectionmanager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -56,7 +57,7 @@ func TestCollectionManagerServer_All(t *testing.T) {
 		pubAssertFunc func(*managerapi.Publish_Response) bool
 		workspace     string
 		collection    map[string]map[string]interface{}
-		filter        map[string]interface{}
+		filter        json.RawMessage
 		resAssertFunc func(*managerapi.Retrieve_Response, string) bool
 		sev           managerapi.Diagnostic_Severity
 		errMes        string
@@ -77,7 +78,7 @@ func TestCollectionManagerServer_All(t *testing.T) {
 					"animal": true,
 				},
 			},
-			filter: map[string]interface{}{"animal": true},
+			filter: []byte(`{"unknown":{"animal":true}}`),
 			resAssertFunc: func(_ *managerapi.Retrieve_Response, root string) bool {
 				_, err := os.Stat(path.Join(root, "fish.jpg"))
 				return err == nil
@@ -87,7 +88,7 @@ func TestCollectionManagerServer_All(t *testing.T) {
 			name:      "Warning/FilteredCollection",
 			sev:       2,
 			errMes:    "",
-			filter:    map[string]interface{}{"test": "test"},
+			filter:    []byte(`{"test": "test"}`),
 			workspace: "testdata/workspace",
 			resAssertFunc: func(resp *managerapi.Retrieve_Response, _ string) bool {
 				return len(resp.Diagnostics) != 0 && resp.Diagnostics[0].Severity == 2
@@ -150,7 +151,10 @@ func TestCollectionManagerServer_All(t *testing.T) {
 			}
 
 			if c.filter != nil {
-				filter, err := structpb.NewStruct(c.filter)
+				var data map[string]interface{}
+				err = json.Unmarshal(c.filter, &data)
+				require.NoError(t, err)
+				filter, err := structpb.NewStruct(data)
 				require.NoError(t, err)
 				rRequest.Filter = filter
 			}
