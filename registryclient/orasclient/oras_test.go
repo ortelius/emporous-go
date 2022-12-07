@@ -161,7 +161,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, c.Destroy())
 	})
 
-	t.Run("Success/PullOneImage", func(t *testing.T) {
+	t.Run("Success/PullOneCollection", func(t *testing.T) {
 		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)

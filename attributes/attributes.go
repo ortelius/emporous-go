@@ -8,11 +8,9 @@ import (
 	"github.com/uor-framework/uor-client-go/model"
 )
 
-var (
-	// ErrWrongKind defines a type error try to cast an attributes value
-	// as the wrong type.
-	ErrWrongKind = errors.New("wrong value kind")
-)
+// ErrWrongKind defines a type error try to cast an attributes value
+// as the wrong type.
+var ErrWrongKind = errors.New("wrong value kind")
 
 // Attributes implements the model.Attributes interface.
 type Attributes map[string]model.Attribute
@@ -134,8 +132,8 @@ func Merge(sets ...model.AttributeSet) (model.AttributeSet, error) {
 
 	for _, set := range sets {
 		for key, value := range set.List() {
-			exisitngVal, exists := newSet[key]
-			if exists && exisitngVal.Kind() != value.Kind() {
+			existingVal, exists := newSet[key]
+			if exists && existingVal.Kind() != value.Kind() {
 				return newSet, fmt.Errorf("key %s: %w", key, ErrWrongKind)
 			}
 			newSet[key] = value

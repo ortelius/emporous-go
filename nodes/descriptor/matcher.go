@@ -13,7 +13,7 @@ var _ model.Matcher = JSONSubsetMatcher{}
 
 // JSONSubsetMatcher check that the node attributes are a superset or an
 // exact match to the given json input. The JSONSubsetMatcher should be used when
-// to filter descriptor type nodes to include core schema field
+// to filter descriptor type nodes to include core schema fields.
 type JSONSubsetMatcher json.RawMessage
 
 // Matches determines whether a node has all required attributes.
