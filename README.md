@@ -256,8 +256,8 @@ Notice that each of the files in the workspace are represented as _Layers_ withi
 
 > TIP 1: The two root level keys "unknown" and "converted are important. Unknown is the schema ID used when no schema is linked to the collection and converted is used when the attributes are converted from annotations. You will need this information later when completing queries.
 
-> TIP 2: Some other significant schema IDs to know are the following: core-link, core-descriptor, core-runtime, core-schema, and core-file.
-TODO(jpower432) - Provide schemas here
+> TIP 2: Some other significant schema IDs to know are the following: core-link, core-descriptor, core-runtime, core-schema, and core-file. Schemas are below.
+
 
 9. The UOR _inspect_ subcommand can be used to view the contents of the local cache. By default, the cache is located at `~/.uor/cache/`.
 
@@ -693,3 +693,277 @@ uor-client-go push --plain-http localhost:5000/exercises/runtime:latest
 
 `collection`: a collection of linked files represented as on OCI artifact
 `schema`: the properties and datatypes that can be specified within a collection
+
+# Schemas
+```bash
+# core-link
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "registryHint": {
+      "type": "string"
+    },
+    "namespaceHint": {
+      "type": "string"
+    },
+    "transitive": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "registryHint",
+    "namespaceHint",
+    "transitive"
+  ]
+}
+```
+```bash
+#core-descriptor
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "foundBy": {
+      "type": "string"
+    },
+    "locations": {
+      "type": "null"
+    },
+    "licenses": {
+      "type": "null"
+    },
+    "language": {
+      "type": "string"
+    },
+    "cpes": {
+      "type": "null"
+    },
+    "purl": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "version",
+    "type",
+    "foundBy",
+    "locations",
+    "licenses",
+    "language",
+    "cpes",
+    "purl"
+  ]
+}
+```
+```bash
+#core-schema
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id"
+  ]
+}
+```
+```bash
+#core-runtime
+
+
+{
+  "description": "OpenContainer Config Specification",
+  "$schema": "https://json-schema.org/draft-04/schema#",
+  "id": "https://opencontainers.org/schema/image/config",
+  "type": "object",
+  "properties": {
+    "created": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "author": {
+      "type": "string"
+    },
+    "architecture": {
+      "type": "string"
+    },
+    "variant": {
+      "type": "string"
+    },
+    "os": {
+      "type": "string"
+    },
+    "os.version": {
+      "type": "string"
+    },
+    "os.features": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "User": {
+          "type": "string"
+        },
+        "ExposedPorts": {
+          "$ref": "defs.json#/definitions/mapStringObject"
+        },
+        "Env": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Entrypoint": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "Cmd": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "Volumes": {
+          "oneOf": [
+            {
+              "$ref": "defs.json#/definitions/mapStringObject"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "WorkingDir": {
+          "type": "string"
+        },
+        "Labels": {
+          "oneOf": [
+            {
+              "$ref": "defs.json#/definitions/mapStringString"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "StopSignal": {
+          "type": "string"
+        },
+        "ArgsEscaped": {
+          "type": "boolean"
+        }
+      }
+    },
+    "rootfs": {
+      "type": "object",
+      "properties": {
+        "diff_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "layers"
+          ]
+        }
+      },
+      "required": [
+        "diff_ids",
+        "type"
+      ]
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "author": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "empty_layer": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "architecture",
+    "os",
+    "rootfs"
+  ]
+}
+```
+```bash
+#core-file
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "permissions": {
+      "type": "integer"
+    },
+    "uid": {
+      "type": "integer"
+    },
+    "gid": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "permissions",
+    "uid",
+    "gid"
+  ]
+}
+```
