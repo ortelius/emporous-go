@@ -326,17 +326,44 @@ cd ${EMPOROUS_CLIENT_GO_REPO}/exercises/schema
 2. Create the Schema Configuration in a file called `schema-config.yaml` to define attribute keys and types for corresponding collections:
 
 ```bash
+cat << EOF > animalschema.json
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "animal": {
+      "type": "string"
+    },
+    "size": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "habitat": {
+      "type": "string"
+    },
+    "mammal": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "animal",
+    "size",
+    "color",
+    "habitat",
+    "mammal"
+  ]
+}
+EOF
+```
+```bash
 cat << EOF > schema-config.yaml
 kind: SchemaConfiguration
 apiVersion: client.emporous-framework.io/v1alpha1
 schema:
   id: myschemaid
-  attributeTypes:
-    "animal": string
-    "size": string
-    "color": string
-    "habitat": string
-    "mammal": boolean
+  schemaPath: animalschema.json
 EOF
 ```
 
@@ -490,18 +517,45 @@ cd ${EMPOROUS_CLIENT_GO_REPO}/exercises/linked
 
 2. Create a `schema-config.yaml` file with the following contents to define the schema for the collection:
 
-```yaml
+```bash
+cat << EOF > animalschema.json
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "animal": {
+      "type": "string"
+    },
+    "size": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "habitat": {
+      "type": "string"
+    },
+    "mammal": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "animal",
+    "size",
+    "color",
+    "habitat",
+    "mammal"
+  ]
+}
+EOF
+```
+```bash
 cat << EOF > schema-config.yaml
 kind: SchemaConfiguration
 apiVersion: client.emporous-framework.io/v1alpha1
 schema:
   id: myschemaid
-  attributeTypes:
-    "animal": string
-    "size": string
-    "color": string
-    "habitat": string
-    "type": string
+  schemaPath: animalschema.json
 EOF
 ```
 
