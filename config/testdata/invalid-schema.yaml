@@ -1,0 +1,4 @@
+kind: SchemaConfiguration
+apiVersion: client.uor-framework.io/v1alpha1
+schema:
+  id: "myschema"

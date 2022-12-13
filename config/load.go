@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -64,6 +65,10 @@ func LoadSchemaConfig(data []byte) (configuration v1alpha1.SchemaConfiguration, 
 	dec.DisallowUnknownFields()
 	if err = dec.Decode(&configuration); err != nil {
 		return configuration, err
+	}
+
+	if configuration.Schema.SchemaPath == "" {
+		return configuration, errors.New("no schema path provided in schema config")
 	}
 	return configuration, err
 }
