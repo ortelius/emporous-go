@@ -27,7 +27,10 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/sigstore/cosign v1.12.1
+require (
+	github.com/sigstore/cosign v1.12.1
+	github.com/spf13/viper v1.13.0
+)
 
 require (
 	bitbucket.org/creachadair/shell v0.0.7 // indirect
@@ -213,7 +216,6 @@ require (
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/viper v1.13.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.1.1 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect

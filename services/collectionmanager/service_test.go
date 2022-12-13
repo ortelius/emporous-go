@@ -110,7 +110,8 @@ func TestCollectionManagerServer_All(t *testing.T) {
 	require.NoError(t, err)
 
 	manager := defaultmanager.New(testContentStore{Store: memory.New()}, testlogr)
-	srv := FromManager(manager, ServiceOptions{PlainHTTP: true})
+	srv, err := FromManager(manager, ServiceOptions{})
+	require.NoError(t, err)
 
 	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer(srv)))
 	require.NoError(t, err)
@@ -125,6 +126,9 @@ func TestCollectionManagerServer_All(t *testing.T) {
 			pRequest := &managerapi.Publish_Request{
 				Source:      c.workspace,
 				Destination: fmt.Sprintf("%s/test:latest", u.Host),
+				Config: &managerapi.RegistryConfig{
+					PlainHttp: true,
+				},
 			}
 
 			if c.collection != nil {
@@ -157,6 +161,9 @@ func TestCollectionManagerServer_All(t *testing.T) {
 			rRequest := &managerapi.Retrieve_Request{
 				Source:      fmt.Sprintf("%s/test:latest", u.Host),
 				Destination: destination,
+				Config: &managerapi.RegistryConfig{
+					PlainHttp: true,
+				},
 			}
 
 			if c.filter != nil {

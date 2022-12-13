@@ -2,7 +2,7 @@ package collectionmanager
 
 import (
 	"context"
-	"fmt"
+	"os"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,6 +13,7 @@ import (
 	"github.com/uor-framework/uor-client-go/attributes/matchers"
 	"github.com/uor-framework/uor-client-go/config"
 	"github.com/uor-framework/uor-client-go/content"
+	"github.com/uor-framework/uor-client-go/log"
 	"github.com/uor-framework/uor-client-go/manager"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
 	"github.com/uor-framework/uor-client-go/util/workspace"
@@ -29,33 +30,40 @@ type service struct {
 // ServiceOptions configure the collection manager service with default remote
 // and collection caching options.
 type ServiceOptions struct {
-	Insecure  bool
-	PlainHTTP bool
+	Logger    log.Logger
 	PullCache content.Store
 }
 
 // FromManager returns a CollectionManager API server from a Manager type.
-func FromManager(mg manager.Manager, serviceOptions ServiceOptions) managerapi.CollectionManagerServer {
+func FromManager(mg manager.Manager, serviceOptions ServiceOptions) (managerapi.CollectionManagerServer, error) {
+	if serviceOptions.Logger == nil {
+		logger, err := log.NewLogrusLogger(os.Stderr, "debug")
+		if err != nil {
+			return nil, err
+		}
+		serviceOptions.Logger = logger
+	}
 	return &service{
 		mg:      mg,
 		options: serviceOptions,
-	}
+	}, nil
 }
 
 // PublishContent publishes collection content to a storage provide based on client input.
 func (s *service) PublishContent(ctx context.Context, message *managerapi.Publish_Request) (*managerapi.Publish_Response, error) {
-	authConf := authConfig{message.Auth}
-	client, err := orasclient.NewClient(
+	clientOpts := []orasclient.ClientOption{
 		orasclient.WithCache(s.options.PullCache),
-		orasclient.WithPlainHTTP(s.options.PlainHTTP),
-		orasclient.WithCredentialFunc(authConf.Credential),
-		orasclient.SkipTLSVerify(s.options.Insecure))
+	}
+	registryConfig := message.GetConfig()
+	clientOpts = append(clientOpts, processRegistryConfig(registryConfig)...)
+
+	client, err := orasclient.NewClient(clientOpts...)
 	if err != nil {
 		return &managerapi.Publish_Response{}, status.Error(codes.Internal, err.Error())
 	}
 	defer func() {
 		if err := client.Destroy(); err != nil {
-			fmt.Println(err.Error())
+			s.options.Logger.Errorf(err.Error())
 		}
 	}()
 
@@ -112,21 +120,21 @@ func (s *service) RetrieveContent(ctx context.Context, message *managerapi.Retri
 		return &managerapi.Retrieve_Response{}, status.Error(codes.Internal, err.Error())
 	}
 
-	authConf := authConfig{message.Auth}
 	var matcher matchers.PartialAttributeMatcher = attrSet.List()
-	client, err := orasclient.NewClient(
+	clientOpts := []orasclient.ClientOption{
 		orasclient.WithCache(s.options.PullCache),
-		orasclient.WithCredentialFunc(authConf.Credential),
-		orasclient.WithPlainHTTP(s.options.PlainHTTP),
-		orasclient.SkipTLSVerify(s.options.Insecure),
 		orasclient.WithPullableAttributes(matcher),
-	)
+	}
+	registryConfig := message.GetConfig()
+	clientOpts = append(clientOpts, processRegistryConfig(registryConfig)...)
+
+	client, err := orasclient.NewClient(clientOpts...)
 	if err != nil {
 		return &managerapi.Retrieve_Response{}, status.Error(codes.Internal, err.Error())
 	}
 	defer func() {
 		if err := client.Destroy(); err != nil {
-			fmt.Println(err.Error())
+			s.options.Logger.Errorf(err.Error())
 		}
 	}()
 
@@ -149,4 +157,20 @@ func (s *service) RetrieveContent(ctx context.Context, message *managerapi.Retri
 	}
 
 	return &managerapi.Retrieve_Response{Digests: digests}, nil
+}
+
+// processRegistryConfig processes a registry config into client options.
+func processRegistryConfig(config *managerapi.RegistryConfig) []orasclient.ClientOption {
+	if config != nil {
+		authConf := authConfig{config.Auth}
+		return []orasclient.ClientOption{
+			orasclient.WithCredentialFunc(authConf.Credential),
+			orasclient.SkipTLSVerify(config.SkipTlsVerify),
+			orasclient.WithPlainHTTP(config.PlainHttp),
+		}
+	}
+	// Make sure you return a nil auth config to get an empty credential. For the server, we
+	// always want override the default credential locations.
+	authConf := authConfig{}
+	return []orasclient.ClientOption{orasclient.WithCredentialFunc(authConf.Credential)}
 }

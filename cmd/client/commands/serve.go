@@ -27,7 +27,6 @@ import (
 type ServeOptions struct {
 	*options.Common
 	SocketLocation string
-	options.Remote
 }
 
 var clientServeExamples = examples.Example{
@@ -53,8 +52,6 @@ func NewServeCmd(common *options.Common) *cobra.Command {
 			cobra.CheckErr(o.Run(cmd.Context()))
 		},
 	}
-
-	o.Remote.BindFlags(cmd.Flags())
 
 	return cmd
 }
@@ -86,11 +83,13 @@ func (o *ServeOptions) Run(ctx context.Context) error {
 	manager := defaultmanager.New(cache, o.Logger)
 
 	opts := collectionmanager.ServiceOptions{
-		Insecure:  o.Insecure,
-		PlainHTTP: o.PlainHTTP,
+		Logger:    o.Logger,
 		PullCache: cache,
 	}
-	service := collectionmanager.FromManager(manager, opts)
+	service, err := collectionmanager.FromManager(manager, opts)
+	if err != nil {
+		return err
+	}
 
 	// Register the service with the gRPC server
 	managerapi.RegisterCollectionManagerServer(rpc, service)

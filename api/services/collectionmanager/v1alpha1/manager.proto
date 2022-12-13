@@ -5,10 +5,10 @@
 // use protoc to generate stubs for your target language.
 
 syntax = "proto3";
+package manager;
+
 import "google/protobuf/struct.proto";
 option go_package = "github.com/uor-framework/uor-client-go/api/services/collectionmanager/v1alpha1";
-
-package manager;
 
 // CollectionManager is an endpoint that can retrieve and publish Collection
 // contents for clients.
@@ -35,7 +35,7 @@ message Retrieve {
     string source = 1;
     string destination = 2;
     google.protobuf.Struct filter = 3;
-    AuthConfig auth = 4;
+    RegistryConfig config = 4;
   }
   message Response {
     repeated string digests = 1;
@@ -48,7 +48,7 @@ message Publish {
     string source = 1;
     string destination = 2;
     Collection collection = 3;
-    AuthConfig auth = 4;
+    RegistryConfig config = 4;
 
   }
   message Response {
@@ -71,6 +71,13 @@ message File {
   google.protobuf.Struct attributes = 2;
 }
 
+// RegistryConfig configuration contains configuration information for connecting to a registry.
+message RegistryConfig {
+  bool plain_http = 1;
+  bool skip_tls_verify = 2;
+  AuthConfig auth = 3;
+}
+
 // AuthConfig contains authorization information for connecting to a registry.
 message AuthConfig {
   string username = 1;
@@ -79,4 +86,3 @@ message AuthConfig {
   string access_token = 4;
   string refresh_token = 5;
 }
-

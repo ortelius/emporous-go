@@ -76,10 +76,15 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		return err
 	}
 
+	if err := o.Remote.LoadRegistryConfig(); err != nil {
+		return err
+	}
+
 	client, err := orasclient.NewClient(
-		orasclient.SkipTLSVerify(o.Insecure),
+		orasclient.SkipTLSVerify(o.SkipTLSVerify),
 		orasclient.WithAuthConfigs(o.Configs),
 		orasclient.WithPlainHTTP(o.PlainHTTP),
+		orasclient.WithRegistryConfig(o.RegistryConfig),
 	)
 
 	if err != nil {

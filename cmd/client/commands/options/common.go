@@ -32,7 +32,7 @@ func (o *Common) BindFlags(fs *pflag.FlagSet) {
 		"Log level (debug, info, warn, error, fatal)")
 }
 
-// Init initializes default values for Common options.
+// Init initializes default values for Common options at runtime.
 func (o *Common) Init() error {
 	logger, err := log.NewLogrusLogger(o.IOStreams.Out, o.LogLevel)
 	if err != nil {

@@ -2,8 +2,6 @@ package orasclient
 
 import (
 	"context"
-	"crypto/tls"
-	"net/http"
 	"sync"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -24,14 +22,15 @@ type ClientOption func(o *ClientConfig) error
 
 // ClientConfig contains configuration data for the registry client.
 type ClientConfig struct {
-	configs    []string
-	credFn     func(context.Context, string) (auth.Credential, error)
-	prePullFn  func(context.Context, string) error
-	plainHTTP  bool
-	insecure   bool
-	cache      content.Store
-	copyOpts   oras.CopyOptions
-	attributes model.Matcher
+	configs        []string
+	credFn         func(context.Context, string) (auth.Credential, error)
+	plainHTTP      bool
+	skipTLSVerify  bool
+	cache          content.Store
+	copyOpts       oras.CopyOptions
+	attributes     model.Matcher
+	registryConfig registryclient.RegistryConfig
+	prePullFn      func(context.Context, string) error
 }
 
 func (c *ClientConfig) apply(options []ClientOption) error {
@@ -62,35 +61,25 @@ func NewClient(options ...ClientOption) (registryclient.Client, error) {
 		return
 	}
 
-	// Setup auth client based on config inputs
-	authClient := &auth.Client{
-		Client: &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: config.insecure,
-				},
-			},
-		},
-		Cache: auth.NewCache(),
-	}
+	client.authCache = auth.NewCache()
+	client.plainHTTP = config.plainHTTP
+	client.skipTLSVerify = config.skipTLSVerify
+	client.copyOpts = config.copyOpts
+	client.destroy = destroy
+	client.cache = config.cache
+	client.attributes = config.attributes
+	client.registryConf = config.registryConfig
+	client.prePullFn = config.prePullFn
 
 	if config.credFn != nil {
-		authClient.Credential = config.credFn
+		client.credFn = config.credFn
 	} else {
 		store, err := NewAuthStore(config.configs...)
 		if err != nil {
 			return nil, err
 		}
-		authClient.Credential = store.Credential
+		client.credFn = store.Credential
 	}
-
-	client.authClient = authClient
-	client.plainHTTP = config.plainHTTP
-	client.copyOpts = config.copyOpts
-	client.destroy = destroy
-	client.cache = config.cache
-	client.attributes = config.attributes
-	client.prePullFn = config.prePullFn
 
 	// We are not allowing this to be configurable since
 	// oras file stores turn artifacts into descriptors in
@@ -118,10 +107,20 @@ func WithAuthConfigs(configs []string) ClientOption {
 	}
 }
 
-// SkipTLSVerify disables TLS certificate checking.
-func SkipTLSVerify(insecure bool) ClientOption {
+// WithRegistryConfig defines the configuration for specific registry
+// endpoints. If specified, the configuration for a found registry
+// will override WithSkipTLSVerify and WithPlainHTTP.
+func WithRegistryConfig(registryConf registryclient.RegistryConfig) ClientOption {
 	return func(config *ClientConfig) error {
-		config.insecure = insecure
+		config.registryConfig = registryConf
+		return nil
+	}
+}
+
+// SkipTLSVerify disables TLS certificate checking.
+func SkipTLSVerify(skipTLSVerify bool) ClientOption {
+	return func(config *ClientConfig) error {
+		config.skipTLSVerify = skipTLSVerify
 		return nil
 	}
 }

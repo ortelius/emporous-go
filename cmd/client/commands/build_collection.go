@@ -88,6 +88,10 @@ func (o *BuildCollectionOptions) Validate() error {
 }
 
 func (o *BuildCollectionOptions) Run(ctx context.Context) error {
+	if err := o.Remote.LoadRegistryConfig(); err != nil {
+		return err
+	}
+
 	space, err := workspace.NewLocalWorkspace(o.RootDir)
 	if err != nil {
 		return err
@@ -103,9 +107,10 @@ func (o *BuildCollectionOptions) Run(ctx context.Context) error {
 	}
 
 	var clientOpts = []orasclient.ClientOption{
-		orasclient.SkipTLSVerify(o.Insecure),
+		orasclient.SkipTLSVerify(o.SkipTLSVerify),
 		orasclient.WithAuthConfigs(o.Configs),
 		orasclient.WithPlainHTTP(o.PlainHTTP),
+		orasclient.WithRegistryConfig(o.RegistryConfig),
 	}
 
 	if !o.NoVerify {
