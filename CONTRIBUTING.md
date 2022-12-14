@@ -25,16 +25,28 @@ When applicable, we encourage [draft pull requests](https://docs.github.com/en/p
 directory, run `make generate-protobuf`. This operation assumes the protobuf compiler and Go plugins are installed. If any changes are made
 to the client CLI under `cmd/client`, run `make generate-usage-docs` to update the documentation under `docs/usage`.*
 
-
 ## Report bugs and feature ideas using GitHub's [issues](https://github.com/uor-framework/uor-client-go/issues/new/choose)
 Each issue type has a template attached to guide the submission.
+
+## Required Tools
+
+To make changes to the gRPC API, please install the following tools:
+  
+- [protoc](https://github.com/protocolbuffers/protobuf/releases)
+
+Install the plugins need to generated Go code with protoc:
+```bash
+go install google.golang.org/protobuf/cmd/protoc-gen-go@vlatest
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+```
 
 
 ## Code Styling
 
 - Run `go fmt`
-- Run `golangci-lint`
-- Use `go-imports` (This should be configured to group the standard library, third-party, and uor-client-go module imports separately)
+- Run [golangci-lint](https://github.com/golangci/golangci-lint)
+- Use [go-imports](https://pkg.go.dev/golang.org/x/tools/cmd/goimports)
+  - (This should be configured to group the standard library, third-party, and uor-client-go module imports separately)
 
 
 ## License
