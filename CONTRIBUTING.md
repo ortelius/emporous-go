@@ -5,6 +5,21 @@ Thank you for investing your time in contributing to our project!
 When contributing to this repository, please first discuss the change you wish to make via GitHub Issues or Discussions
 as to ensure the change aligns with the project's long-term plans.
 
+## Required Tools
+1. [`git`](https://help.github.com/articles/set-up-git/): For source control.
+
+2. [`go`](https://golang.org/doc/install)
+
+3. [`make`](https://www.gnu.org/software/make/manual/make.html)
+
+4. [`protoc`](https://github.com/protocolbuffers/protobuf/releases): To make changes to the gRPC API.
+
+- Install the plugins needed to generated Go code with `protoc`:
+   ```bash
+   go install google.golang.org/protobuf/cmd/protoc-gen-go@vlatest
+   go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+   ```
+
 ## Pull Request Process
 
 ### We Use [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow)
@@ -28,26 +43,12 @@ to the client CLI under `cmd/client`, run `make generate-usage-docs` to update t
 ## Report bugs and feature ideas using GitHub's [issues](https://github.com/uor-framework/uor-client-go/issues/new/choose)
 Each issue type has a template attached to guide the submission.
 
-## Required Tools
-
-To make changes to the gRPC API, please install the following tools:
-  
-- [protoc](https://github.com/protocolbuffers/protobuf/releases)
-
-- Install the plugins needed to generated Go code with `protoc`:
-   ```bash
-   go install google.golang.org/protobuf/cmd/protoc-gen-go@vlatest
-   go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-   ```
-
-
 ## Code Styling
 
 - Run `go fmt`
-- Run [golangci-lint](https://github.com/golangci/golangci-lint)
-- Use [go-imports](https://pkg.go.dev/golang.org/x/tools/cmd/goimports)
+- Run [`golangci-lint`](https://github.com/golangci/golangci-lint)
+- Use [`go-imports`](https://pkg.go.dev/golang.org/x/tools/cmd/goimports)
   - (This should be configured to group the standard library, third-party, and uor-client-go module imports separately)
-
 
 ## License
 By contributing, you agree that your contributions will be licensed under its [Apache 2.0 License](https://choosealicense.com/licenses/apache-2.0/).
