@@ -23,7 +23,7 @@ jobs:
   linters:
     name: Linters
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     strategy:
       matrix:
@@ -46,7 +46,7 @@ jobs:
   project:
     name: Project Checks
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       -
         uses: actions/setup-go@v3
