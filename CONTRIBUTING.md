@@ -34,11 +34,11 @@ To make changes to the gRPC API, please install the following tools:
   
 - [protoc](https://github.com/protocolbuffers/protobuf/releases)
 
-Install the plugins need to generated Go code with protoc:
-```bash
-go install google.golang.org/protobuf/cmd/protoc-gen-go@vlatest
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-```
+- Install the plugins needed to generated Go code with `protoc`:
+   ```bash
+   go install google.golang.org/protobuf/cmd/protoc-gen-go@vlatest
+   go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+   ```
 
 
 ## Code Styling
