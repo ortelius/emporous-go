@@ -2,8 +2,8 @@
 
 Thank you for investing your time in contributing to our project!
 
-When contributing to this repository, please first discuss the change you wish to make via issue or GitHub Discussion
-with the maintainers to ensure the change aligns with the project's long-term plans.
+When contributing to this repository, please first discuss the change you wish to make via GitHub Issues or Discussions
+as to ensure the change aligns with the project's long-term plans.
 
 ## Pull Request Process
 
@@ -16,10 +16,10 @@ Please use the following workflow to make changes to the UOR Client codebase:
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes (Run `make test-unit`)
 5. Make sure your code lints (Run `make sanity`)
-6. Create a pull request against the `uor-client-go main` branch.
+6. Create a pull request against the `uor-client-go` `main` branch.
 
 
-When applicable, we encourage draft pull requests for early feedback and better communication.
+When applicable, we encourage [draft pull requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/changing-the-stage-of-a-pull-request) for early feedback and better communication.
 
 *Note: In the Makefile, there are code and file generation targets. If any changes are made to the gRPC API in the `api/services`
 directory, run `make generate-protobuf`. This operation assumes the protobuf compiler and Go plugins are installed. If any changes are made
