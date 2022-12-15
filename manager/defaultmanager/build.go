@@ -50,7 +50,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 		return "", fmt.Errorf("path %q empty workspace", space.Path("."))
 	}
 
-	var sets []model.AttributeSet
+	var sets []map[string]model.AttributeValue
 	regexpByFilename := map[string]*regexp.Regexp{}
 	fileInfoByName := map[string]fileInformation{}
 	for _, file := range config.Collection.Files {
@@ -74,7 +74,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 		if err != nil {
 			return "", err
 		}
-		sets = append(sets, set)
+		sets = append(sets, set.List())
 
 		fileInfo := fileInformation{
 			AttributeSet: set,
@@ -85,8 +85,8 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 	}
 
 	// Merge the sets to ensure the dataset configuration
-	// meet the schema require.
-	mergedSet, err := attributes.Merge(sets...)
+	// meets the schema requirements.
+	mergedSet, err := mergeAttributes(sets)
 	if err != nil {
 		return "", fmt.Errorf("failed to merge attributes: %w", err)
 	}
@@ -112,7 +112,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 			schemaID = detectedSchemaID
 		}
 
-		valid, err := schemaDoc.Validate(mergedSet)
+		valid, err := schemaDoc.Validate(attributes.NewSet(mergedSet))
 		if err != nil {
 			return "", fmt.Errorf("schema validation error: %w", err)
 		}
@@ -165,13 +165,13 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 			return nil
 		}
 
-		var sets []model.AttributeSet
+		var sets []map[string]model.AttributeValue
 		var fileConfig []empspec.File
 		for file, fileInfo := range fileInfoByName {
 			nameSearch := regexpByFilename[file]
 			if nameSearch.Match([]byte(node.Location)) {
 				if fileInfo.HasAttributes() {
-					sets = append(sets, fileInfo.AttributeSet)
+					sets = append(sets, fileInfo.AttributeSet.List())
 				}
 				if fileInfo.HasFileInfo() {
 					fileConfig = append(fileConfig, fileInfo.File)
@@ -186,11 +186,11 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 			return fmt.Errorf("file %q: more than one match for file configuration", node.Location)
 		}
 
-		merged, err := attributes.Merge(sets...)
+		merged, err := mergeAttributes(sets)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to merge attributes: %w", err)
 		}
-		if err := node.Properties.Merge(map[string]model.AttributeSet{schemaID: merged}); err != nil {
+		if err := node.Properties.Merge(map[string]model.AttributeSet{schemaID: attributes.NewSet(merged)}); err != nil {
 			return fmt.Errorf("file %s: %w", node.Location, err)
 		}
 		return nil
@@ -339,6 +339,18 @@ func fetchJSONSchema(ctx context.Context, schemaAddress string, store content.At
 
 	sc, err := schema.New(loader)
 	return sc, schemaID, err
+}
+
+func mergeAttributes(sets []map[string]model.AttributeValue) (map[string]model.AttributeValue, error) {
+	if len(sets) == 0 {
+		return nil, nil
+	}
+
+	if len(sets) == 1 {
+		return sets[0], nil
+	}
+
+	return attributes.Merge(sets[0], sets[1:]...)
 }
 
 // fileInformation pairs information configurable

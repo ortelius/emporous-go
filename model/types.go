@@ -95,26 +95,17 @@ func (fn MatcherFunc) Matches(node Node) (bool, error) {
 // describe connected nodes.
 type AttributeSet interface {
 	// Exists returns whether a key, value with type pair exists
-	Exists(Attribute) (bool, error)
+	Exists(string, AttributeValue) (bool, error)
 	// Find returns all values associated with a specified key
-	Find(string) Attribute
+	Find(string) AttributeValue
 	// List will list all key,value pairs for the attributes in a
 	// consumable format.
-	List() map[string]Attribute
+	List() map[string]AttributeValue
 	// Len returns the attribute set length
 	Len() int
 	// MarshalJSON returns a json representation of the Attribute set.
 	// Compliant with std lib JSON marshaler.
 	MarshalJSON() ([]byte, error)
-}
-
-// Attribute defines methods of an attribute object.
-type Attribute interface {
-	// Key is the value of the attribute identifier. This must always be a string.
-	Key() string
-	// AttributeValue represent possible attributes which can be primitives, slices,
-	// or maps.
-	AttributeValue
 }
 
 type AttributeValue interface {

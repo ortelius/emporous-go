@@ -11,7 +11,7 @@ var _ model.Matcher = PartialAttributeMatcher{}
 
 // PartialAttributeMatcher contains configuration data for searching for a node by attribute.
 // This matcher will check that the node attributes
-type PartialAttributeMatcher map[string]model.Attribute
+type PartialAttributeMatcher map[string]model.AttributeValue
 
 // Matches determines whether a node has all required attributes.
 func (m PartialAttributeMatcher) Matches(n model.Node) (bool, error) {
@@ -20,10 +20,10 @@ func (m PartialAttributeMatcher) Matches(n model.Node) (bool, error) {
 		return false, errors.New("node attributes cannot be nil")
 	}
 
-	for _, a := range m {
-		exist, err := attr.Exists(a)
+	for key, a := range m {
+		exist, err := attr.Exists(key, a)
 		if err != nil {
-			return false, fmt.Errorf("error evaluating attribute %s: %w", a.Key(), err)
+			return false, fmt.Errorf("error evaluating attribute %s: %w", key, err)
 		}
 		if !exist {
 			return false, nil

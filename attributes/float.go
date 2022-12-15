@@ -2,26 +2,16 @@ package attributes
 
 import "github.com/emporous/emporous-go/model"
 
-type floatAttribute struct {
-	key   string
-	value float64
-}
-
-var _ model.Attribute = floatAttribute{}
+type floatAttribute float64
 
 // NewFloat returns a number attribute.
-func NewFloat(key string, value float64) model.Attribute {
-	return floatAttribute{key: key, value: value}
+func NewFloat(value float64) model.AttributeValue {
+	return floatAttribute(value)
 }
 
 // Kind returns the kind for the attribute.
 func (a floatAttribute) Kind() model.Kind {
 	return model.KindFloat
-}
-
-// Key return the attribute key.
-func (a floatAttribute) Key() string {
-	return a.key
 }
 
 // IsNull returns whether the value is null.
@@ -44,7 +34,7 @@ func (a floatAttribute) AsString() (string, error) {
 // AsFloat returns the value as a float64 value and errors if that is not
 // the underlying type.
 func (a floatAttribute) AsFloat() (float64, error) {
-	return a.value, nil
+	return float64(a), nil
 }
 
 // AsInt returns the value as an int64 value and errors if that is not
@@ -67,5 +57,5 @@ func (a floatAttribute) AsObject() (map[string]model.AttributeValue, error) {
 
 // AsAny returns the value as an interface.
 func (a floatAttribute) AsAny() interface{} {
-	return a.value
+	return float64(a)
 }

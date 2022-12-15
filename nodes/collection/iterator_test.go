@@ -3,12 +3,11 @@ package collection
 import (
 	"testing"
 
-	"github.com/emporous/emporous-go/attributes"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/emporous/emporous-go/model"
 	"github.com/emporous/emporous-go/util/testutils"
+	"github.com/emporous/emporous-go/attributes"
 )
 
 var iteratorTests = []struct {
@@ -20,19 +19,19 @@ var iteratorTests = []struct {
 		nodes: []model.Node{
 			&testutils.FakeNode{
 				I: "node1",
-				A: attributes.Attributes{
-					"kind": attributes.NewString("kind", "txt"),
-					"name": attributes.NewString("name", "test"),
-				},
+				A: attributes.NewSet(map[string]model.AttributeValue{
+					"kind": attributes.NewString("txt"),
+					"name": attributes.NewString("test"),
+				}),
 			},
 		},
 		want: []model.Node{
 			&testutils.FakeNode{
 				I: "node1",
-				A: attributes.Attributes{
-					"kind": attributes.NewString("kind", "txt"),
-					"name": attributes.NewString("name", "test"),
-				},
+				A: attributes.NewSet(map[string]model.AttributeValue{
+					"kind": attributes.NewString("txt"),
+					"name": attributes.NewString("test"),
+				}),
 			},
 		},
 	},
@@ -40,31 +39,31 @@ var iteratorTests = []struct {
 		nodes: []model.Node{
 			&testutils.FakeNode{
 				I: "node1",
-				A: attributes.Attributes{
-					"kind": attributes.NewString("kind", "txt"),
-					"name": attributes.NewString("name", "test"),
-				},
+				A: attributes.NewSet(map[string]model.AttributeValue{
+					"kind": attributes.NewString("txt"),
+					"name": attributes.NewString("test"),
+				}),
 			},
 			&testutils.FakeNode{
 				I: "node2",
-				A: attributes.Attributes{
-					"kind": attributes.NewString("kind", "txt"),
-				},
+				A: attributes.NewSet(map[string]model.AttributeValue{
+					"kind": attributes.NewString("txt"),
+				}),
 			},
 		},
 		want: []model.Node{
 			&testutils.FakeNode{
 				I: "node2",
-				A: attributes.Attributes{
-					"kind": attributes.NewString("kind", "txt"),
-				},
+				A: attributes.NewSet(map[string]model.AttributeValue{
+					"kind": attributes.NewString("txt"),
+				}),
 			},
 			&testutils.FakeNode{
 				I: "node1",
-				A: attributes.Attributes{
-					"kind": attributes.NewString("kind", "txt"),
-					"name": attributes.NewString("name", "test"),
-				},
+				A: attributes.NewSet(map[string]model.AttributeValue{
+					"kind": attributes.NewString("txt"),
+					"name": attributes.NewString("test"),
+				}),
 			},
 		},
 	},

@@ -26,11 +26,11 @@ func TestConvertToModel(t *testing.T) {
 				"size": 5.2,
 			},
 			asserFunc: func(set model.AttributeSet) bool {
-				testExists, err := set.Exists(attributes.NewFloat("test", 2.0))
+				testExists, err := set.Exists("test", attributes.NewFloat(2.0))
 				if err != nil {
 					return false
 				}
-				sizeExists, err := set.Exists(attributes.NewFloat("size", 5.2))
+				sizeExists, err := set.Exists("size", attributes.NewFloat(5.2))
 				if err != nil {
 					return false
 				}
@@ -47,27 +47,27 @@ func TestConvertToModel(t *testing.T) {
 				"sequence": 1,
 			},
 			asserFunc: func(set model.AttributeSet) bool {
-				stringExists, err := set.Exists(attributes.NewString("test", "a test"))
+				stringExists, err := set.Exists("test", attributes.NewString("a test"))
 				if err != nil {
 					t.Log(err)
 					return false
 				}
-				boolExists, err := set.Exists(attributes.NewBool("istest", true))
+				boolExists, err := set.Exists("istest", attributes.NewBool(true))
 				if err != nil {
 					t.Log(err)
 					return false
 				}
-				nullExists, err := set.Exists(attributes.NewNull("other"))
+				nullExists, err := set.Exists("other", attributes.NewNull())
 				if err != nil {
 					t.Log(err)
 					return false
 				}
-				numExists, err := set.Exists(attributes.NewFloat("size", 5.2))
+				numExists, err := set.Exists("size", attributes.NewFloat(5.2))
 				if err != nil {
 					t.Log(err)
 					return false
 				}
-				intExists, err := set.Exists(attributes.NewInt("sequence", 1))
+				intExists, err := set.Exists("sequence", attributes.NewInt(1))
 				if err != nil {
 					t.Log(err)
 					return false

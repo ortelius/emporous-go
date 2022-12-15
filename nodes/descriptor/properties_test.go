@@ -12,10 +12,10 @@ import (
 
 func TestProperties_MarshalJSON(t *testing.T) {
 	expJSON := `{"core-descriptor":{"id":"id","name":"","version":"","type":"","foundBy":"","locations":null,"licenses":null,"language":"","cpes":null,"purl":""},"core-link":{"registryHint":"test","namespaceHint":"namespace","transitive":false},"test":{"name":"test","size":2}}`
-	set := attributes.Attributes{
-		"name": attributes.NewString("name", "test"),
-		"size": attributes.NewInt("size", 2),
-	}
+	set := attributes.NewSet(map[string]model.AttributeValue{
+		"name": attributes.NewString("test"),
+		"size": attributes.NewInt(2),
+	})
 	props := &Properties{
 		Link: &empspec.LinkAttributes{
 			RegistryHint:  "test",

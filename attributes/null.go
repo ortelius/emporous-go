@@ -2,25 +2,18 @@ package attributes
 
 import "github.com/emporous/emporous-go/model"
 
-type nullAttribute struct {
-	key string
-}
+type nullAttribute struct{}
 
-var _ model.Attribute = nullAttribute{}
+var _ model.AttributeValue = nullAttribute{}
 
 // NewNull returns a null attribute.
-func NewNull(key string) model.Attribute {
-	return nullAttribute{key: key}
+func NewNull() model.AttributeValue {
+	return nullAttribute{}
 }
 
 // Kind returns the kind for the attribute.
 func (a nullAttribute) Kind() model.Kind {
 	return model.KindNull
-}
-
-// Key return the attribute key.
-func (a nullAttribute) Key() string {
-	return a.key
 }
 
 // IsNull returns whether the value is null.

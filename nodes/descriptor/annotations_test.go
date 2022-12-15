@@ -8,16 +8,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/model"
 )
 
 func TestAnnotationsFromAttributeSet(t *testing.T) {
 	expMap := map[string]string{
 		empspec.AnnotationEmporousAttributes: "{\"name\":\"test\",\"size\":2}",
 	}
-	set := attributes.Attributes{
-		"name": attributes.NewString("name", "test"),
-		"size": attributes.NewInt("size", 2),
-	}
+	set := attributes.NewSet(map[string]model.AttributeValue{
+		"name": attributes.NewString("test"),
+		"size": attributes.NewInt(2),
+	})
 	annotations, err := AnnotationsFromAttributeSet(set)
 	require.NoError(t, err)
 	require.Equal(t, expMap, annotations)
@@ -35,7 +36,7 @@ func TestAnnotationsToAttributeSet(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expJSON, string(setJSON))
 	// JSON standard lib will unmarshal all numbers as float64
-	exists, err := set.Exists(attributes.NewFloat("size", 2))
+	exists, err := set.Exists("size", attributes.NewFloat(2))
 	require.NoError(t, err)
 	require.True(t, exists)
 }
@@ -71,10 +72,10 @@ func TestAttributesFromAttributeSet(t *testing.T) {
 		"name": []byte("\"test\""),
 		"size": []byte("2"),
 	}
-	set := attributes.Attributes{
-		"name": attributes.NewString("name", "test"),
-		"size": attributes.NewInt("size", 2),
-	}
+	set := attributes.NewSet(map[string]model.AttributeValue{
+		"name": attributes.NewString("test"),
+		"size": attributes.NewInt(2),
+	})
 	attrs, err := AttributesFromAttributeSet(set)
 	require.NoError(t, err)
 	require.Equal(t, expAttrs, attrs)
@@ -92,7 +93,7 @@ func TestAttributesToAttributeSet(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expJSON, string(setJSON))
 	// JSON standard lib will unmarshal all numbers as float64
-	exists, err := set.Exists(attributes.NewFloat("size", 2))
+	exists, err := set.Exists("size", attributes.NewFloat(2))
 	require.NoError(t, err)
 	require.True(t, exists)
 }
