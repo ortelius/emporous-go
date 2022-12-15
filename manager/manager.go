@@ -25,4 +25,7 @@ type Manager interface {
 	// PullAll is similar to Pull with the exception that it walks a graph of linked collections
 	// starting with the source collection reference.
 	PullAll(ctx context.Context, source string, remote registryclient.Remote, destination content.Store) ([]string, error)
+	// Update adds and removes content from a collection and stores the collection in the
+	// underlying content store. If successful, the root descriptor is returned.
+	Update(ctx context.Context, space workspace.Workspace, src string, dest string, add bool, remove bool, client registryclient.Client) (string, error)
 }

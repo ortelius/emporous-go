@@ -21,35 +21,10 @@ import (
 )
 
 func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, config clientapi.DataSetConfiguration, reference string, client registryclient.Client) (string, error) {
-	var files []string
-	err := space.Walk(func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("traversing %s: %v", path, err)
-		}
-		if info == nil {
-			return fmt.Errorf("no file info")
-		}
 
-		if info.Mode().IsRegular() {
-			files = append(files, path)
-		}
-		return nil
-	})
+	files, attributesByFile, err := addFiles(space, d, config, reference)
 	if err != nil {
 		return "", err
-	}
-
-	attributesByFile := map[string]model.AttributeSet{}
-	for _, file := range config.Collection.Files {
-		set, err := load.ConvertToModel(file.Attributes)
-		if err != nil {
-			return "", err
-		}
-		attributesByFile[file.File] = set
-	}
-
-	if len(files) == 0 {
-		return "", fmt.Errorf("path %q empty workspace", space.Path("."))
 	}
 
 	// If a schema is present, pull it and do the validation before
@@ -227,4 +202,42 @@ func deduplicate(in []string) []string {
 		out = append(out, l)
 	}
 	return out
+}
+
+func addFiles(space workspace.Workspace, d DefaultManager, config clientapi.DataSetConfiguration, dest string) ([]string, map[string]model.AttributeSet, error) {
+	attributesByFile := map[string]model.AttributeSet{}
+	var files []string
+
+	err := space.Walk(func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("traversing %s: %v", path, err)
+		}
+		if info == nil {
+			return fmt.Errorf("no file info")
+		}
+
+		if info.Mode().IsRegular() {
+			files = append(files, path)
+			d.logger.Infof("adding %s to %s", path, dest)
+
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for _, file := range config.Collection.Files {
+		set, err := load.ConvertToModel(file.Attributes)
+		if err != nil {
+			return nil, nil, err
+		}
+		attributesByFile[file.File] = set
+	}
+
+	if len(files) == 0 {
+		return nil, nil, fmt.Errorf("path %q empty workspace", space.Path("."))
+	}
+
+	return files, attributesByFile, err
 }
