@@ -45,3 +45,17 @@ func TestNullAttribute_IsNull(t *testing.T) {
 	test := NewNull()
 	require.True(t, test.IsNull())
 }
+
+func TestNullAttribute_AsList(t *testing.T) {
+	test := NewNull()
+	s, err := test.AsList()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, []model.AttributeValue(nil), s)
+}
+
+func TestNullAttribute_AsObject(t *testing.T) {
+	test := NewNull()
+	s, err := test.AsObject()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, map[string]model.AttributeValue(nil), s)
+}

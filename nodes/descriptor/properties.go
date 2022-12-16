@@ -2,11 +2,7 @@ package descriptor
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
-	"strconv"
 
-	"github.com/buger/jsonparser"
 	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
@@ -119,7 +115,7 @@ func (p *Properties) List() map[string]model.AttributeValue {
 		sets = append(sets, set.List())
 	}
 
-	mergedList, err := attributes.Merge(sets[0], sets[1:]...)
+	mergedList, err := attributes.Merge(sets[0], attributes.MergeOptions{}, sets[1:]...)
 	if err != nil {
 		return nil
 	}
@@ -150,7 +146,7 @@ func (p *Properties) Merge(sets map[string]model.AttributeSet) error {
 			p.Others[key] = set
 			continue
 		}
-		updatedSet, err := attributes.Merge(set.List(), existingSet.List())
+		updatedSet, err := attributes.Merge(set.List(), attributes.MergeOptions{}, existingSet.List())
 		if err != nil {
 			return err
 		}
@@ -211,75 +207,45 @@ func Parse(in map[string]json.RawMessage) (*Properties, error) {
 		case TypeLink:
 			var l empspec.LinkAttributes
 			if err := json.Unmarshal(prop, &l); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Link = &l
 		case TypeDescriptor:
 			var d empspec.DescriptorAttributes
 			if err := json.Unmarshal(prop, &d); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Descriptor = &d
 		case TypeSchema:
 			var s empspec.SchemaAttributes
 			if err := json.Unmarshal(prop, &s); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Schema = &s
 		case TypeRuntime:
 			var r ocispec.ImageConfig
 			if err := json.Unmarshal(prop, &r); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Runtime = &r
 		case TypeFile:
 			var f empspec.File
 			if err := json.Unmarshal(prop, &f); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
 			out.File = &f
 		default:
-			set := map[string]model.AttributeValue{}
-			handler := func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) (err error) {
-				valueAsString := string(value)
-				keyAsString := string(key)
-				var attr model.AttributeValue
-				switch dataType {
-				case jsonparser.String:
-					attr = attributes.NewString(valueAsString)
-				case jsonparser.Number:
-					// Using float for number like the standard lib
-					floatVal, err := strconv.ParseFloat(valueAsString, 64)
-					if err != nil {
-						return err
-					}
-					attr = attributes.NewFloat(floatVal)
-				case jsonparser.Boolean:
-					boolVal, err := strconv.ParseBool(valueAsString)
-					if err != nil {
-						return err
-					}
-					attr = attributes.NewBool(boolVal)
-				case jsonparser.Null:
-					attr = attributes.NewNull()
-				default:
-					return ParseError{Key: keyAsString, Err: errors.New("unsupported attribute type")}
-				}
-				set[keyAsString] = attr
-				return nil
-			}
-
-			if err := jsonparser.ObjectEach(prop, handler); err != nil {
-				errs = append(errs, fmt.Errorf("key %s: %w", key, err))
+			attrSet, err := attributes.ParseToSet(prop)
+			if err != nil {
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
-
-			other[key] = attributes.NewSet(set)
+			other[key] = attrSet
 		}
 	}
 	out.Others = other

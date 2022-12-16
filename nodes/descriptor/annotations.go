@@ -2,7 +2,6 @@ package descriptor
 
 import (
 	"encoding/json"
-	"fmt"
 
 	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 
@@ -36,16 +35,14 @@ func AnnotationsToAttributeSet(annotations map[string]string, skip func(string) 
 			continue
 		}
 
-		var jsonData map[string]interface{}
-		if err := json.Unmarshal([]byte(value), &jsonData); err != nil {
+		newSet, err := attributes.ParseToSet([]byte(value))
+		if err != nil {
 			return nil, err
 		}
-		for jsonKey, jsonVal := range jsonData {
-			attr, err := attributes.Reflect(jsonVal)
-			if err != nil {
-				return nil, fmt.Errorf("annotation %q: error creating attribute: %w", key, err)
-			}
-			set[jsonKey] = attr
+
+		set, err = attributes.Merge(set, attributes.MergeOptions{}, newSet.List())
+		if err != nil {
+			return nil, err
 		}
 	}
 	return attributes.NewSet(set), nil

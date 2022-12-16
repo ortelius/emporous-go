@@ -5,8 +5,76 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
+
+func TestObjectAttribute_Kind(t *testing.T) {
+	test := NewObject(map[string]model.AttributeValue{
+		"key": NewString("testvalue"),
+	})
+	require.Equal(t, model.KindObject, test.Kind())
+}
+
+func TestObjectAttribute_AsBool(t *testing.T) {
+	test := NewObject(map[string]model.AttributeValue{
+		"key": NewString("testvalue"),
+	})
+	s, err := test.AsBool()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, false, s)
+}
+
+func TestObjectAttribute_AsFloat(t *testing.T) {
+	test := NewObject(map[string]model.AttributeValue{
+		"key": NewString("testvalue"),
+	})
+	s, err := test.AsFloat()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, float64(0), s)
+}
+
+func TestObjectAttribute_AsInt(t *testing.T) {
+	test := NewObject(map[string]model.AttributeValue{
+		"key": NewString("testvalue"),
+	})
+	s, err := test.AsInt()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, int64(0), s)
+}
+
+func TestObjectAttribute_AsString(t *testing.T) {
+	test := NewObject(map[string]model.AttributeValue{
+		"key": NewString("testvalue"),
+	})
+	s, err := test.AsString()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, "", s)
+}
+
+func TestObjectAttribute_IsNull(t *testing.T) {
+	test := NewObject(map[string]model.AttributeValue{
+		"key": NewString("testvalue"),
+	})
+	require.False(t, test.IsNull())
+}
+
+func TestObjectAttribute_AsList(t *testing.T) {
+	test := NewObject(map[string]model.AttributeValue{
+		"key": NewString("testvalue"),
+	})
+	s, err := test.AsList()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, []model.AttributeValue(nil), s)
+}
+
+func TestObjectAttribute_AsObject(t *testing.T) {
+	test := NewObject(map[string]model.AttributeValue{
+		"key": NewString("testvalue"),
+	})
+	s, err := test.AsObject()
+	require.NoError(t, err)
+	require.Equal(t, map[string]model.AttributeValue{"key": NewString("testvalue")}, s)
+}
 
 func TestAttributes_MarshalJSON(t *testing.T) {
 	expString := `{"name":"test","size":2}`
@@ -86,8 +154,9 @@ func TestAttributes_List(t *testing.T) {
 func TestMerge(t *testing.T) {
 	type spec struct {
 		name      string
-		set1      mapAttribute
-		set2      mapAttribute
+		set       mapAttribute
+		patches   []map[string]model.AttributeValue
+		mergeOpts MergeOptions
 		expString string
 		expError  string
 	}
@@ -95,43 +164,136 @@ func TestMerge(t *testing.T) {
 	cases := []spec{
 		{
 			name: "Success/MergedAttributes",
-			set1: mapAttribute{
+			set: mapAttribute{
 				"name": NewString("snoopy"),
 				"size": NewInt(2),
 			},
-			set2: mapAttribute{
-				"breed": NewString("beagle"),
+			patches: []map[string]model.AttributeValue{
+				{"breed": NewString("beagle")},
 			},
 			expString: `{"breed":"beagle","name":"snoopy","size":2}`,
 		},
 		{
 			name: "Success/MergedAttributesOverwrite",
-			set1: mapAttribute{
+			set: mapAttribute{
 				"name": NewString("snoopy"),
 				"size": NewInt(2),
 			},
-			set2: mapAttribute{
-				"name":  NewString("pluto"),
-				"breed": NewString("beagle"),
+			mergeOpts: MergeOptions{
+				AllowSameTypeOverwrites: true,
+			},
+			patches: []map[string]model.AttributeValue{
+				{"name": NewString("pluto"),
+					"breed": NewString("beagle")},
 			},
 			expString: `{"breed":"beagle","name":"pluto","size":2}`,
 		},
 		{
-			name: "Failure/TypeMismatch",
-			set1: mapAttribute{
+			name: "Success/MergedMultiplePatches",
+			set: mapAttribute{
 				"name": NewString("snoopy"),
 				"size": NewInt(2),
 			},
-			set2: mapAttribute{
-				"breed": NewString("beagle"),
-				"size":  NewString("medium"),
+			mergeOpts: MergeOptions{
+				AllowSameTypeOverwrites: true,
 			},
-			expError: "key size: wrong value kind",
+			patches: []map[string]model.AttributeValue{
+				{"name": NewString("pluto"), "breed": NewString("beagle")},
+				{"name": NewString("bingo"), "breed": NewString("sheepdog"), "color": NewString("brown")},
+			},
+			expString: `{"breed":"sheepdog","color":"brown","name":"bingo","size":2}`,
+		},
+		{
+			name: "Success/ObjectMerges",
+			set: mapAttribute{
+				"name": NewString("bingo"),
+				"description": NewObject(map[string]model.AttributeValue{
+					"color":      NewString("brown"),
+					"brightness": NewString("dark"),
+					"age":        NewInt(4),
+					"owner":      NewString("farmer"),
+				}),
+			},
+			mergeOpts: MergeOptions{
+				AllowSameTypeOverwrites: true,
+			},
+			patches: []map[string]model.AttributeValue{
+				{
+					"name": NewString("bingo"),
+					"description": NewObject(map[string]model.AttributeValue{
+						"spelling": NewList([]model.AttributeValue{
+							NewString("b"),
+							NewString("i"),
+							NewString("n"),
+							NewString("g"),
+							NewString("o"),
+						}),
+					}),
+				},
+			},
+			expString: `{"description":{"age":4,"brightness":"dark","color":"brown","owner":"farmer","spelling":["b","i","n","g","o"]},"name":"bingo"}`,
+		},
+		{
+			name: "Success/ListMerges",
+			set: mapAttribute{
+				"name": NewString("bingo"),
+				"description": NewObject(map[string]model.AttributeValue{
+					"color":      NewString("brown"),
+					"brightness": NewString("dark"),
+					"age":        NewInt(4),
+					"owner":      NewString("farmer"),
+					"spelling": NewList([]model.AttributeValue{
+						NewString("b"),
+						NewString("i"),
+						NewString("n"),
+						NewString("g"),
+						NewString("o"),
+					}),
+				}),
+			},
+			mergeOpts: MergeOptions{
+				AllowSameTypeOverwrites: true,
+			},
+			patches: []map[string]model.AttributeValue{
+				{
+					"name": NewString("bingo"),
+					"description": NewObject(map[string]model.AttributeValue{
+						"spelling": NewObject(map[string]model.AttributeValue{
+							"0": NewString(""),
+						}),
+					}),
+				},
+			},
+			expString: `{"description":{"age":4,"brightness":"dark","color":"brown","owner":"farmer","spelling":["","i","n","g","o"]},"name":"bingo"}`,
+		},
+		{
+			name: "Failure/DisallowOverwrite",
+			set: mapAttribute{
+				"name": NewString("snoopy"),
+				"size": NewString("small"),
+			},
+			patches: []map[string]model.AttributeValue{
+				{"breed": NewString("beagle"),
+					"size": NewString("medium")},
+			},
+			expError: `cannot overwrite value at "size"`,
+		},
+		{
+			name: "Failure/TypeMismatch",
+			set: mapAttribute{
+				"name": NewString("snoopy"),
+				"size": NewInt(2),
+			},
+			patches: []map[string]model.AttributeValue{
+				{"breed": NewString("beagle"),
+					"size": NewString("medium")},
+			},
+			expError: `path "size": wrong value kind`,
 		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			mergedSet, err := Merge(c.set1, c.set2)
+			mergedSet, err := Merge(c.set, c.mergeOpts, c.patches...)
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
 			} else {

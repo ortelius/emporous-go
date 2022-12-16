@@ -15,7 +15,6 @@ import (
 
 	clientapi "github.com/emporous/emporous-go/api/client/v1alpha1"
 	"github.com/emporous/emporous-go/attributes"
-	load "github.com/emporous/emporous-go/config"
 	"github.com/emporous/emporous-go/content"
 	"github.com/emporous/emporous-go/model"
 	"github.com/emporous/emporous-go/nodes/descriptor"
@@ -70,7 +69,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 		}
 		regexpByFilename[file.File] = nameSearch
 
-		set, err := load.ConvertToModel(file.Attributes)
+		set, err := attributes.ParseToSet(file.Attributes)
 		if err != nil {
 			return "", err
 		}
@@ -85,8 +84,9 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 	}
 
 	// Merge the sets to ensure the dataset configuration
-	// meets the schema requirements.
-	mergedSet, err := mergeAttributes(sets)
+	// meets the schema requirements, we will allow same-type overwrites here.
+	// QUESTION(jpower432): Is this a case to evaluate attributes on a descriptor level?
+	mergedSet, err := mergeAttributes(sets, attributes.MergeOptions{AllowSameTypeOverwrites: true})
 	if err != nil {
 		return "", fmt.Errorf("failed to merge attributes: %w", err)
 	}
@@ -186,7 +186,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 			return fmt.Errorf("file %q: more than one match for file configuration", node.Location)
 		}
 
-		merged, err := mergeAttributes(sets)
+		merged, err := mergeAttributes(sets, attributes.MergeOptions{})
 		if err != nil {
 			return fmt.Errorf("failed to merge attributes: %w", err)
 		}
@@ -341,7 +341,7 @@ func fetchJSONSchema(ctx context.Context, schemaAddress string, store content.At
 	return sc, schemaID, err
 }
 
-func mergeAttributes(sets []map[string]model.AttributeValue) (map[string]model.AttributeValue, error) {
+func mergeAttributes(sets []map[string]model.AttributeValue, options attributes.MergeOptions) (map[string]model.AttributeValue, error) {
 	if len(sets) == 0 {
 		return nil, nil
 	}
@@ -350,7 +350,7 @@ func mergeAttributes(sets []map[string]model.AttributeValue) (map[string]model.A
 		return sets[0], nil
 	}
 
-	return attributes.Merge(sets[0], sets[1:]...)
+	return attributes.Merge(sets[0], options, sets[1:]...)
 }
 
 // fileInformation pairs information configurable

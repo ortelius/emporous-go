@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"testing"
 
 	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
@@ -71,10 +72,8 @@ func TestReadDataSetConfig(t *testing.T) {
 					SchemaAddress: "localhost:5001/schema:latest",
 					Files: []v1alpha1.File{
 						{
-							File: "*.json",
-							Attributes: map[string]interface{}{
-								"fiction": true,
-							},
+							File:       "*.json",
+							Attributes: json.RawMessage(`{"fiction":true}`),
 							FileInfo: empspec.File{
 								UID: -1,
 								GID: -1,

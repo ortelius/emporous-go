@@ -45,3 +45,17 @@ func TestFloatAttribute_IsNull(t *testing.T) {
 	test := NewFloat(1.0)
 	require.False(t, test.IsNull())
 }
+
+func TestFloatAttribute_AsList(t *testing.T) {
+	test := NewFloat(1)
+	s, err := test.AsList()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, []model.AttributeValue(nil), s)
+}
+
+func TestFloatAttribute_AsObject(t *testing.T) {
+	test := NewFloat(1)
+	s, err := test.AsObject()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, map[string]model.AttributeValue(nil), s)
+}

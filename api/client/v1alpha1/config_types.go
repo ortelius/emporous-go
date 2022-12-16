@@ -62,12 +62,8 @@ type File struct {
 	// permissions for files that can be used with container runtimes.
 	FileInfo empspec.File `json:"fileInfo,omitempty"`
 	// Attributes is the lists of to associate to the file.
-	Attributes Attributes `json:"attributes,omitempty"`
+	Attributes json.RawMessage `json:"attributes,omitempty"`
 }
-
-// Attributes is a map structure that holds all
-// attribute information provided by the user.
-type Attributes map[string]interface{}
 
 // UnmarshalJSON sets custom unmarshalling logic to File.
 // In this case it sets the default UID and GID to invalid

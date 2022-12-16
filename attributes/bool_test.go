@@ -45,3 +45,17 @@ func TestBoolAttribute_IsNull(t *testing.T) {
 	test := NewBool(false)
 	require.False(t, test.IsNull())
 }
+
+func TestBoolAttribute_AsList(t *testing.T) {
+	test := NewBool(false)
+	s, err := test.AsList()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, []model.AttributeValue(nil), s)
+}
+
+func TestBoolAttribute_AsObject(t *testing.T) {
+	test := NewBool(false)
+	s, err := test.AsObject()
+	require.ErrorIs(t, ErrWrongKind, err)
+	require.Equal(t, map[string]model.AttributeValue(nil), s)
+}

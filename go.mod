@@ -169,7 +169,6 @@ require (
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/letsencrypt/boulder v0.0.0-20220929215747-76583552c2be // indirect
-	github.com/lib/pq v1.10.4 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect

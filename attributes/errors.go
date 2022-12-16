@@ -1,6 +1,9 @@
-package descriptor
+package attributes
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // ParseError defines an error when parsing attributes into Properties.
 type ParseError struct {
@@ -11,3 +14,7 @@ type ParseError struct {
 func (e ParseError) Error() string {
 	return fmt.Sprintf("parse property key %q: %v", e.Key, e.Err)
 }
+
+// ErrInvalidAttribute defines the error thrown when an attribute has an invalid
+// type.
+var ErrInvalidAttribute = errors.New("invalid attribute type")

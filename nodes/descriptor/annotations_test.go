@@ -87,6 +87,7 @@ func TestAttributesToAttributeSet(t *testing.T) {
 
 		"test": []byte(`{"kind":"jpg","name":"fish.jpg","size":2}`),
 	}
+
 	set, err := AttributesToAttributeSet(attrs)
 	require.NoError(t, err)
 	setJSON, err := set.MarshalJSON()
