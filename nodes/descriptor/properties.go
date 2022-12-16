@@ -242,6 +242,7 @@ func Parse(in map[string]json.RawMessage) (*Properties, error) {
 			var f uorspec.File
 			if err := json.Unmarshal(prop, &f); err != nil {
 				errs = append(errs, ParseError{Key: key, Err: err})
+				continue
 			}
 			out.File = &f
 		default:
@@ -277,6 +278,7 @@ func Parse(in map[string]json.RawMessage) (*Properties, error) {
 
 			if err := jsonparser.ObjectEach(prop, handler); err != nil {
 				errs = append(errs, fmt.Errorf("key %s: %w", key, err))
+				continue
 			}
 
 			other[key] = set
