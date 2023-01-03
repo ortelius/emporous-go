@@ -23,7 +23,7 @@ var clientLong = templates.LongDesc(
 	This build action will store the collection in a build cache. This location can be specified with the UOR_CACHE environment 
 	variable. The default location is ~/.uor/cache. 
 	
-	After the collection has been stored, it can be retrieved and pushed the to registry with the push sub-command.
+	After the collection has been stored, it can be retrieved and pushed to the registry with the push sub-command.
 
 	Collections can be retrieved from the cache or the remote location (if not stored) with the pull sub-command. The pull sub-command also
 	allows for filtering of the collection with an attribute query configuration file.

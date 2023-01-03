@@ -10,8 +10,8 @@ type Remote struct {
 
 // BindFlags binds options from a flag set to Remote options.
 func (o *Remote) BindFlags(fs *pflag.FlagSet) {
-	fs.BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "allow connections to registries SSL registry without certs")
-	fs.BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "use plain http and not https when contacting registries")
+	fs.BoolVarP(&o.Insecure, "insecure", "", o.Insecure, "Allow connections to registries SSL registry without certs")
+	fs.BoolVarP(&o.PlainHTTP, "plain-http", "", o.PlainHTTP, "Use plain http and not https when contacting registries")
 }
 
 // RemoteAuth describes remote authentication configuration options that can be set.
@@ -21,5 +21,6 @@ type RemoteAuth struct {
 
 // BindFlags binds options from a flag set to RemoteAuth options.
 func (o *RemoteAuth) BindFlags(fs *pflag.FlagSet) {
-	fs.StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "auth config paths when contacting registries")
+	fs.StringArrayVarP(&o.Configs, "configs", "c", o.Configs, "Path(s) to your registry credentials. Defaults to well-known "+
+		"auth locations ~/.docker/config.json and $XDG_RUNTIME_DIR/container/auth.json, in respective order.")
 }

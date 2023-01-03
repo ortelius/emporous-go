@@ -292,6 +292,10 @@ func (l *Layout) loadIndex(ctx context.Context) error {
 	}
 	defer indexFile.Close()
 
+	fetcherFn := func(ctx context.Context, desc ocispec.Descriptor) ([]byte, error) {
+		return orascontent.FetchAll(ctx, l, desc)
+	}
+
 	if err := json.NewDecoder(indexFile).Decode(&l.index); err != nil {
 		return err
 	}
@@ -302,17 +306,18 @@ func (l *Layout) loadIndex(ctx context.Context) error {
 			l.resolver.Store(key, d)
 		}
 
-		fetcherFn := func(ctx context.Context, desc ocispec.Descriptor) ([]byte, error) {
-			return orascontent.FetchAll(ctx, l, desc)
-		}
-		l.mu.Lock()
-		if err := loader.LoadFromManifest(ctx, l.graph, fetcherFn, d); err != nil {
+		if err := l.loadReference(ctx, fetcherFn, d); err != nil {
 			return err
 		}
-		l.mu.Unlock()
 	}
 
 	return nil
+}
+
+func (l *Layout) loadReference(ctx context.Context, fetcherFn loader.FetcherFunc, manifest ocispec.Descriptor) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return loader.LoadFromManifest(ctx, l.graph, fetcherFn, manifest)
 }
 
 // validateOCILayoutFile ensure the 'oci-layout' file exists in the

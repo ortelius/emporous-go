@@ -68,8 +68,8 @@ func NewInspectCmd(common *options.Common) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&o.AttributeQuery, "attributes", "a", o.AttributeQuery, "attribute query config path")
-	cmd.Flags().StringVarP(&o.Source, "reference", "r", o.Source, "a reference to list descriptors for")
+	cmd.Flags().StringVarP(&o.AttributeQuery, "attributes", "a", o.AttributeQuery, "Attribute query config path")
+	cmd.Flags().StringVarP(&o.Source, "reference", "r", o.Source, "A reference to list descriptors for")
 
 	return cmd
 }

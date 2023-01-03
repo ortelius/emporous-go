@@ -10,8 +10,8 @@ import (
 
 // Schema representation of properties in a JSON Schema format.
 type Schema struct {
-	*gojsonschema.Schema
-	raw json.RawMessage
+	JSONSchema *gojsonschema.Schema
+	raw        json.RawMessage
 }
 
 // Export returns the json raw message.
@@ -69,7 +69,7 @@ func FromBytes(data []byte) (Schema, error) {
 		return Schema{}, fmt.Errorf("error creating JSON schema: %w", err)
 	}
 	return Schema{
-		Schema: schema,
-		raw:    data,
+		JSONSchema: schema,
+		raw:        data,
 	}, nil
 }
