@@ -95,6 +95,9 @@ func (o *PushOptions) Run(ctx context.Context) error {
 
 	manager := defaultmanager.New(cache, o.Logger)
 	digest, err := manager.Push(ctx, o.Destination, client)
+	if err != nil {
+		return err
+	}
 
 	destination := o.Destination
 	if !strings.Contains(destination, "@") {
@@ -113,5 +116,5 @@ func (o *PushOptions) Run(ctx context.Context) error {
 		}
 	}
 
-	return err
+	return nil
 }
