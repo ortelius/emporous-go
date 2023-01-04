@@ -86,7 +86,7 @@ jobs:
           fetch-depth: 0
     -
       name: Install Cosign
-      uses: sigstore/cosign-installer@v2.4.1
+      uses: sigstore/cosign-installer@v2.8.1
       id: cosign
     -
       name: Install SBOM

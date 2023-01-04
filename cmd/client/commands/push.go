@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"oras.land/oras-go/v2/registry"
 
 	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
 	"github.com/uor-framework/uor-client-go/content/layout"
@@ -92,11 +94,20 @@ func (o *PushOptions) Run(ctx context.Context) error {
 	}()
 
 	manager := defaultmanager.New(cache, o.Logger)
-	_, err = manager.Push(ctx, o.Destination, client)
+	digest, err := manager.Push(ctx, o.Destination, client)
+
+	destination := o.Destination
+	if !strings.Contains(destination, "@") {
+		reference, err := registry.ParseReference(o.Destination)
+		if err != nil {
+			return err
+		}
+		destination = fmt.Sprintf("%s/%s@%s", reference.Registry, reference.Repository, digest)
+	}
 
 	if o.Sign {
 		o.Logger.Infof("Signing collection")
-		err = signCollection(ctx, o.Destination, o.RemoteAuth.Configs, o.Remote)
+		err = signCollection(ctx, destination, o.RemoteAuth.Configs, o.Remote)
 		if err != nil {
 			return err
 		}
