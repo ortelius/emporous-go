@@ -24,6 +24,7 @@ uor-client-go inspect [flags]
 ```
   -a, --attributes string   Attribute query config path
   -h, --help                help for inspect
+  -p, --print-attributes    print descriptor attributes
   -r, --reference string    A reference to list descriptors for
 ```
 
