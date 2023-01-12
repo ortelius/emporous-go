@@ -104,7 +104,7 @@ func trimQuotes(input string) string {
 	return strings.Trim(input, `"`)
 }
 
-// ParseToSet converts a json.RawMessage to an model.AttributeSet.
+// ParseToSet converts a json.RawMessage to a model.AttributeSet.
 func ParseToSet(input json.RawMessage) (model.AttributeSet, error) {
 	set := map[string]model.AttributeValue{}
 
