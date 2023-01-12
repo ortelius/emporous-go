@@ -242,10 +242,9 @@ func TestValidateOCILayoutFile(t *testing.T) {
 func TestPredecessors(t *testing.T) {
 	cacheDir := "testdata/valid"
 	expected := []ocispec.Descriptor{{
-		MediaType:   "application/vnd.oci.image.manifest.v1+json",
-		Digest:      "sha256:473f7d69dbc51105aff4bb2f7ec80e27402d2f40c3e9a076e8c773b15969eadf",
-		Size:        1013,
-		Annotations: map[string]string{"org.opencontainers.image.ref.name": "localhost:5001/test:latest"},
+		MediaType: "application/vnd.oci.image.manifest.v1+json",
+		Digest:    "sha256:473f7d69dbc51105aff4bb2f7ec80e27402d2f40c3e9a076e8c773b15969eadf",
+		Size:      1013,
 	}}
 	ctx := context.TODO()
 	l, err := NewWithContext(ctx, cacheDir)

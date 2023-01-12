@@ -43,8 +43,7 @@ func LoadFromManifest(ctx context.Context, graph *collection.Collection, fetcher
 		// We do not want to expect to traverse outside the repo doing this
 		// traversal, so we just make the links leaf nodes that can be
 		// lazily loaded.
-
-		if desc.Properties != nil && desc.Properties.IsALink() {
+		if desc.Properties != nil && isRemoteLink(*desc.Properties) {
 			return nil, nil
 		}
 
@@ -123,6 +122,7 @@ func addOrGetNode(graph *collection.Collection, desc ocispec.Descriptor) (model.
 	if err := graph.AddNode(n); err != nil {
 		return nil, err
 	}
+
 	return n, nil
 }
 
@@ -224,4 +224,13 @@ func getSuccessors(ctx context.Context, fetcher FetcherFunc, node ocispec.Descri
 	}
 
 	return nil, nil
+}
+
+// isRemoteLink determines if the link in the same repository as the parent or
+// another registry or namespace.
+func isRemoteLink(properties descriptor.Properties) bool {
+	if properties.IsALink() {
+		return properties.Link.RegistryHint != "" || properties.Link.NamespaceHint != ""
+	}
+	return false
 }

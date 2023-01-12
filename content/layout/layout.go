@@ -333,6 +333,19 @@ func (l *Layout) loadIndex(ctx context.Context) error {
 			l.resolver.Store(key, d)
 		}
 
+		// Ensure the annotations for the root node of the reference are
+		// from the manifest and not the descriptor in the index manifest.
+		var manifest ocispec.Manifest
+		manifestBytes, err := orascontent.FetchAll(ctx, l, d)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal(manifestBytes, &manifest); err != nil {
+			return err
+		}
+		d.Annotations = manifest.Annotations
+
 		if err := l.loadReference(ctx, fetcherFn, d); err != nil {
 			return err
 		}
