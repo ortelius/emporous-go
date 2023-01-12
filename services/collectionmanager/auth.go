@@ -7,7 +7,7 @@ import (
 
 	"oras.land/oras-go/v2/registry/remote/auth"
 
-	managerapi "github.com/uor-framework/uor-client-go/api/services/collectionmanager/v1alpha1"
+	managerapi "github.com/emporous/emporous-go/api/services/collectionmanager/v1alpha1"
 )
 
 // authConfig wraps the AuthConfig from the manager API.

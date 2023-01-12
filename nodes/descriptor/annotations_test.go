@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
-	"github.com/uor-framework/uor-client-go/attributes"
+	"github.com/emporous/emporous-go/attributes"
 )
 
 func TestAnnotationsFromAttributeSet(t *testing.T) {
 	expMap := map[string]string{
-		uorspec.AnnotationUORAttributes: "{\"name\":\"test\",\"size\":2}",
+		empspec.AnnotationUORAttributes: "{\"name\":\"test\",\"size\":2}",
 	}
 	set := attributes.Attributes{
 		"name": attributes.NewString("name", "test"),
@@ -27,7 +27,7 @@ func TestAnnotationsToAttributeSet(t *testing.T) {
 	expJSON := `{"kind":"jpg","name":"fish.jpg","ref":"example","size":2}`
 	annotations := map[string]string{
 		"ref":                           "example",
-		uorspec.AnnotationUORAttributes: `{"kind":"jpg","name":"fish.jpg","size":2}`,
+		empspec.AnnotationUORAttributes: `{"kind":"jpg","name":"fish.jpg","size":2}`,
 	}
 	set, err := AnnotationsToAttributeSet(annotations, nil)
 	require.NoError(t, err)
@@ -42,7 +42,7 @@ func TestAnnotationsToAttributeSet(t *testing.T) {
 
 func TestAnnotationsToAttributes(t *testing.T) {
 	annotations := map[string]string{
-		uorspec.AnnotationUORAttributes: "{\"name\":\"test\",\"size\":2}",
+		empspec.AnnotationUORAttributes: "{\"name\":\"test\",\"size\":2}",
 	}
 	expAttrs := map[string]json.RawMessage{
 		"name": []byte("\"test\""),
@@ -55,7 +55,7 @@ func TestAnnotationsToAttributes(t *testing.T) {
 
 func TestAnnotationsFromAttributes(t *testing.T) {
 	expMap := map[string]string{
-		uorspec.AnnotationUORAttributes: "{\"name\":\"test\",\"size\":2}",
+		empspec.AnnotationUORAttributes: "{\"name\":\"test\",\"size\":2}",
 	}
 	attrs := map[string]json.RawMessage{
 		"name": []byte("\"test\""),

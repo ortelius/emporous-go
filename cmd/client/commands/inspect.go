@@ -8,17 +8,17 @@ import (
 	"path/filepath"
 	"text/tabwriter"
 
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
-	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
-	"github.com/uor-framework/uor-client-go/config"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
-	"github.com/uor-framework/uor-client-go/util/examples"
+	"github.com/emporous/emporous-go/cmd/client/commands/options"
+	"github.com/emporous/emporous-go/config"
+	"github.com/emporous/emporous-go/nodes/descriptor"
+	"github.com/emporous/emporous-go/util/examples"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 
-	"github.com/uor-framework/uor-client-go/content/layout"
+	"github.com/emporous/emporous-go/content/layout"
 )
 
 // InspectOptions describe configuration options that can
@@ -60,7 +60,7 @@ func NewInspectCmd(common *options.Common) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "inspect",
-		Short:         "Print UOR collection information",
+		Short:         "Print Emporous collection information",
 		Example:       examples.FormatExamples(clientInspectExamples...),
 		SilenceErrors: false,
 		SilenceUsage:  false,
@@ -182,7 +182,7 @@ func (o *InspectOptions) printWithAttributes(w io.Writer, descs []ocispec.Descri
 		return err
 	}
 	for _, desc := range descs {
-		attrDoc, ok := desc.Annotations[uorspec.AnnotationUORAttributes]
+		attrDoc, ok := desc.Annotations[empspec.AnnotationUORAttributes]
 		if !ok {
 			attrDoc = "None"
 		}

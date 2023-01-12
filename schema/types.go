@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
 
 // Type represent types for an attribute schema.

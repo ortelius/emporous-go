@@ -9,19 +9,19 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
+	"github.com/emporous/emporous-go/cmd/client/commands/options"
 )
 
 var clientLong = templates.LongDesc(
 	`
-	The UOR client helps you build, publish, and retrieve UOR collections as an OCI artifact.
+	The emporous client helps you build, publish, and retrieve emporous collections as an OCI artifact.
 
 	The workflow to publish a collection is to gather files for a collection in a directory workspace 
 	and use the build sub-command. During the build process, the tag for the
 	remote destination is specified. 
 	
-	This build action will store the collection in a build cache. This location can be specified with the UOR_CACHE environment 
-	variable. The default location is ~/.uor/cache. 
+	This build action will store the collection in a build cache. This location can be specified with the emporous_CACHE environment 
+	variable. The default location is ~/.emporous/cache. 
 	
 	After the collection has been stored, it can be retrieved and pushed to the registry with the push sub-command.
 
@@ -42,7 +42,7 @@ func NewRootCmd() *cobra.Command {
 	}
 	cmd := &cobra.Command{
 		Use:           filepath.Base(os.Args[0]),
-		Short:         "UOR Client",
+		Short:         "emporous Client",
 		Long:          clientLong,
 		SilenceErrors: false,
 		SilenceUsage:  false,
@@ -72,9 +72,9 @@ func NewRootCmd() *cobra.Command {
 func readEnvConfig() options.EnvConfig {
 	envConfig := options.EnvConfig{}
 
-	devModeString := os.Getenv("UOR_DEV_MODE")
+	devModeString := os.Getenv("EMPOROUS_DEV_MODE")
 	devMode, err := strconv.ParseBool(devModeString)
-	envConfig.UOR_DEV_MODE = err == nil && devMode
+	envConfig.EMPOROUS_DEV_MODE = err == nil && devMode
 
 	return envConfig
 }

@@ -8,22 +8,22 @@ import (
 
 	"github.com/buger/jsonparser"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
-	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/util/errlist"
+	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/util/errlist"
 )
 
 var _ model.AttributeSet = &Properties{}
 
-// Properties define all properties an UOR collection descriptor can have.
+// Properties define all properties an Emporous collection descriptor can have.
 type Properties struct {
 	Runtime    *ocispec.ImageConfig          `json:"core-runtime,omitempty"`
-	Link       *uorspec.LinkAttributes       `json:"core-link,omitempty"`
-	Descriptor *uorspec.DescriptorAttributes `json:"core-descriptor,omitempty"`
-	Schema     *uorspec.SchemaAttributes     `json:"core-schema,omitempty"`
-	File       *uorspec.File                 `json:"core-file,omitempty"`
+	Link       *empspec.LinkAttributes       `json:"core-link,omitempty"`
+	Descriptor *empspec.DescriptorAttributes `json:"core-descriptor,omitempty"`
+	Schema     *empspec.SchemaAttributes     `json:"core-schema,omitempty"`
+	File       *empspec.File                 `json:"core-file,omitempty"`
 	// A map of attribute sets where the string is the schema ID.
 	Others map[string]model.AttributeSet `json:"-"`
 }
@@ -211,21 +211,21 @@ func Parse(in map[string]json.RawMessage) (*Properties, error) {
 	for key, prop := range in {
 		switch key {
 		case TypeLink:
-			var l uorspec.LinkAttributes
+			var l empspec.LinkAttributes
 			if err := json.Unmarshal(prop, &l); err != nil {
 				errs = append(errs, ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Link = &l
 		case TypeDescriptor:
-			var d uorspec.DescriptorAttributes
+			var d empspec.DescriptorAttributes
 			if err := json.Unmarshal(prop, &d); err != nil {
 				errs = append(errs, ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Descriptor = &d
 		case TypeSchema:
-			var s uorspec.SchemaAttributes
+			var s empspec.SchemaAttributes
 			if err := json.Unmarshal(prop, &s); err != nil {
 				errs = append(errs, ParseError{Key: key, Err: err})
 				continue
@@ -239,7 +239,7 @@ func Parse(in map[string]json.RawMessage) (*Properties, error) {
 			}
 			out.Runtime = &r
 		case TypeFile:
-			var f uorspec.File
+			var f empspec.File
 			if err := json.Unmarshal(prop, &f); err != nil {
 				errs = append(errs, ParseError{Key: key, Err: err})
 				continue

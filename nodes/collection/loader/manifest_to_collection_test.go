@@ -10,7 +10,7 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
 
-	"github.com/uor-framework/uor-client-go/nodes/collection"
+	"github.com/emporous/emporous-go/nodes/collection"
 )
 
 func TestLoadFromManifest(t *testing.T) {
@@ -94,7 +94,7 @@ func testFetcher(_ context.Context, desc ocispec.Descriptor) ([]byte, error) {
   "schemaVersion": 2,
   "mediaType": "application/vnd.oci.image.manifest.v1+json",
   "config": {
-    "mediaType": "application/vnd.uor.config.v1+json",
+    "mediaType": "application/vnd.emporous.config.v1+json",
     "digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
     "size": 2
   },
@@ -133,7 +133,7 @@ func testFetcher(_ context.Context, desc ocispec.Descriptor) ([]byte, error) {
     }
   ],
   "annotations": {
-    "uor.schema": "localhost:5001/schema:latest"
+    "emporous.schema": "localhost:5001/schema:latest"
   }
 }
 `

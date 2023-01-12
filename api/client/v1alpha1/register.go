@@ -4,10 +4,10 @@ import "path"
 
 const (
 	version = "v1alpha1"
-	group   = "client.uor-framework.io"
+	group   = "client.emporous.io"
 )
 
 var (
-	// GroupVersion of UOR
+	// GroupVersion of emporous
 	GroupVersion = path.Join(group, version)
 )

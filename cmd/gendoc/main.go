@@ -4,13 +4,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 
-	"github.com/uor-framework/uor-client-go/cmd/client/commands"
+	"github.com/emporous/emporous-go/cmd/client/commands"
 )
 
 func main() {
 	genDocCmd := &cobra.Command{
 		Use:          "gendoc",
-		Short:        "Generate UOR client CLI docs",
+		Short:        "Generate emporous client CLI docs",
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {

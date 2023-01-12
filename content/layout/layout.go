@@ -14,17 +14,17 @@ import (
 
 	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	orascontent "oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/content/oci"
 	"oras.land/oras-go/v2/errdef"
 
-	"github.com/uor-framework/uor-client-go/content"
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/model/traversal"
-	"github.com/uor-framework/uor-client-go/nodes/collection"
-	"github.com/uor-framework/uor-client-go/nodes/collection/loader"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor/v2"
+	"github.com/emporous/emporous-go/content"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/model/traversal"
+	"github.com/emporous/emporous-go/nodes/collection"
+	"github.com/emporous/emporous-go/nodes/collection/loader"
+	"github.com/emporous/emporous-go/nodes/descriptor/v2"
 )
 
 var (
@@ -227,7 +227,7 @@ func (l *Layout) AttributeSchema(ctx context.Context, reference string) (ocispec
 	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
 		desc, ok := node.(*v2.Node)
 		if ok {
-			if desc.Descriptor().MediaType == uorspec.MediaTypeSchemaDescriptor {
+			if desc.Descriptor().MediaType == empspec.MediaTypeSchemaDescriptor {
 				res = desc.Descriptor()
 				return nil, stopErr
 			}

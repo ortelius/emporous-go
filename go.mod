@@ -1,4 +1,4 @@
-module github.com/uor-framework/uor-client-go
+module github.com/emporous/emporous-go
 
 go 1.18
 

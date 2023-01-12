@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
-	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/model"
 )
 
 func TestProperties_MarshalJSON(t *testing.T) {
@@ -17,12 +17,12 @@ func TestProperties_MarshalJSON(t *testing.T) {
 		"size": attributes.NewInt("size", 2),
 	}
 	props := &Properties{
-		Link: &uorspec.LinkAttributes{
+		Link: &empspec.LinkAttributes{
 			RegistryHint:  "test",
 			NamespaceHint: "namespace",
 		},
-		Descriptor: &uorspec.DescriptorAttributes{
-			Component: uorspec.Component{
+		Descriptor: &empspec.DescriptorAttributes{
+			Component: empspec.Component{
 				ID: "id",
 			},
 		},

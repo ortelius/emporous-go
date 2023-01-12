@@ -6,8 +6,8 @@ import (
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
-	"github.com/uor-framework/uor-client-go/content"
-	"github.com/uor-framework/uor-client-go/nodes/collection"
+	"github.com/emporous/emporous-go/content"
+	"github.com/emporous/emporous-go/nodes/collection"
 )
 
 // Client defines methods to interact with OCI artifacts

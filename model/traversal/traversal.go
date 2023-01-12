@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
 
 // ErrSkip allows a node to be intentionally skipped.

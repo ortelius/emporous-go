@@ -6,7 +6,7 @@ import "encoding/json"
 const AttributeQueryKind = "AttributeQuery"
 
 // AttributeQuery configures an attribute query against
-// UOR collection content.
+// emporous collection content.
 type AttributeQuery struct {
 	TypeMeta `json:",inline"`
 	// Attributes list the configuration for Attribute types.

@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
-	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/schema"
+	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/schema"
 )
 
 // AnnotationsToAttributeSet converts annotations from descriptors
@@ -22,7 +22,7 @@ func AnnotationsToAttributeSet(annotations map[string]string, skip func(string) 
 		}
 
 		// Handle key collision. This should only occur if
-		// an annotation is set and the key also exists in the UOR
+		// an annotation is set and the key also exists in the Emporous
 		// specific attributes.
 		if _, exists := set[key]; exists {
 			continue
@@ -31,7 +31,7 @@ func AnnotationsToAttributeSet(annotations map[string]string, skip func(string) 
 		// Since annotations are in the form of map[string]string, we
 		// can just assume it is a string attribute at this point. Incorporating
 		// this into thr attribute set allows, users to pull by filename or reference name (cache).
-		if key != uorspec.AnnotationUORAttributes {
+		if key != empspec.AnnotationUORAttributes {
 			set[key] = attributes.NewString(key, value)
 			continue
 		}
@@ -58,7 +58,7 @@ func AnnotationsFromAttributeSet(set model.AttributeSet) (map[string]string, err
 	if err != nil {
 		return nil, err
 	}
-	return map[string]string{uorspec.AnnotationUORAttributes: string(attrJSON)}, nil
+	return map[string]string{empspec.AnnotationUORAttributes: string(attrJSON)}, nil
 }
 
 // AnnotationsToAttributes OCI descriptor annotations to collection spec attributes if
@@ -68,7 +68,7 @@ func AnnotationsToAttributes(annotations map[string]string) (map[string]json.Raw
 	extraAnnotations := map[string]string{}
 	for key, value := range annotations {
 
-		if key != uorspec.AnnotationUORAttributes {
+		if key != empspec.AnnotationUORAttributes {
 			extraAnnotations[key] = value
 			continue
 		}
@@ -106,7 +106,7 @@ func AnnotationsFromAttributes(attributes map[string]json.RawMessage) (map[strin
 	if err != nil {
 		return nil, err
 	}
-	return map[string]string{uorspec.AnnotationUORAttributes: string(attrJSoN)}, nil
+	return map[string]string{empspec.AnnotationUORAttributes: string(attrJSoN)}, nil
 }
 
 // AttributesToAttributeSet converts collection spec attributes to an attribute set.

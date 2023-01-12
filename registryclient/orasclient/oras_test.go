@@ -14,12 +14,12 @@ import (
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/content/memory"
 
-	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/attributes/matchers"
+	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/attributes/matchers"
 )
 
 func TestAddFiles(t *testing.T) {
@@ -57,7 +57,7 @@ func TestAddManifest(t *testing.T) {
 		require.NoError(t, err)
 		desc, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddContent(ctx, uorspec.MediaTypeConfiguration, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, empspec.MediaTypeConfiguration, []byte("{}"), nil)
 		require.NoError(t, err)
 		mdesc, err := c.AddManifest(ctx, "localhost:5000/test:latest", configDesc, nil, desc...)
 		require.NoError(t, err)
@@ -104,7 +104,7 @@ func TestSave(t *testing.T) {
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddContent(ctx, uorspec.MediaTypeConfiguration, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, empspec.MediaTypeConfiguration, []byte("{}"), nil)
 		require.NoError(t, err)
 
 		mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
@@ -146,7 +146,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddContent(ctx, uorspec.MediaTypeConfiguration, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, empspec.MediaTypeConfiguration, []byte("{}"), nil)
 		require.NoError(t, err)
 
 		mdesc, err := c.AddManifest(ctx, ref, configDesc, nil, descs...)
@@ -220,7 +220,7 @@ func TestPushPull(t *testing.T) {
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
 		require.NoError(t, err)
-		configDesc, err := c.AddContent(ctx, uorspec.MediaTypeConfiguration, []byte("{}"), nil)
+		configDesc, err := c.AddContent(ctx, empspec.MediaTypeConfiguration, []byte("{}"), nil)
 		require.NoError(t, err)
 
 		source, err := c.Store()

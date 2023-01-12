@@ -9,7 +9,7 @@ syntax = "proto3";
 package manager;
 
 import "google/protobuf/struct.proto";
-option go_package = "github.com/uor-framework/uor-client-go/api/services/collectionmanager/v1alpha1";
+option go_package = "github.com/emporous/emporous-go/api/services/collectionmanager/v1alpha1";
 
 // CollectionManager is an endpoint that can retrieve and publish Collection
 // contents for clients.

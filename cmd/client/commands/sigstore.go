@@ -19,10 +19,10 @@ import (
 	// Loads OIDC providers
 	_ "github.com/sigstore/cosign/pkg/providers/all"
 
-	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
+	"github.com/emporous/emporous-go/cmd/client/commands/options"
 )
 
-// Sign applies keyless OIDC signatures to sign UOR Collections
+// Sign applies keyless OIDC signatures to sign emporous Collections
 func signCollection(_ context.Context, reference string, authConfigs []string, remoteOpts options.Remote) error {
 
 	ko := cosignopts.KeyOpts{

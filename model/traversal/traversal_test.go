@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/util/testutils"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/util/testutils"
 )
 
 func TestTracker_Walk(t *testing.T) {

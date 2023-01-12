@@ -21,11 +21,11 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"oras.land/oras-go/v2/content/memory"
 
-	managerapi "github.com/uor-framework/uor-client-go/api/services/collectionmanager/v1alpha1"
-	"github.com/uor-framework/uor-client-go/content"
-	"github.com/uor-framework/uor-client-go/log"
-	"github.com/uor-framework/uor-client-go/manager/defaultmanager"
-	"github.com/uor-framework/uor-client-go/model"
+	managerapi "github.com/emporous/emporous-go/api/services/collectionmanager/v1alpha1"
+	"github.com/emporous/emporous-go/content"
+	"github.com/emporous/emporous-go/log"
+	"github.com/emporous/emporous-go/manager/defaultmanager"
+	"github.com/emporous/emporous-go/model"
 )
 
 func dialer(srv managerapi.CollectionManagerServer) func(context.Context, string) (net.Conn, error) {

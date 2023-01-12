@@ -4,7 +4,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
 
 // ErrInvalidAttribute defines the error thrown when an attribute has an invalid

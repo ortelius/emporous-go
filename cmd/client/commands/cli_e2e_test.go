@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
-	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
-	"github.com/uor-framework/uor-client-go/log"
+	"github.com/emporous/emporous-go/cmd/client/commands/options"
+	"github.com/emporous/emporous-go/log"
 )
 
 func TestCLIE2E(t *testing.T) {
@@ -130,7 +130,7 @@ func TestCLIE2E(t *testing.T) {
 			},
 		},
 		{
-			name: "Success/UORParsing",
+			name: "Success/emporousParsing",
 			buildOpts: &BuildCollectionOptions{
 				BuildOptions: &BuildOptions{
 					Common: &options.Common{
@@ -141,9 +141,9 @@ func TestCLIE2E(t *testing.T) {
 						},
 						Logger: testlogr,
 					},
-					Destination: fmt.Sprintf("%s/client-uor-test:latest", u.Host),
+					Destination: fmt.Sprintf("%s/client-emporous-test:latest", u.Host),
 				},
-				RootDir: "testdata/uor-template",
+				RootDir: "testdata/emporous-template",
 			},
 			pushOpts: &PushOptions{
 				Common: &options.Common{
@@ -154,7 +154,7 @@ func TestCLIE2E(t *testing.T) {
 					},
 					Logger: testlogr,
 				},
-				Destination: fmt.Sprintf("%s/client-uor-test:latest", u.Host),
+				Destination: fmt.Sprintf("%s/client-emporous-test:latest", u.Host),
 				Remote: options.Remote{
 					PlainHTTP: true,
 				},

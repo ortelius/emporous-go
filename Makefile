@@ -2,14 +2,14 @@ GO := go
 
 GO_BUILD_PACKAGES := ./cmd/client
 GO_BUILD_BINDIR :=./bin
-EXECUTABLE_NAME := "uor-client-go"
+EXECUTABLE_NAME := "emporous"
 GIT_COMMIT := $(or $(SOURCE_GIT_COMMIT),$(shell git rev-parse --short HEAD))
 GIT_TAG :="$(shell git tag | sort -V | tail -1)"
 
-GO_LD_EXTRAFLAGS :=-X github.com/uor-framework/uor-client-go/version.version="$(shell git tag | sort -V | tail -1)" \
-				   -X github.com/uor-framework/uor-client-go/version.buildData="dev" \
-				   -X github.com/uor-framework/uor-client-go/version.commit="$(GIT_COMMIT)" \
-				   -X github.com/uor-framework/uor-client-go/version.buildDate="$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')"
+GO_LD_EXTRAFLAGS :=-X github.com/emporous/emporous-go/version.version="$(shell git tag | sort -V | tail -1)" \
+				   -X github.com/emporous/emporous-go/version.buildData="dev" \
+				   -X github.com/emporous/emporous-go/version.commit="$(GIT_COMMIT)" \
+				   -X github.com/emporous/emporous-go/version.buildDate="$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 build: prep-build-dir
 	$(GO) build -o $(GO_BUILD_BINDIR)/$(EXECUTABLE_NAME)  -ldflags="$(GO_LD_EXTRAFLAGS)" $(GO_BUILD_PACKAGES)
@@ -81,7 +81,7 @@ vet:
 .PHONY: vet
 
 generate-usage-docs: prep-build-dir
-	# The gendoc executable is built with the name "uor-client-go" since the
+	# The gendoc executable is built with the name "emporous" since the
     # root command name is built from the base path name of the cli
     # at runtime.
 	$(GO) build -o $(GO_BUILD_BINDIR)/tmp/$(EXECUTABLE_NAME) "./cmd/gendoc"

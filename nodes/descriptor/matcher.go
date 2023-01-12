@@ -6,7 +6,7 @@ import (
 
 	"github.com/nsf/jsondiff"
 
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
 
 var _ model.Matcher = JSONSubsetMatcher{}

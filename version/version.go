@@ -20,7 +20,7 @@ var (
 	buildData string
 )
 
-var versionTemplate = `UOR Client:
+var versionTemplate = `Emporous Client:
  Version:	{{ .Version }}
  Go Version:	{{ .GoVersion }}
  Git Commit:	{{ .GitCommit }}

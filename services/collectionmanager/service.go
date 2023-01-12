@@ -8,13 +8,13 @@ import (
 	"google.golang.org/grpc/status"
 	"oras.land/oras-go/v2/content/file"
 
-	"github.com/uor-framework/uor-client-go/api/client/v1alpha1"
-	managerapi "github.com/uor-framework/uor-client-go/api/services/collectionmanager/v1alpha1"
-	"github.com/uor-framework/uor-client-go/content"
-	"github.com/uor-framework/uor-client-go/manager"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
-	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
-	"github.com/uor-framework/uor-client-go/util/workspace"
+	"github.com/emporous/emporous-go/api/client/v1alpha1"
+	managerapi "github.com/emporous/emporous-go/api/services/collectionmanager/v1alpha1"
+	"github.com/emporous/emporous-go/content"
+	"github.com/emporous/emporous-go/manager"
+	"github.com/emporous/emporous-go/nodes/descriptor"
+	"github.com/emporous/emporous-go/registryclient/orasclient"
+	"github.com/emporous/emporous-go/util/workspace"
 )
 
 var _ managerapi.CollectionManagerServer = &service{}

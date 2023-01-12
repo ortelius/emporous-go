@@ -1,10 +1,10 @@
 package basic
 
 import (
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
 
-// Node defines a single unit containing information about a UOR dataset node.
+// Node defines a single unit containing information about a emporous dataset node.
 type Node struct {
 	id         string
 	attributes model.AttributeSet

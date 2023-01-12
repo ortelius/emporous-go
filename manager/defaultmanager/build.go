@@ -10,19 +10,19 @@ import (
 	"strings"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"oras.land/oras-go/v2/registry"
 
-	clientapi "github.com/uor-framework/uor-client-go/api/client/v1alpha1"
-	"github.com/uor-framework/uor-client-go/attributes"
-	load "github.com/uor-framework/uor-client-go/config"
-	"github.com/uor-framework/uor-client-go/content"
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor/v2"
-	"github.com/uor-framework/uor-client-go/registryclient"
-	"github.com/uor-framework/uor-client-go/schema"
-	"github.com/uor-framework/uor-client-go/util/workspace"
+	clientapi "github.com/emporous/emporous-go/api/client/v1alpha1"
+	"github.com/emporous/emporous-go/attributes"
+	load "github.com/emporous/emporous-go/config"
+	"github.com/emporous/emporous-go/content"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/nodes/descriptor"
+	"github.com/emporous/emporous-go/nodes/descriptor/v2"
+	"github.com/emporous/emporous-go/registryclient"
+	"github.com/emporous/emporous-go/schema"
+	"github.com/emporous/emporous-go/util/workspace"
 )
 
 // Build builds collection from input and store it in the underlying content store.
@@ -166,7 +166,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 		}
 
 		var sets []model.AttributeSet
-		var fileConfig []uorspec.File
+		var fileConfig []empspec.File
 		for file, fileInfo := range fileInfoByName {
 			nameSearch := regexpByFilename[file]
 			if nameSearch.Match([]byte(node.Location)) {
@@ -209,7 +209,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 	if err != nil {
 		return "", err
 	}
-	configDesc, err := client.AddContent(ctx, uorspec.MediaTypeConfiguration, configJSON, nil)
+	configDesc, err := client.AddContent(ctx, empspec.MediaTypeConfiguration, configJSON, nil)
 	if err != nil {
 		return "", err
 	}
@@ -225,15 +225,15 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 		if err != nil {
 			return "", err
 		}
-		manifestAnnotations[uorspec.AnnotationLink] = string(aggregateDescJSON)
+		manifestAnnotations[empspec.AnnotationLink] = string(aggregateDescJSON)
 	}
 
 	var prop descriptor.Properties
 	// Add user specified component information to the manifest, if applicable.
 	if config.Collection.Components.Name != "" {
 		d.logger.Debugf("Component information detected. Adding inder core-descriptor schema.")
-		componentAttr := &uorspec.DescriptorAttributes{
-			Component: uorspec.Component{
+		componentAttr := &empspec.DescriptorAttributes{
+			Component: empspec.Component{
 				Name:      config.Collection.Components.Name,
 				Version:   config.Collection.Components.Version,
 				Type:      config.Collection.Components.Type,
@@ -258,7 +258,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 	if err != nil {
 		return "", err
 	}
-	manifestAnnotations[uorspec.AnnotationUORAttributes] = string(propsJSON)
+	manifestAnnotations[empspec.AnnotationUORAttributes] = string(propsJSON)
 
 	_, err = client.AddManifest(ctx, reference, configDesc, manifestAnnotations, descs...)
 	if err != nil {
@@ -291,7 +291,7 @@ func (d DefaultManager) addLinks(ctx context.Context, client registryclient.Clie
 			return nil, fmt.Errorf("link %q: %w", l, err)
 		}
 		linkAttr := descriptor.Properties{
-			Link: &uorspec.LinkAttributes{
+			Link: &empspec.LinkAttributes{
 				RegistryHint:  ref.Registry,
 				NamespaceHint: ref.Repository,
 				Transitive:    true,
@@ -301,7 +301,7 @@ func (d DefaultManager) addLinks(ctx context.Context, client registryclient.Clie
 		if err != nil {
 			return nil, err
 		}
-		desc.Annotations[uorspec.AnnotationUORAttributes] = string(linkJSON)
+		desc.Annotations[empspec.AnnotationUORAttributes] = string(linkJSON)
 		linkedDesc = append(linkedDesc, desc)
 	}
 	return linkedDesc, nil
@@ -345,7 +345,7 @@ func fetchJSONSchema(ctx context.Context, schemaAddress string, store content.At
 // file attributes for comparison.
 type fileInformation struct {
 	model.AttributeSet
-	uorspec.File
+	empspec.File
 }
 
 func (f fileInformation) HasAttributes() bool {

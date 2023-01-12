@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
 
 // ErrWrongKind defines a type error try to cast an attributes value
