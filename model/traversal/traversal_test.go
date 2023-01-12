@@ -28,11 +28,11 @@ func TestTracker_Walk(t *testing.T) {
 				budget: &Budget{
 					NodeBudget: 3,
 				},
-				Path: NewPath(&testutils.MockNode{I: "node1"}),
+				Path: NewPath(&testutils.FakeNode{I: "node1"}),
 			},
-			root: &testutils.MockNode{I: "node1"},
+			root: &testutils.FakeNode{I: "node1"},
 			graph: &mockGraph{nodes: map[string][]model.Node{
-				"node1": {&testutils.MockNode{I: "node2"}}},
+				"node1": {&testutils.FakeNode{I: "node2"}}},
 			},
 			expInvocations: 2,
 		},
@@ -42,15 +42,15 @@ func TestTracker_Walk(t *testing.T) {
 				budget: &Budget{
 					NodeBudget: 8,
 				},
-				Path: NewPath(&testutils.MockNode{I: "node1"}),
+				Path: NewPath(&testutils.FakeNode{I: "node1"}),
 			},
-			root: &testutils.MockNode{I: "node1"},
+			root: &testutils.FakeNode{I: "node1"},
 			graph: &mockGraph{nodes: map[string][]model.Node{
 				"node1": {
-					&testutils.MockIterableNode{
+					&testutils.FakeIterableNode{
 						I:     "node2",
 						Index: -1,
-						Nodes: []model.Node{&testutils.MockNode{I: "node1"}}},
+						Nodes: []model.Node{&testutils.FakeNode{I: "node1"}}},
 				},
 			},
 			},
@@ -63,11 +63,11 @@ func TestTracker_Walk(t *testing.T) {
 				budget: &Budget{
 					NodeBudget: 0,
 				},
-				Path: NewPath(&testutils.MockNode{I: "node1"}),
+				Path: NewPath(&testutils.FakeNode{I: "node1"}),
 			},
-			root: &testutils.MockNode{I: "node1"},
+			root: &testutils.FakeNode{I: "node1"},
 			graph: &mockGraph{nodes: map[string][]model.Node{
-				"node1": {&testutils.MockNode{I: "node2"}}},
+				"node1": {&testutils.FakeNode{I: "node2"}}},
 			},
 			expInvocations: 0,
 			expError:       &ErrBudgetExceeded{},

@@ -18,7 +18,7 @@ var iteratorTests = []struct {
 	{nodes: nil, want: nil},
 	{
 		nodes: []model.Node{
-			&testutils.MockNode{
+			&testutils.FakeNode{
 				I: "node1",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
@@ -27,7 +27,7 @@ var iteratorTests = []struct {
 			},
 		},
 		want: []model.Node{
-			&testutils.MockNode{
+			&testutils.FakeNode{
 				I: "node1",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
@@ -38,14 +38,14 @@ var iteratorTests = []struct {
 	},
 	{
 		nodes: []model.Node{
-			&testutils.MockNode{
+			&testutils.FakeNode{
 				I: "node1",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
 					"name": attributes.NewString("name", "test"),
 				},
 			},
-			&testutils.MockNode{
+			&testutils.FakeNode{
 				I: "node2",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
@@ -53,13 +53,13 @@ var iteratorTests = []struct {
 			},
 		},
 		want: []model.Node{
-			&testutils.MockNode{
+			&testutils.FakeNode{
 				I: "node2",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),
 				},
 			},
-			&testutils.MockNode{
+			&testutils.FakeNode{
 				I: "node1",
 				A: attributes.Attributes{
 					"kind": attributes.NewString("kind", "txt"),

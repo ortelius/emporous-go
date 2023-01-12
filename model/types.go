@@ -1,7 +1,5 @@
 package model
 
-import "encoding/json"
-
 // DirectedGraph defines methods for interacting with groups of
 // nodes and edges in a directed graph structure. This graph may
 // or may not contain cycles.
@@ -100,13 +98,14 @@ type AttributeSet interface {
 	Exists(Attribute) (bool, error)
 	// Find returns all values associated with a specified key
 	Find(string) Attribute
-	// AsJSON returns a json representation of the Attribute set.
-	AsJSON() json.RawMessage
 	// List will list all key,value pairs for the attributes in a
 	// consumable format.
 	List() map[string]Attribute
 	// Len returns the attribute set length
 	Len() int
+	// MarshalJSON returns a json representation of the Attribute set.
+	// Compliant with std lib JSON marshaler.
+	MarshalJSON() ([]byte, error)
 }
 
 // Attribute defines methods of an attribute object.

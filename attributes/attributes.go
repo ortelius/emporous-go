@@ -3,10 +3,13 @@ package attributes
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/uor-framework/uor-client-go/model"
 )
 
+// ErrWrongKind defines a type error try to cast an attributes value
+// as the wrong type.
 var ErrWrongKind = errors.New("wrong value kind")
 
 // Attributes implements the model.Attributes interface.
@@ -87,18 +90,18 @@ func (a Attributes) Exists(input model.Attribute) (bool, error) {
 	}
 }
 
-// AsJSON returns a JSON formatted string representation of the
-// attribute set. If the values are not valid, nil is returned.
-func (a Attributes) AsJSON() json.RawMessage {
+// MarshalJSON returns a JSON formatted string representation of the
+// attribute set.
+func (a Attributes) MarshalJSON() ([]byte, error) {
 	j := map[string]interface{}{}
 	for key, value := range a {
 		j[key] = value.AsAny()
 	}
 	jsonBytes, err := json.Marshal(j)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return jsonBytes
+	return jsonBytes, nil
 }
 
 // List will list all key, value pairs for the attributes in a
@@ -110,4 +113,32 @@ func (a Attributes) List() map[string]model.Attribute {
 // Len returns the length of the attribute set.
 func (a Attributes) Len() int {
 	return len(a)
+}
+
+// Merge attempts to merge multiple attribute sets. If a duplicate key
+// is found while merging, an error will be thrown if the value kind is
+// not the same. If the value types are the same, the first set will take
+// precedent.
+func Merge(sets ...model.AttributeSet) (model.AttributeSet, error) {
+	newSet := Attributes{}
+
+	if len(sets) == 0 {
+		return newSet, nil
+	}
+
+	if len(sets) == 1 {
+		return sets[0], nil
+	}
+
+	for _, set := range sets {
+		for key, value := range set.List() {
+			existingVal, exists := newSet[key]
+			if exists && existingVal.Kind() != value.Kind() {
+				return newSet, fmt.Errorf("key %s: %w", key, ErrWrongKind)
+			}
+			newSet[key] = value
+		}
+	}
+
+	return newSet, nil
 }

@@ -1,5 +1,7 @@
 package v1alpha1
 
+import "encoding/json"
+
 // AttributeQueryKind object kind of AttributeQuery
 const AttributeQueryKind = "AttributeQuery"
 
@@ -8,9 +10,5 @@ const AttributeQueryKind = "AttributeQuery"
 type AttributeQuery struct {
 	TypeMeta `json:",inline"`
 	// Attributes list the configuration for Attribute types.
-	Attributes Attributes `json:"attributes"`
+	Attributes json.RawMessage `json:"attributes"`
 }
-
-// Attributes is a map structure that holds all
-// attribute information provided by the user.
-type Attributes map[string]interface{}

@@ -10,10 +10,10 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	prev := &testutils.MockNode{I: "node1"}
-	curr := &testutils.MockNode{I: "node2"}
-	currNew := &testutils.MockNode{I: "node3"}
-	root := &testutils.MockNode{I: "root"}
+	prev := &testutils.FakeNode{I: "node1"}
+	curr := &testutils.FakeNode{I: "node2"}
+	currNew := &testutils.FakeNode{I: "node3"}
+	root := &testutils.FakeNode{I: "root"}
 	p := NewPath(root)
 	p.Add(root, prev)
 	p.Add(prev, curr)
@@ -24,10 +24,10 @@ func TestAdd(t *testing.T) {
 }
 
 func TestPrev(t *testing.T) {
-	prev := &testutils.MockNode{I: "node1"}
-	curr := &testutils.MockNode{I: "node2"}
-	currNew := &testutils.MockNode{I: "node3"}
-	root := &testutils.MockNode{I: "root"}
+	prev := &testutils.FakeNode{I: "node1"}
+	curr := &testutils.FakeNode{I: "node2"}
+	currNew := &testutils.FakeNode{I: "node3"}
+	root := &testutils.FakeNode{I: "root"}
 	p := NewPath(root)
 	p.Add(root, prev)
 	p.Add(prev, curr)
@@ -38,10 +38,10 @@ func TestPrev(t *testing.T) {
 }
 
 func TestLen(t *testing.T) {
-	prev := &testutils.MockNode{I: "node1"}
-	curr := &testutils.MockNode{I: "node2"}
-	currNew := &testutils.MockNode{I: "node3"}
-	root := &testutils.MockNode{I: "root"}
+	prev := &testutils.FakeNode{I: "node1"}
+	curr := &testutils.FakeNode{I: "node2"}
+	currNew := &testutils.FakeNode{I: "node3"}
+	root := &testutils.FakeNode{I: "root"}
 	p := NewPath(root)
 	p.Add(root, prev)
 	p.Add(prev, curr)
@@ -51,10 +51,10 @@ func TestLen(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	prev := &testutils.MockNode{I: "node1"}
-	curr := &testutils.MockNode{I: "node2"}
-	currNew := &testutils.MockNode{I: "node3"}
-	root := &testutils.MockNode{I: "root"}
+	prev := &testutils.FakeNode{I: "node1"}
+	curr := &testutils.FakeNode{I: "node2"}
+	currNew := &testutils.FakeNode{I: "node3"}
+	root := &testutils.FakeNode{I: "root"}
 	p := NewPath(root)
 	p.Add(root, prev)
 	p.Add(prev, curr)

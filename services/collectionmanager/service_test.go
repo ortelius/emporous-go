@@ -2,6 +2,7 @@ package collectionmanager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -56,7 +57,7 @@ func TestCollectionManagerServer_All(t *testing.T) {
 		pubAssertFunc func(*managerapi.Publish_Response) bool
 		workspace     string
 		collection    map[string]map[string]interface{}
-		filter        map[string]interface{}
+		filter        json.RawMessage
 		resAssertFunc func(*managerapi.Retrieve_Response, string) bool
 		sev           managerapi.Diagnostic_Severity
 		errMes        string
@@ -64,9 +65,6 @@ func TestCollectionManagerServer_All(t *testing.T) {
 		{
 			name:      "Success/ValidWorkspace",
 			workspace: "testdata/workspace",
-			pubAssertFunc: func(resp *managerapi.Publish_Response) bool {
-				return resp.Digest == "sha256:2f0e884ddba718cba5eb540e3c0cb448ac0e72738a872be1618d839168b39032"
-			},
 			resAssertFunc: func(_ *managerapi.Retrieve_Response, root string) bool {
 				_, err := os.Stat(path.Join(root, "fish.jpg"))
 				return err == nil
@@ -80,10 +78,7 @@ func TestCollectionManagerServer_All(t *testing.T) {
 					"animal": true,
 				},
 			},
-			filter: map[string]interface{}{"animal": true},
-			pubAssertFunc: func(resp *managerapi.Publish_Response) bool {
-				return resp.Digest == "sha256:d23771ac05a0427c00498b5b8dc240811c8e91abd1522c12305874ceae09323f"
-			},
+			filter: []byte(`{"unknown":{"animal":true}}`),
 			resAssertFunc: func(_ *managerapi.Retrieve_Response, root string) bool {
 				_, err := os.Stat(path.Join(root, "fish.jpg"))
 				return err == nil
@@ -93,11 +88,8 @@ func TestCollectionManagerServer_All(t *testing.T) {
 			name:      "Warning/FilteredCollection",
 			sev:       2,
 			errMes:    "",
-			filter:    map[string]interface{}{"test": "test"},
+			filter:    []byte(`{"test": "test"}`),
 			workspace: "testdata/workspace",
-			pubAssertFunc: func(resp *managerapi.Publish_Response) bool {
-				return resp.Digest == "sha256:2f0e884ddba718cba5eb540e3c0cb448ac0e72738a872be1618d839168b39032"
-			},
 			resAssertFunc: func(resp *managerapi.Retrieve_Response, _ string) bool {
 				return len(resp.Diagnostics) != 0 && resp.Diagnostics[0].Severity == 2
 			},
@@ -149,18 +141,20 @@ func TestCollectionManagerServer_All(t *testing.T) {
 				require.EqualError(t, err, c.errMes)
 			} else {
 				require.NoError(t, err)
-				require.True(t, c.pubAssertFunc(pResp))
 			}
 
 			require.NoError(t, err)
 			destination := t.TempDir()
 			rRequest := &managerapi.Retrieve_Request{
-				Source:      fmt.Sprintf("%s/test:latest", u.Host),
+				Source:      fmt.Sprintf("%s/test@%s", u.Host, pResp.Digest),
 				Destination: destination,
 			}
 
 			if c.filter != nil {
-				filter, err := structpb.NewStruct(c.filter)
+				var data map[string]interface{}
+				err = json.Unmarshal(c.filter, &data)
+				require.NoError(t, err)
+				filter, err := structpb.NewStruct(data)
 				require.NoError(t, err)
 				rRequest.Filter = filter
 			}

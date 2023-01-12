@@ -1,13 +1,1 @@
-{
-  "schemaVersion": 2,
-  "manifests": [
-    {
-      "mediaType": "application/vnd.oci.image.manifest.v1+json",
-      "digest": "sha256:5ae4bb9926482e4f07e6b75a361914e4edc7c63a7c0d845917f0389ffa897f13",
-      "size": 421,
-      "annotations": {
-        "org.opencontainers.image.ref.name": "localhost:5001/schema-test:latest"
-      }
-    }
-  ]
-}
+{"schemaVersion":2,"manifests":[{"mediaType":"application/vnd.oci.artifact.manifest.v1+json","digest":"sha256:54a35d1aaf946564fbca59f8355933c8420ab549ecced6faaa7bf94d10018168","size":887,"annotations":{"org.opencontainers.image.ref.name":"localhost:5001/test:latest"},"artifactType":"application/vnd.unknown.artifact.v1"},{"mediaType":"application/vnd.oci.artifact.manifest.v1+json","digest":"sha256:0f33d4641683ddf4e1f3bfce3ed1ca05e6f3ce0b4c3a3b656d80db1678f1273e","size":279,"annotations":{"org.opencontainers.image.ref.name":"localhost:5001/schema-test:latest"},"artifactType":"application/vnd.unknown.artifact.v1"}]}

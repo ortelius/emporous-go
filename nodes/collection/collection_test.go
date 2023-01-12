@@ -23,34 +23,34 @@ func TestCollection_Root(t *testing.T) {
 	cases := []spec{
 		{
 			name:  "Success/RootExists",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
 			},
 			expID: "node3",
 		},
 		{
 			name:  "Failure/NotRootExists",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
-				&Edge{T: &testutils.MockNode{I: "node3"}, F: &testutils.MockNode{I: "node2"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node3"}, F: &testutils.FakeNode{I: "node2"}},
 			},
 			expError: "no root found in graph",
 		},
 		{
 			name:  "Failure/MultipleRootsExist",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
 			},
 			expError: "multiple roots found in graph: address, address",
 		},
 		{
 			name:     "Failure/NoEdges",
-			nodes:    []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes:    []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges:    nil,
 			expError: "multiple roots found in graph: address, address, address",
 		},
@@ -90,10 +90,10 @@ func TestCollection_HasEdgeToFrom(t *testing.T) {
 	cases := []spec{
 		{
 			name:  "Success/EdgeExists",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
 			},
 			to:   "node1",
 			from: "node2",
@@ -101,10 +101,10 @@ func TestCollection_HasEdgeToFrom(t *testing.T) {
 		},
 		{
 			name:  "Success/NoEdgeExists",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
 			},
 			to:   "node2",
 			from: "node3",
@@ -112,11 +112,11 @@ func TestCollection_HasEdgeToFrom(t *testing.T) {
 		},
 		{
 			name:  "Success/EdgeExitsReverse",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
-				&Edge{T: &testutils.MockNode{I: "node3"}, F: &testutils.MockNode{I: "node2"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node3"}, F: &testutils.FakeNode{I: "node2"}},
 			},
 			to:   "node2",
 			from: "node1",
@@ -145,30 +145,30 @@ func TestCollection_To(t *testing.T) {
 	cases := []spec{
 		{
 			name:  "Success/OneNodeFound",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
 			},
 			input:  "node2",
 			expIDs: []string{"node1"},
 		},
 		{
 			name:  "Success/MultipleNodesFound",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node2"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node2"}},
 			},
 			input:  "node1",
 			expIDs: []string{"node2", "node3"},
 		},
 		{
 			name:  "Success/NoNodesFound",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
 			},
 			input:  "node3",
 			expIDs: nil,
@@ -201,30 +201,30 @@ func TestCollection_From(t *testing.T) {
 	cases := []spec{
 		{
 			name:  "Success/OneNodeFound",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node2"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node2"}},
 			},
 			input:  "node1",
 			expIDs: []string{"node2"},
 		},
 		{
 			name:  "Success/MultipleNodesFound",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node3"}},
 			},
 			input:  "node3",
 			expIDs: []string{"node1", "node2"},
 		},
 		{
 			name:  "Success/NoNodesFound",
-			nodes: []model.Node{&testutils.MockNode{I: "node1"}, &testutils.MockNode{I: "node2"}, &testutils.MockNode{I: "node3"}},
+			nodes: []model.Node{&testutils.FakeNode{I: "node1"}, &testutils.FakeNode{I: "node2"}, &testutils.FakeNode{I: "node3"}},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
 			},
 			input:  "node2",
 			expIDs: nil,
@@ -257,19 +257,19 @@ func TestCollection_Attributes(t *testing.T) {
 		{
 			name: "Success/WithSubNodes",
 			nodes: []model.Node{
-				&testutils.MockNode{
+				&testutils.FakeNode{
 					I: "node1",
 					A: attributes.Attributes{
 						"title": attributes.NewString("title", "node1"),
 					},
 				},
-				&testutils.MockNode{
+				&testutils.FakeNode{
 					I: "node2",
 					A: attributes.Attributes{
 						"title": attributes.NewString("title", "node2"),
 					},
 				},
-				&testutils.MockNode{
+				&testutils.FakeNode{
 					I: "node3",
 					A: attributes.Attributes{
 						"title": attributes.NewString("title", "node3"),
@@ -277,8 +277,8 @@ func TestCollection_Attributes(t *testing.T) {
 				},
 			},
 			edges: []model.Edge{
-				&Edge{T: &testutils.MockNode{I: "node2"}, F: &testutils.MockNode{I: "node1"}},
-				&Edge{T: &testutils.MockNode{I: "node1"}, F: &testutils.MockNode{I: "node3"}},
+				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
+				&Edge{T: &testutils.FakeNode{I: "node1"}, F: &testutils.FakeNode{I: "node3"}},
 			},
 			expAttributes: "{\"title\":\"node3\"}",
 		},
@@ -291,7 +291,9 @@ func TestCollection_Attributes(t *testing.T) {
 			if attr == nil {
 				require.Len(t, c.expAttributes, 0)
 			} else {
-				require.Equal(t, c.expAttributes, string(attr.AsJSON()))
+				attrJSON, err := attr.MarshalJSON()
+				require.NoError(t, err)
+				require.Equal(t, c.expAttributes, string(attrJSON))
 			}
 		})
 	}

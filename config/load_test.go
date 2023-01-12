@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
 	"github.com/uor-framework/uor-client-go/api/client/v1alpha1"
 	"github.com/uor-framework/uor-client-go/schema"
@@ -26,9 +27,7 @@ func TestReadAttributeQuery(t *testing.T) {
 					Kind:       v1alpha1.AttributeQueryKind,
 					APIVersion: v1alpha1.GroupVersion,
 				},
-				Attributes: map[string]interface{}{
-					"size": "small",
-				},
+				Attributes: []byte(`{"size":"small"}`),
 			},
 		},
 		{
@@ -75,6 +74,10 @@ func TestReadDataSetConfig(t *testing.T) {
 							File: "*.json",
 							Attributes: map[string]interface{}{
 								"fiction": true,
+							},
+							FileInfo: uorspec.File{
+								UID: -1,
+								GID: -1,
 							},
 						},
 					},

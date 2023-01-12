@@ -3,6 +3,7 @@ package orasclient
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"oras.land/oras-go/v2"
 	orascontent "oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/content/file"
@@ -21,10 +23,10 @@ import (
 
 	"github.com/uor-framework/uor-client-go/content"
 	"github.com/uor-framework/uor-client-go/model"
+	"github.com/uor-framework/uor-client-go/model/traversal"
 	"github.com/uor-framework/uor-client-go/nodes/collection"
 	collectionloader "github.com/uor-framework/uor-client-go/nodes/collection/loader"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
-	"github.com/uor-framework/uor-client-go/ocimanifest"
+	"github.com/uor-framework/uor-client-go/nodes/descriptor/v2"
 	"github.com/uor-framework/uor-client-go/registryclient"
 	"github.com/uor-framework/uor-client-go/registryclient/orasclient/internal/cache"
 )
@@ -97,11 +99,39 @@ func (c *orasClient) AddManifest(ctx context.Context, ref string, configDesc oci
 		return descriptors[i].Digest < descriptors[j].Digest
 	})
 
-	var packOpts oras.PackOptions
-	packOpts.ConfigDescriptor = &configDesc
+	var packOpts PackOptions
 	packOpts.ManifestAnnotations = manifestAnnotations
+	packOpts.DisableTimestamp = true
+	packOpts.PackImageManifest = true
+	packOpts.ConfigDescriptor = &configDesc
 
-	manifestDesc, err := oras.Pack(ctx, c.artifactStore, descriptors, packOpts)
+	manifestDesc, err := Pack(ctx, c.artifactStore, "", descriptors, packOpts)
+	if err != nil {
+		return ocispec.Descriptor{}, err
+	}
+
+	return manifestDesc, c.artifactStore.Tag(ctx, manifestDesc, ref)
+}
+
+// AddIndex creates and stores am index manifest.
+func (c *orasClient) AddIndex(ctx context.Context, ref string, manifestAnnotations map[string]string, descriptors ...ocispec.Descriptor) (ocispec.Descriptor, error) {
+	if err := c.checkFileStore(); err != nil {
+		return ocispec.Descriptor{}, err
+	}
+	if descriptors == nil {
+		descriptors = []ocispec.Descriptor{}
+	}
+
+	// Keep descriptor order deterministic
+	sort.Slice(descriptors, func(i, j int) bool {
+		return descriptors[i].Digest < descriptors[j].Digest
+	})
+
+	var packOpts PackOptions
+	packOpts.ManifestAnnotations = manifestAnnotations
+	packOpts.DisableTimestamp = true
+
+	manifestDesc, err := PackAggregate(ctx, c.artifactStore, descriptors, packOpts)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
@@ -111,7 +141,11 @@ func (c *orasClient) AddManifest(ctx context.Context, ref string, configDesc oci
 
 // Save saves the OCI artifact to local store location (e.g. cache)
 func (c *orasClient) Save(ctx context.Context, ref string, store content.Store) (ocispec.Descriptor, error) {
-	return oras.Copy(ctx, c.artifactStore, ref, store, ref, c.copyOpts)
+	// Create a copy of the options so the original copy
+	// options are not modified.
+	cCopyOpts := c.copyOpts
+	cCopyOpts.FindSuccessors = successorFnWithSparseManifests
+	return oras.Copy(ctx, c.artifactStore, ref, store, ref, cCopyOpts)
 }
 
 // LoadCollection loads a UOR collection type from a remote registry path.
@@ -121,20 +155,97 @@ func (c *orasClient) LoadCollection(ctx context.Context, reference string) (coll
 		return value.(collection.Collection), nil
 	}
 
-	desc, _, err := c.GetManifest(ctx, reference)
+	rootDesc, manifestBytes, err := c.GetManifest(ctx, reference)
 	if err != nil {
 		return collection.Collection{}, err
 	}
+
+	// Get manifest information to obtain annotations
+	var manifest ocispec.Descriptor
+	if err := json.NewDecoder(manifestBytes).Decode(&manifest); err != nil {
+		return collection.Collection{}, err
+	}
+	rootDesc.Annotations = manifest.Annotations
 	fetcherFn := func(ctx context.Context, desc ocispec.Descriptor) ([]byte, error) {
 		return c.GetContent(ctx, reference, desc)
 	}
+
 	co := collection.New(reference)
-	if err := collectionloader.LoadFromManifest(ctx, co, fetcherFn, desc); err != nil {
+	if err := collectionloader.LoadFromManifest(ctx, co, fetcherFn, rootDesc); err != nil {
 		return collection.Collection{}, err
 	}
 	co.Location = reference
 	c.collections.Store(reference, *co)
 	return *co, nil
+}
+
+// PullWithLinks performs a copy of OCI artifacts to a local location from a remote location and follow links to
+// other artifacts.
+func (c *orasClient) PullWithLinks(ctx context.Context, ref string, store content.Store) ([]ocispec.Descriptor, error) {
+	seen := map[string]struct{}{}
+	var allDescs []ocispec.Descriptor
+
+	graph, err := c.LoadCollection(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+	root, err := graph.Root()
+	if err != nil {
+		return nil, err
+	}
+
+	processFunc := func(currRef string) error {
+		rootDesc, descs, err := c.Pull(ctx, currRef, store)
+		if err != nil {
+			return err
+		}
+		if len(rootDesc.Digest) != 0 {
+			if err := store.Tag(ctx, rootDesc, ref); err != nil {
+				return err
+			}
+		}
+		allDescs = append(allDescs, descs...)
+		return nil
+	}
+
+	// Process and pull links before pulling the requested manifests
+	tracker := traversal.NewTracker(root, nil)
+	handler := traversal.HandlerFunc(func(ctx context.Context, tracker traversal.Tracker, node model.Node) ([]model.Node, error) {
+		if _, ok := seen[node.ID()]; ok {
+			return nil, traversal.ErrSkip
+		}
+
+		desc, ok := node.(*v2.Node)
+		if !ok {
+			return nil, nil
+		}
+
+		// Load link and provide access to those nodes.
+		if desc.Properties != nil && desc.Properties.IsALink() {
+			constructedRef := fmt.Sprintf("%s/%s@%s", desc.Properties.Link.RegistryHint, desc.Properties.Link.NamespaceHint, desc.ID())
+			linkedCollection, err := c.LoadCollection(ctx, constructedRef)
+			if err != nil {
+				return nil, err
+			}
+			if err := processFunc(constructedRef); err != nil {
+				return nil, err
+			}
+			return linkedCollection.Nodes(), nil
+		}
+
+		successors := graph.From(node.ID())
+		return successors, err
+	})
+
+	if err := tracker.Walk(ctx, handler, root); err != nil {
+		return nil, err
+	}
+
+	if err := processFunc(ref); err != nil {
+		return nil, err
+	}
+
+	return allDescs, nil
 }
 
 // Pull performs a copy of OCI artifacts to a local location from a remote location.
@@ -175,17 +286,17 @@ func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) 
 
 			// Check that this is a descriptor node and the blob is
 			// not a config or schema resource.
-			desc, ok := node.(*descriptor.Node)
+			desc, ok := node.(*v2.Node)
 			if !ok {
 				return false, nil
 			}
 
 			switch desc.Descriptor().MediaType {
-			case ocimanifest.UORSchemaMediaType:
+			case uorspec.MediaTypeSchemaDescriptor:
 				return true, nil
 			case ocispec.MediaTypeImageConfig:
 				return true, nil
-			case ocimanifest.UORConfigMediaType:
+			case uorspec.MediaTypeConfiguration:
 				return true, nil
 			}
 
@@ -221,9 +332,13 @@ func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) 
 
 		var result []ocispec.Descriptor
 		for _, s := range successors {
-			d, ok := s.(*descriptor.Node)
+			d, ok := s.(*v2.Node)
 			if ok {
-				result = append(result, d.Descriptor())
+				// Skip any attempts to pull a link as they could
+				// be outside the repository.
+				if d.Properties == nil || !d.Properties.IsALink() {
+					result = append(result, d.Descriptor())
+				}
 			}
 		}
 		return result, nil
@@ -249,7 +364,12 @@ func (c *orasClient) Push(ctx context.Context, store content.Store, ref string) 
 		return ocispec.Descriptor{}, fmt.Errorf("could not create registry target: %w", err)
 	}
 
-	return oras.Copy(ctx, store, ref, repo, ref, c.copyOpts)
+	// Create a copy of the options so the original copy
+	// options are not modified.
+	cCopyOpts := c.copyOpts
+	cCopyOpts.FindSuccessors = successorFnWithSparseManifests
+
+	return oras.Copy(ctx, store, ref, repo, ref, cCopyOpts)
 }
 
 // GetManifest returns the manifest the reference resolves to.
@@ -303,6 +423,30 @@ func (c *orasClient) setupRepo(ref string) (*remote.Repository, error) {
 	repo.PlainHTTP = c.plainHTTP
 	repo.Client = c.authClient
 	return repo, nil
+}
+
+// TODO(jpower432): PR upstream so that this can be done with the pre-copy option. Currently the error to skip descriptors is
+// private https://github.com/oras-project/oras-go/blob/9e5b1419cdedd6240a5bf836c83f75270ba9d74b/copy.go#L49.
+
+// successorFnWithSparseManifest defines a successor function to use with oras.Copy that will skip any expected linked content (i.e. sparse manifests)
+func successorFnWithSparseManifests(ctx context.Context, fetcher orascontent.Fetcher, desc ocispec.Descriptor) ([]ocispec.Descriptor, error) {
+	successors, err := orascontent.Successors(ctx, fetcher, desc)
+	if err != nil {
+		return nil, err
+	}
+
+	var filtered []ocispec.Descriptor
+	for _, s := range successors {
+		node, err := v2.NewNode(s.Digest.String(), s)
+		if err != nil {
+			return nil, err
+		}
+		if node.Properties == nil || !node.Properties.IsALink() {
+			filtered = append(filtered, s)
+		}
+
+	}
+	return filtered, nil
 }
 
 // loadFiles stores files in a file store and creates descriptors representing each file in the store.

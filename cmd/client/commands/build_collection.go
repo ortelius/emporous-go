@@ -64,6 +64,7 @@ func NewBuildCollectionCmd(buildOpts *BuildOptions) *cobra.Command {
 
 	o.Remote.BindFlags(cmd.Flags())
 	o.RemoteAuth.BindFlags(cmd.Flags())
+
 	cmd.Flags().StringVarP(&o.DSConfig, "dsconfig", "d", o.DSConfig, "config path for artifact building and dataset configuration")
 	cmd.Flags().BoolVar(&o.NoVerify, "no-verify", o.NoVerify, "skip schema signature verification")
 
@@ -83,7 +84,6 @@ func (o *BuildCollectionOptions) Validate() error {
 	if _, err := os.Stat(o.RootDir); err != nil {
 		return fmt.Errorf("workspace directory %q: %v", o.RootDir, err)
 	}
-
 	return nil
 }
 

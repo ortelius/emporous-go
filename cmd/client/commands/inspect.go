@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"text/tabwriter"
 
-	"github.com/uor-framework/uor-client-go/attributes/matchers"
+	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+
 	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
 	"github.com/uor-framework/uor-client-go/config"
+	"github.com/uor-framework/uor-client-go/nodes/descriptor"
 	"github.com/uor-framework/uor-client-go/util/examples"
 
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -23,8 +25,9 @@ import (
 // be set when using the inspect subcommand.
 type InspectOptions struct {
 	*options.Common
-	Source         string
-	AttributeQuery string
+	Source          string
+	AttributeQuery  string
+	PrintAttributes bool
 }
 
 var clientInspectExamples = []examples.Example{
@@ -70,6 +73,7 @@ func NewInspectCmd(common *options.Common) *cobra.Command {
 
 	cmd.Flags().StringVarP(&o.AttributeQuery, "attributes", "a", o.AttributeQuery, "Attribute query config path")
 	cmd.Flags().StringVarP(&o.Source, "reference", "r", o.Source, "A reference to list descriptors for")
+	cmd.Flags().BoolVarP(&o.PrintAttributes, "print-attributes", "p", o.PrintAttributes, "print descriptor attributes")
 
 	return cmd
 }
@@ -80,6 +84,9 @@ func (o *InspectOptions) Complete(_ []string) error {
 
 func (o *InspectOptions) Validate() error {
 	if o.AttributeQuery != "" && o.Source == "" {
+		return fmt.Errorf("must specify a reference with --reference")
+	}
+	if o.PrintAttributes && o.Source == "" {
 		return fmt.Errorf("must specify a reference with --reference")
 	}
 	return nil
@@ -99,28 +106,26 @@ func (o *InspectOptions) Run(ctx context.Context) error {
 		return o.formatManifestDescriptors(o.IOStreams.Out, idx.Manifests)
 	}
 
-	matcher := matchers.PartialAttributeMatcher{}
-	if o.AttributeQuery != "" {
-		query, err := config.ReadAttributeQuery(o.AttributeQuery)
+	if o.AttributeQuery == "" {
+		descs, err := cache.ResolveAll(ctx, o.Source)
 		if err != nil {
 			return err
 		}
-
-		attributeSet, err := config.ConvertToModel(query.Attributes)
-		if err != nil {
-			return err
-		}
-
-		o.Logger.Debugf("Resolving source %s to descriptor with %d attributes", o.Source, attributeSet.Len())
-
-		matcher = attributeSet.List()
+		return o.formatDescriptors(o.IOStreams.Out, descs)
 	}
 
-	descs, err := cache.ResolveByAttribute(ctx, o.Source, matcher)
+	query, err := config.ReadAttributeQuery(o.AttributeQuery)
 	if err != nil {
 		return err
 	}
 
+	o.Logger.Debugf("Resolving source %s to descriptor with provided attributes", o.Source)
+
+	matcher := descriptor.JSONSubsetMatcher(query.Attributes)
+	descs, err := cache.ResolveByAttribute(ctx, o.Source, matcher)
+	if err != nil {
+		return err
+	}
 	return o.formatDescriptors(o.IOStreams.Out, descs)
 }
 
@@ -139,16 +144,56 @@ func (o *InspectOptions) formatManifestDescriptors(w io.Writer, descs []ocispec.
 
 func (o *InspectOptions) formatDescriptors(w io.Writer, descs []ocispec.Descriptor) error {
 	tw := tabwriter.NewWriter(w, 0, 4, 2, ' ', 0)
-	if _, err := fmt.Fprintf(tw, "Listing matching descriptors for source:\t%s\n", o.Source); err != nil {
+
+	if _, err := fmt.Fprintf(w, "Listing matching descriptors for source:\t%s\n", o.Source); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(tw, "Name\tDigest\tSize\tMediaType"); err != nil {
-		return err
-	}
-	for _, desc := range descs {
-		if _, err := fmt.Fprintf(tw, "%s\t%s\t%d\t%s\n", desc.Annotations[ocispec.AnnotationTitle], desc.Digest, desc.Size, desc.MediaType); err != nil {
+
+	if o.PrintAttributes {
+		if err := o.printWithAttributes(tw, descs); err != nil {
+			return err
+		}
+	} else {
+		if err := o.printWithoutAttributes(tw, descs); err != nil {
 			return err
 		}
 	}
 	return tw.Flush()
+}
+
+func (o *InspectOptions) printWithoutAttributes(w io.Writer, descs []ocispec.Descriptor) error {
+	if _, err := fmt.Fprintln(w, "Name\tDigest\tSize\tMediaType"); err != nil {
+		return err
+	}
+	for _, desc := range descs {
+		title, ok := desc.Annotations[ocispec.AnnotationTitle]
+		if !ok {
+			title = "None"
+		}
+		if _, err := fmt.Fprintf(w, "%s\t%s\t%d\t%s\n", title, desc.Digest, desc.Size, desc.MediaType); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (o *InspectOptions) printWithAttributes(w io.Writer, descs []ocispec.Descriptor) error {
+	if _, err := fmt.Fprintln(w, "Name\tDigest\tSize\tMediaType\tAttributes"); err != nil {
+		return err
+	}
+	for _, desc := range descs {
+		attrDoc, ok := desc.Annotations[uorspec.AnnotationUORAttributes]
+		if !ok {
+			attrDoc = "None"
+		}
+
+		title, ok := desc.Annotations[ocispec.AnnotationTitle]
+		if !ok {
+			title = "None"
+		}
+		if _, err := fmt.Fprintf(w, "%s\t%s\t%d\t%s\t%s\n", title, desc.Digest, desc.Size, desc.MediaType, attrDoc); err != nil {
+			return err
+		}
+	}
+	return nil
 }
