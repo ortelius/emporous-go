@@ -22,5 +22,5 @@ emporous build [flags]
 
 * [emporous](emporous.md)	 - emporous Client
 * [emporous build collection](emporous_build_collection.md)	 - Build and save an OCI artifact from files
-* [emporous build schema](emporous_build_schema.md)	 - Build and save a emporous schema as an OCI artifact
+* [emporous build schema](emporous_build_schema.md)	 - Build and save a Emporous schema as an OCI artifact
 

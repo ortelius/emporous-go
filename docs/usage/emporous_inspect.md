@@ -1,6 +1,6 @@
 ## emporous inspect
 
-Print emporous collection information
+Print Emporous collection information
 
 ```
 emporous inspect [flags]

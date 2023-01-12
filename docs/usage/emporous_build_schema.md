@@ -1,6 +1,6 @@
 ## emporous build schema
 
-Build and save a emporous schema as an OCI artifact
+Build and save a Emporous schema as an OCI artifact
 
 ```
 emporous build schema CFG-PATH DST [flags]

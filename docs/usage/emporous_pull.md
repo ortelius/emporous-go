@@ -1,6 +1,6 @@
 ## emporous pull
 
-Pull a emporous collection based on content or attribute address
+Pull a Emporous collection based on content or attribute address
 
 ```
 emporous pull SRC [flags]
