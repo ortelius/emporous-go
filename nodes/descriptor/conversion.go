@@ -1,8 +1,8 @@
 package descriptor
 
 import (
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 )
 
 // CollectionToOCI converts collection descriptor to OCI descriptor.

@@ -3,8 +3,8 @@ package descriptor
 import (
 	"testing"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/stretchr/testify/require"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
 	"github.com/emporous/emporous-go/attributes"
 	"github.com/emporous/emporous-go/model"

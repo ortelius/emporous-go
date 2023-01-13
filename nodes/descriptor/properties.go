@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	"github.com/buger/jsonparser"
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
 	"github.com/emporous/emporous-go/attributes"
 	"github.com/emporous/emporous-go/model"

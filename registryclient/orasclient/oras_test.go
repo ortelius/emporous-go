@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/google/go-containerregistry/pkg/registry"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/content/memory"
 
@@ -51,7 +51,7 @@ func TestAddContent(t *testing.T) {
 func TestAddManifest(t *testing.T) {
 	t.Run("Success/OneArtifact", func(t *testing.T) {
 		ctx := context.TODO()
-		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		expDigest := "sha256:0fee6a79262a48a06b5403cd2e684bb05174cc67e8d9d8560bc89a039170ed47"
 		testdata := filepath.Join("testdata", "workspace", "fish.jpg")
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
@@ -99,7 +99,7 @@ func TestSave(t *testing.T) {
 	ctx := context.TODO()
 
 	t.Run("Success/SaveOneCollection", func(t *testing.T) {
-		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		expDigest := "sha256:0fee6a79262a48a06b5403cd2e684bb05174cc67e8d9d8560bc89a039170ed47"
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
@@ -141,7 +141,7 @@ func TestPushPull(t *testing.T) {
 
 	t.Run("Success/PushOneCollection", func(t *testing.T) {
 		cache := memory.New()
-		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		expDigest := "sha256:0fee6a79262a48a06b5403cd2e684bb05174cc67e8d9d8560bc89a039170ed47"
 		c, err := NewClient(WithPlainHTTP(true), WithCache(cache))
 		require.NoError(t, err)
 		descs, err := c.AddFiles(ctx, "", testdata)
@@ -162,7 +162,7 @@ func TestPushPull(t *testing.T) {
 	})
 
 	t.Run("Success/PullOneCollection", func(t *testing.T) {
-		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		expDigest := "sha256:0fee6a79262a48a06b5403cd2e684bb05174cc67e8d9d8560bc89a039170ed47"
 		c, err := NewClient(WithPlainHTTP(true))
 		require.NoError(t, err)
 		root, descs, err := c.Pull(context.TODO(), ref, memory.New())
@@ -173,7 +173,7 @@ func TestPushPull(t *testing.T) {
 	})
 
 	t.Run("Success/PullWithPrePull", func(t *testing.T) {
-		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		expDigest := "sha256:0fee6a79262a48a06b5403cd2e684bb05174cc67e8d9d8560bc89a039170ed47"
 		var testRef []string
 		prePullFn := func(ctx context.Context, reference string) error {
 			testRef = append(testRef, reference)
@@ -204,7 +204,7 @@ func TestPushPull(t *testing.T) {
 	})
 
 	t.Run("Success/PullWithCache", func(t *testing.T) {
-		expDigest := "sha256:98f36e12e9dbacfbb10b9d1f32a46641eb42de588e54cfd7e8627d950ae8140a"
+		expDigest := "sha256:0fee6a79262a48a06b5403cd2e684bb05174cc67e8d9d8560bc89a039170ed47"
 		cache := memory.New()
 		c, err := NewClient(WithPlainHTTP(true), WithCache(cache))
 		require.NoError(t, err)

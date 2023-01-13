@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"text/tabwriter"
 
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 
 	"github.com/emporous/emporous-go/cmd/client/commands/options"
 	"github.com/emporous/emporous-go/config"
@@ -182,7 +182,7 @@ func (o *InspectOptions) printWithAttributes(w io.Writer, descs []ocispec.Descri
 		return err
 	}
 	for _, desc := range descs {
-		attrDoc, ok := desc.Annotations[empspec.AnnotationUORAttributes]
+		attrDoc, ok := desc.Annotations[empspec.AnnotationEmporousAttributes]
 		if !ok {
 			attrDoc = "None"
 		}

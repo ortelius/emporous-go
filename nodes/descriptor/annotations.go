@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 
 	"github.com/emporous/emporous-go/attributes"
 	"github.com/emporous/emporous-go/model"
@@ -31,7 +31,7 @@ func AnnotationsToAttributeSet(annotations map[string]string, skip func(string) 
 		// Since annotations are in the form of map[string]string, we
 		// can just assume it is a string attribute at this point. Incorporating
 		// this into thr attribute set allows, users to pull by filename or reference name (cache).
-		if key != empspec.AnnotationUORAttributes {
+		if key != empspec.AnnotationEmporousAttributes {
 			set[key] = attributes.NewString(key, value)
 			continue
 		}
@@ -58,7 +58,7 @@ func AnnotationsFromAttributeSet(set model.AttributeSet) (map[string]string, err
 	if err != nil {
 		return nil, err
 	}
-	return map[string]string{empspec.AnnotationUORAttributes: string(attrJSON)}, nil
+	return map[string]string{empspec.AnnotationEmporousAttributes: string(attrJSON)}, nil
 }
 
 // AnnotationsToAttributes OCI descriptor annotations to collection spec attributes if
@@ -68,7 +68,7 @@ func AnnotationsToAttributes(annotations map[string]string) (map[string]json.Raw
 	extraAnnotations := map[string]string{}
 	for key, value := range annotations {
 
-		if key != empspec.AnnotationUORAttributes {
+		if key != empspec.AnnotationEmporousAttributes {
 			extraAnnotations[key] = value
 			continue
 		}
@@ -106,7 +106,7 @@ func AnnotationsFromAttributes(attributes map[string]json.RawMessage) (map[strin
 	if err != nil {
 		return nil, err
 	}
-	return map[string]string{empspec.AnnotationUORAttributes: string(attrJSoN)}, nil
+	return map[string]string{empspec.AnnotationEmporousAttributes: string(attrJSoN)}, nil
 }
 
 // AttributesToAttributeSet converts collection spec attributes to an attribute set.

@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/google/go-containerregistry/pkg/v1/types"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
 	"github.com/emporous/emporous-go/model"
 	"github.com/emporous/emporous-go/model/traversal"

@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"oras.land/oras-go/v2/registry"
 
 	clientapi "github.com/emporous/emporous-go/api/client/v1alpha1"
@@ -258,7 +258,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 	if err != nil {
 		return "", err
 	}
-	manifestAnnotations[empspec.AnnotationUORAttributes] = string(propsJSON)
+	manifestAnnotations[empspec.AnnotationEmporousAttributes] = string(propsJSON)
 
 	_, err = client.AddManifest(ctx, reference, configDesc, manifestAnnotations, descs...)
 	if err != nil {
@@ -301,7 +301,7 @@ func (d DefaultManager) addLinks(ctx context.Context, client registryclient.Clie
 		if err != nil {
 			return nil, err
 		}
-		desc.Annotations[empspec.AnnotationUORAttributes] = string(linkJSON)
+		desc.Annotations[empspec.AnnotationEmporousAttributes] = string(linkJSON)
 		linkedDesc = append(linkedDesc, desc)
 	}
 	return linkedDesc, nil

@@ -1,8 +1,8 @@
 package v2
 
 import (
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 )
 
 type UpdateFunc func(node Node) error
@@ -24,7 +24,7 @@ func UpdateDescriptors(nodes []Node, updateFunc UpdateFunc) ([]ocispec.Descripto
 		if err != nil {
 			return nil, err
 		}
-		desc.Annotations[empspec.AnnotationUORAttributes] = string(mergedJSON)
+		desc.Annotations[empspec.AnnotationEmporousAttributes] = string(mergedJSON)
 
 		updateDescs = append(updateDescs, desc)
 	}

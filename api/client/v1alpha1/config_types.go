@@ -3,8 +3,8 @@ package v1alpha1
 import (
 	"encoding/json"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 )
 
 // DataSetConfigurationKind object kind of DataSetConfiguration.

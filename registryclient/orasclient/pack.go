@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/errdef"
 )

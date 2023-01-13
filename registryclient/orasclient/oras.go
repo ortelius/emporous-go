@@ -11,10 +11,10 @@ import (
 	"sort"
 	"sync"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"oras.land/oras-go/v2"
 	orascontent "oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/content/file"

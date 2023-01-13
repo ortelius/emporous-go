@@ -12,10 +12,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/google/go-containerregistry/pkg/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/memory"
@@ -314,7 +314,7 @@ func prepLinks(t *testing.T, ref string) []ocispec.Descriptor {
 	linkJSON, err := json.Marshal(linkAttr)
 	require.NoError(t, err)
 	ref1Annotations := map[string]string{
-		empspec.AnnotationUORAttributes: string(linkJSON),
+		empspec.AnnotationEmporousAttributes: string(linkJSON),
 	}
 	desc1, err := publishFunc(fileName, ref1, fileContent, map[string]string{"test": "linkedannotation"}, ref1Annotations)
 	require.NoError(t, err)
@@ -322,7 +322,7 @@ func prepLinks(t *testing.T, ref string) []ocispec.Descriptor {
 	fileContent2 := []byte("Hello Again Again World !\n")
 	ref2 := fmt.Sprintf("%s-ref2", ref)
 	ref2Annotations := map[string]string{
-		empspec.AnnotationUORAttributes: string(linkJSON),
+		empspec.AnnotationEmporousAttributes: string(linkJSON),
 	}
 	desc2, err := publishFunc(fileName2, ref2, fileContent2, map[string]string{"test": "annotation"}, ref2Annotations)
 	require.NoError(t, err)

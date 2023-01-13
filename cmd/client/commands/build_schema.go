@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/spf13/cobra"
-	empspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
 	load "github.com/emporous/emporous-go/config"
 	"github.com/emporous/emporous-go/content/layout"
@@ -127,7 +127,7 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	schemaAnnotations[empspec.AnnotationUORAttributes] = string(schemaJSON)
+	schemaAnnotations[empspec.AnnotationEmporousAttributes] = string(schemaJSON)
 	desc, err := client.AddContent(ctx, empspec.MediaTypeSchemaDescriptor, userSchema.Export(), schemaAnnotations)
 	if err != nil {
 		return err
