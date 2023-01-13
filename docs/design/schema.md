@@ -1,8 +1,8 @@
 # Schema
 
-emporous Schema is the attribute type declaration for a emporous Collection. Schema also links application logic to importing emporous Collection. Schema can also be used for things like validating a Collection's links and attribute declarations.
+Emporous Schema is the attribute type declaration for an Emporous Collection. Schema also links application logic to importing Emporous Collection. Schema can also be used for things like validating a Collection's links and attribute declarations.
 
-This document explains emporous Schema and the relationship of a emporous Collection with its imported Schema. 
+This document explains Emporous Schema and the relationship of an Emporous Collection with its imported Schema. 
 
 ## Schema Elements
 
@@ -49,9 +49,9 @@ This Declaration is stored in the manifest configuration of the Schema Collectio
 
 Collections import Schema via an annotated Linked Collection. A Schema Collection imports an Algorithm into the Schema's calling collection. A Collection can only have one Schema and a Schema can have only one Algorithm Reference.  
 
-When the emporous Client retrieves a Collection, it first retrieves the OCI manifest of the referenced collection. The emporous Client then searches the manifest for a reference to an imported schema. If a schema is found, the emporous client retrieves the OCI Manifest of the imported schema. The emporous Client then searches the Schema Collection's OCI Manifest for an Algorithm Reference. If an Algorithm Reference is found, The emporous Client will first check its cache and if needed, download the Referenced Algorithm for further operations. 
+When the Emporous Client retrieves a Collection, it first retrieves the OCI manifest of the referenced collection. The Emporous Client then searches the manifest for a reference to an imported schema. If a schema is found, the emporous client retrieves the OCI Manifest of the imported schema. The emporous Client then searches the Schema Collection's OCI Manifest for an Algorithm Reference. If an Algorithm Reference is found, The emporous Client will first check its cache and if needed, download the Referenced Algorithm for further operations. 
 
-A Collection can only import a single schema. However, a Collection may link to another collection with a different schema. There are two types of schema declarations in a Collection's OCI Manifest. Those are: `emporous.schema={{ Schema Collection address (Full URI or just the digest of the referenced Schema Collection's OCI manifest) }}` and `emporous.schema.linked={{ The digest of all Schema Collection OCI Manifest References inherited through Collection links}}`. When a collection links to another collection, all linked schemas of the Referenced Linked Collection are inherited by the linking Collection and written to the value of the `emporous.schema.linked` attribute.
+A Collection can only import a single schema. However, a Collection may link to another collection with a different schema. There are two types of schema declarations in a Collection's OCI Manifest. Those are: `emporous.schema={{ Schema Collection address (Full URI or just the digest of the referenced Schema Collection's OCI manifest) }}` and `emporous.schema.linked={{ The digest of all Schema Collection OCI Manifest References inherited through Collection links}}`. When a collection links to another collection, all linked schemas of the Referenced Linked Collection are inherited by the linking Collection and written to the value of the `Emporous.schema.linked` attribute.
 
 
 

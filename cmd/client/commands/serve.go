@@ -42,7 +42,7 @@ func NewServeCmd(common *options.Common) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "serve SOCKET",
-		Short:         "Serve gRPC API to allow emporous collection management",
+		Short:         "Serve gRPC API to allow Emporous collection management",
 		Example:       examples.FormatExamples(clientServeExamples),
 		SilenceErrors: false,
 		SilenceUsage:  false,

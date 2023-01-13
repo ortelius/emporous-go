@@ -13,5 +13,5 @@ limitations under the License.
 
 package config
 
-// This package contains methods for loading emporous API types from file and
+// This package contains methods for loading Emporous API types from file and
 // conversions to types in the "model" package.

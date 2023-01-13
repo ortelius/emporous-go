@@ -1,6 +1,6 @@
 ## emporous serve
 
-Serve gRPC API to allow emporous collection management
+Serve gRPC API to allow Emporous collection management
 
 ```
 emporous serve SOCKET [flags]
@@ -29,5 +29,5 @@ emporous serve SOCKET [flags]
 
 ### SEE ALSO
 
-* [emporous](emporous.md)	 - emporous Client
+* [emporous](emporous.md)	 - Emporous Client
 

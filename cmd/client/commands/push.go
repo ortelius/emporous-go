@@ -40,7 +40,7 @@ func NewPushCmd(common *options.Common) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "push DST",
-		Short:         "Push a emporous collection into a registry",
+		Short:         "Push a Emporous collection into a registry",
 		Example:       examples.FormatExamples(clientPushExamples),
 		SilenceErrors: false,
 		SilenceUsage:  false,

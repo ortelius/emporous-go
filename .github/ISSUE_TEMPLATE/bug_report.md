@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a bug report to help improve the emporous client
+about: Create a bug report to help improve the Emporous client
 title: ''
 labels: bug
 assignees: ''
@@ -28,7 +28,7 @@ Briefly describe the problem you are having in a few paragraphs.
 
 **Describe the results you expected:**
 
-**What version of the emporous client are you using:**
+**What version of the Emporous client are you using:**
 <!--
 Output of "emporous version"
 -->

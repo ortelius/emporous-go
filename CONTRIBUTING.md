@@ -48,7 +48,7 @@ Each issue type has a template attached to guide the submission.
 - Run `go fmt`
 - Run [`golangci-lint`](https://github.com/golangci/golangci-lint)
 - Use [`go-imports`](https://pkg.go.dev/golang.org/x/tools/cmd/goimports)
-  - (This should be configured to group the standard library, third-party, and emporous module imports separately)
+  - (This should be configured to group the standard library, third-party, and `emporous-go` module imports separately)
 
 ## License
 By contributing, you agree that your contributions will be licensed under its [Apache 2.0 License](https://choosealicense.com/licenses/apache-2.0/).

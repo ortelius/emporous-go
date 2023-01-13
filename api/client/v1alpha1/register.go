@@ -8,6 +8,6 @@ const (
 )
 
 var (
-	// GroupVersion of emporous
+	// GroupVersion of Emporous
 	GroupVersion = path.Join(group, version)
 )

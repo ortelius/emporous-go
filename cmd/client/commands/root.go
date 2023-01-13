@@ -14,13 +14,13 @@ import (
 
 var clientLong = templates.LongDesc(
 	`
-	The emporous client helps you build, publish, and retrieve emporous collections as an OCI artifact.
+	The Emporous client helps you build, publish, and retrieve Emporous collections as an OCI artifact.
 
 	The workflow to publish a collection is to gather files for a collection in a directory workspace 
 	and use the build sub-command. During the build process, the tag for the
 	remote destination is specified. 
 	
-	This build action will store the collection in a build cache. This location can be specified with the emporous_CACHE environment 
+	This build action will store the collection in a build cache. This location can be specified with the EMPOROUS_CACHE environment
 	variable. The default location is ~/.emporous/cache. 
 	
 	After the collection has been stored, it can be retrieved and pushed to the registry with the push sub-command.
@@ -42,7 +42,7 @@ func NewRootCmd() *cobra.Command {
 	}
 	cmd := &cobra.Command{
 		Use:           filepath.Base(os.Args[0]),
-		Short:         "emporous Client",
+		Short:         "Emporous Client",
 		Long:          clientLong,
 		SilenceErrors: false,
 		SilenceUsage:  false,

@@ -22,7 +22,7 @@ import (
 	"github.com/emporous/emporous-go/cmd/client/commands/options"
 )
 
-// Sign applies keyless OIDC signatures to sign emporous Collections
+// Sign applies keyless OIDC signatures to sign Emporous Collections
 func signCollection(_ context.Context, reference string, authConfigs []string, remoteOpts options.Remote) error {
 
 	ko := cosignopts.KeyOpts{

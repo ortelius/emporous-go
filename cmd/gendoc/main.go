@@ -10,7 +10,7 @@ import (
 func main() {
 	genDocCmd := &cobra.Command{
 		Use:          "gendoc",
-		Short:        "Generate emporous client CLI docs",
+		Short:        "Generate Emporous client CLI docs",
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {

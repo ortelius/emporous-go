@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for the emporous Client
+about: Suggest an idea for the Emporous client
 title: ''
 labels: enhancement
 assignees: ''

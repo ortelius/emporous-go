@@ -1,6 +1,6 @@
 ## emporous push
 
-Push a emporous collection into a registry
+Push a Emporous collection into a registry
 
 ```
 emporous push DST [flags]
@@ -31,5 +31,5 @@ emporous push DST [flags]
 
 ### SEE ALSO
 
-* [emporous](emporous.md)	 - emporous Client
+* [emporous](emporous.md)	 - Emporous Client
 

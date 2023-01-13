@@ -20,5 +20,5 @@ emporous version [flags]
 
 ### SEE ALSO
 
-* [emporous](emporous.md)	 - emporous Client
+* [emporous](emporous.md)	 - Emporous Client
 

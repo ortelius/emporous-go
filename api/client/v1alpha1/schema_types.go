@@ -13,7 +13,7 @@ type SchemaConfiguration struct {
 	Schema   SchemaConfigurationSpec `json:"schema"`
 }
 
-// SchemaConfigurationSpec defines the configuration spec to build a emporous schema.
+// SchemaConfigurationSpec defines the configuration spec to build an #mporous schema.
 type SchemaConfigurationSpec struct {
 	// ID is a name that will be used to identify
 	// the schema
