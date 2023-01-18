@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/errdef"
 )
@@ -206,22 +206,22 @@ func PackAggregate(ctx context.Context, pusher content.Pusher, manifests []ocisp
 type PackCollectionOptions struct {
 	// Links is the descriptor for linked artifacts.
 	// This is only valid for ManifestType TypeCollection.
-	Links []uorspec.Descriptor
+	Links []empspec.Descriptor
 	// ManifestAnnotations is the annotation map of the manifest.
 	ManifestAttributes map[string]json.RawMessage
 }
 
-func PackCollection(ctx context.Context, pusher content.Pusher, artifactType string, blobs []uorspec.Descriptor, opts PackCollectionOptions) (ocispec.Descriptor, error) {
+func PackCollection(ctx context.Context, pusher content.Pusher, artifactType string, blobs []empspec.Descriptor, opts PackCollectionOptions) (ocispec.Descriptor, error) {
 	if artifactType == "" {
 		artifactType = MediaTypeUnknownArtifact
 	}
 
 	if blobs == nil {
-		blobs = []uorspec.Descriptor{} // make it an empty array to prevent potential server-side bugs
+		blobs = []empspec.Descriptor{} // make it an empty array to prevent potential server-side bugs
 	}
 
-	manifest := uorspec.Manifest{
-		MediaType:    uorspec.MediaTypeCollectionManifest,
+	manifest := empspec.Manifest{
+		MediaType:    empspec.MediaTypeCollectionManifest,
 		ArtifactType: artifactType,
 		Links:        opts.Links,
 		Blobs:        blobs,
@@ -231,7 +231,7 @@ func PackCollection(ctx context.Context, pusher content.Pusher, artifactType str
 	if err != nil {
 		return ocispec.Descriptor{}, fmt.Errorf("failed to marshal manifest: %w", err)
 	}
-	manifestDesc := content.NewDescriptorFromBytes(uorspec.MediaTypeCollectionManifest, manifestJSON)
+	manifestDesc := content.NewDescriptorFromBytes(empspec.MediaTypeCollectionManifest, manifestJSON)
 	// populate ArtifactType and Annotations of the manifest into manifestDesc
 	manifestDesc.ArtifactType = manifest.ArtifactType
 	manifestDesc.Annotations = manifest.Annotations

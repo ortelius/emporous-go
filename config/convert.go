@@ -3,9 +3,9 @@ package config
 import (
 	"fmt"
 
-	"github.com/uor-framework/uor-client-go/api/client/v1alpha1"
-	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/api/client/v1alpha1"
+	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/model"
 )
 
 // ConvertToModel converts v1alpha1.Attributes to an model.AttributeSet.

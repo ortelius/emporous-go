@@ -1,22 +1,22 @@
-## uor-client-go pull
+## emporous pull
 
-Pull a UOR collection based on content or attribute address
+Pull a Emporous collection based on content or attribute address
 
 ```
-uor-client-go pull SRC [flags]
+emporous pull SRC [flags]
 ```
 
 ### Examples
 
 ```
   # Pull collection reference.
-  uor-client-go pull localhost:5001/test:latest
+  emporous pull localhost:5001/test:latest
   
   # Pull collection reference and all linked references.
-  uor-client-go pull localhost:5001/test:latest --pull-all
+  emporous pull localhost:5001/test:latest --pull-all
   
   # Pull all content from reference that satisfies the attribute query.
-  uor-client-go pull localhost:5001/test:latest --attributes attribute-query.yaml
+  emporous pull localhost:5001/test:latest --attributes attribute-query.yaml
 ```
 
 ### Options
@@ -40,5 +40,5 @@ uor-client-go pull SRC [flags]
 
 ### SEE ALSO
 
-* [uor-client-go](uor-client-go.md)	 - UOR Client
+* [emporous](emporous.md)	 - Emporous Client
 

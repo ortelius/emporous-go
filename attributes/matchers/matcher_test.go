@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/util/testutils"
+	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/util/testutils"
 )
 
 func TestPartialMatches(t *testing.T) {

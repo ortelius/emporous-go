@@ -9,15 +9,15 @@ import (
 	"os"
 	"path/filepath"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/spf13/cobra"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
-	load "github.com/uor-framework/uor-client-go/config"
-	"github.com/uor-framework/uor-client-go/content/layout"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
-	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
-	"github.com/uor-framework/uor-client-go/schema"
-	"github.com/uor-framework/uor-client-go/util/examples"
+	load "github.com/emporous/emporous-go/config"
+	"github.com/emporous/emporous-go/content/layout"
+	"github.com/emporous/emporous-go/nodes/descriptor"
+	"github.com/emporous/emporous-go/registryclient/orasclient"
+	"github.com/emporous/emporous-go/schema"
+	"github.com/emporous/emporous-go/util/examples"
 )
 
 // BuildSchemaOptions describe configuration options that can
@@ -42,7 +42,7 @@ func NewBuildSchemaCmd(buildOpts *BuildOptions) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "schema CFG-PATH DST",
-		Short:         "Build and save a UOR schema as an OCI artifact",
+		Short:         "Build and save a Emporous schema as an OCI artifact",
 		Example:       examples.FormatExamples(clientBuildSchemaExamples...),
 		SilenceErrors: false,
 		SilenceUsage:  false,
@@ -118,7 +118,7 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 
 	schemaAnnotations := map[string]string{}
 	schemaAttr := descriptor.Properties{
-		Schema: &uorspec.SchemaAttributes{
+		Schema: &empspec.SchemaAttributes{
 			ID:          config.Schema.ID,
 			Description: config.Schema.Description,
 		},
@@ -127,13 +127,13 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	schemaAnnotations[uorspec.AnnotationUORAttributes] = string(schemaJSON)
-	desc, err := client.AddContent(ctx, uorspec.MediaTypeSchemaDescriptor, userSchema.Export(), schemaAnnotations)
+	schemaAnnotations[empspec.AnnotationEmporousAttributes] = string(schemaJSON)
+	desc, err := client.AddContent(ctx, empspec.MediaTypeSchemaDescriptor, userSchema.Export(), schemaAnnotations)
 	if err != nil {
 		return err
 	}
 
-	configDesc, err := client.AddContent(ctx, uorspec.MediaTypeConfiguration, []byte("{}"), nil)
+	configDesc, err := client.AddContent(ctx, empspec.MediaTypeConfiguration, []byte("{}"), nil)
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,1 @@
+{"kind":"DataSetConfiguration","apiVersion":"client.emporous.io/v1alpha1","collection":{"components":{"platform":"","name":"","version":"","type":"","foundBy":"","locations":null,"licenses":null,"language":"","cpes":null,"purl":""},"runtime":{},"files":[{"file":"*jpg","fileInfo":{"permissions":0,"uid":-1,"gid":-1},"attributes":{"type":"jpg"}}]}}

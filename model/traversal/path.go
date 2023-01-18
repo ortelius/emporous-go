@@ -1,7 +1,7 @@
 package traversal
 
 import (
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
 
 // Path describes a series of steps across a graph of model.Node.

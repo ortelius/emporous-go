@@ -1,22 +1,22 @@
-## uor-client-go inspect
+## emporous inspect
 
-Print UOR collection information
+Print Emporous collection information
 
 ```
-uor-client-go inspect [flags]
+emporous inspect [flags]
 ```
 
 ### Examples
 
 ```
   # List all references
-  uor-client-go inspect
+  emporous inspect
   
   # List all descriptors for reference
-  uor-client-go inspect --reference localhost:5001/test:latest
+  emporous inspect --reference localhost:5001/test:latest
   
   # List all descriptors for reference with attribute filtering
-  uor-client-go inspect --reference localhost:5001/test:latest --attributes attribute-query.yaml
+  emporous inspect --reference localhost:5001/test:latest --attributes attribute-query.yaml
 ```
 
 ### Options
@@ -36,5 +36,5 @@ uor-client-go inspect [flags]
 
 ### SEE ALSO
 
-* [uor-client-go](uor-client-go.md)	 - UOR Client
+* [emporous](emporous.md)	 - Emporous Client
 

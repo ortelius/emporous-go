@@ -9,7 +9,7 @@
 - [Attribute](#attribute)
 - [AttributeSet](#attributeset)
 
-The model package and the sub-package contains all types and methods that can be used to define and work with UOR data.
+The model package and the sub-package contains all types and methods that can be used to define and work with Emporous data.
 
 > For more information on the concrete node types, see [nodes](nodes.md).
 
@@ -27,7 +27,7 @@ NodeBuilder is an interface that defines methods for building immutable Node typ
 
 ## Iterator
 
-Nodes can be iterable (e.g. a UOR Collection). Using the iterator interface allows these structures to be iterated over
+Nodes can be iterable (e.g. a Emporous Collection). Using the iterator interface allows these structures to be iterated over
 during traversal.
 
 ## Matcher

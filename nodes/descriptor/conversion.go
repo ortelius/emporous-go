@@ -1,12 +1,12 @@
 package descriptor
 
 import (
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 )
 
 // CollectionToOCI converts collection descriptor to OCI descriptor.
-func CollectionToOCI(desc uorspec.Descriptor) (ocispec.Descriptor, error) {
+func CollectionToOCI(desc empspec.Descriptor) (ocispec.Descriptor, error) {
 	mergedAnnotations := map[string]string{}
 	for key, value := range desc.Annotations {
 		mergedAnnotations[key] = value
@@ -32,16 +32,16 @@ func CollectionToOCI(desc uorspec.Descriptor) (ocispec.Descriptor, error) {
 }
 
 // OCIToCollection converts OCI descriptor to collection descriptor.
-func OCIToCollection(desc ocispec.Descriptor) (uorspec.Descriptor, error) {
+func OCIToCollection(desc ocispec.Descriptor) (empspec.Descriptor, error) {
 	if desc.Annotations == nil {
 		desc.Annotations = map[string]string{}
 	}
 
 	attributes, err := AnnotationsToAttributes(desc.Annotations)
 	if err != nil {
-		return uorspec.Descriptor{}, err
+		return empspec.Descriptor{}, err
 	}
-	return uorspec.Descriptor{
+	return empspec.Descriptor{
 		MediaType:   desc.MediaType,
 		Digest:      desc.Digest,
 		Size:        desc.Size,

@@ -1,7 +1,7 @@
 package attributes
 
 import (
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
 
 type boolAttribute struct {

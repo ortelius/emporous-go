@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/uor-framework/uor-client-go/cmd/client/commands"
+	"github.com/emporous/emporous-go/cmd/client/commands"
 )
 
 func main() {

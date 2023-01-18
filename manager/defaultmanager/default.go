@@ -1,9 +1,9 @@
 package defaultmanager
 
 import (
-	"github.com/uor-framework/uor-client-go/content"
-	"github.com/uor-framework/uor-client-go/log"
-	"github.com/uor-framework/uor-client-go/manager"
+	"github.com/emporous/emporous-go/content"
+	"github.com/emporous/emporous-go/log"
+	"github.com/emporous/emporous-go/manager"
 )
 
 // DefaultManager is the default implementation for a collection manager.

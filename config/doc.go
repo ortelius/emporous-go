@@ -1,5 +1,5 @@
 /*
-Copyright 2022 UOR-Framework Authors.
+Copyright 2022 Emporous Authors.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -13,5 +13,5 @@ limitations under the License.
 
 package config
 
-// This package contains methods for loading UOR API types from file and
+// This package contains methods for loading Emporous API types from file and
 // conversions to types in the "model" package.

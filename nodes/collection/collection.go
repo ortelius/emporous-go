@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
 
 var (

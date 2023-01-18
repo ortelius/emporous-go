@@ -9,13 +9,13 @@ import (
 	"strings"
 	"testing"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
-	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/attributes/matchers"
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/attributes/matchers"
+	"github.com/emporous/emporous-go/model"
 )
 
 func TestExists(t *testing.T) {
@@ -275,16 +275,16 @@ func TestResolveByAttribute(t *testing.T) {
 		{
 			name:     "Success/MatchFound",
 			cacheDir: "testdata/attributes",
-			ref:      "localhost:5001/test1:latest",
+			ref:      "localhost:5001/test:latest",
 			matcher: matchers.PartialAttributeMatcher{
-				"type": attributes.NewString("type", "jpg"),
+				"org.opencontainers.image.title": attributes.NewString("org.opencontainers.image.title", "fish.jpg"),
 			},
 			expRes: []ocispec.Descriptor{
 				{
 					MediaType:   "image/jpeg",
 					Digest:      "sha256:2e30f6131ce2164ed5ef017845130727291417d60a1be6fad669bdc4473289cd",
 					Size:        5536,
-					Annotations: map[string]string{"org.opencontainers.image.title": "images/fish.jpg", "type": "jpg"},
+					Annotations: map[string]string{"org.opencontainers.image.title": "fish.jpg", "uor.attributes": "{\"converted\":{\"org.opencontainers.image.title\":\"fish.jpg\"},\"unknown\":{\"type\":\"jpg\"}}"},
 				},
 			},
 		},
@@ -335,9 +335,10 @@ func TestAttributeSchema(t *testing.T) {
 			cacheDir: "testdata/schema",
 			ref:      "localhost:5001/schema-test:latest",
 			expRes: ocispec.Descriptor{
-				MediaType: uorspec.MediaTypeSchemaDescriptor,
-				Digest:    "sha256:a50ae3a26456b388ec5174e4f8b580ec26a9f94fb2a29a68e00516b3ddef5e76",
-				Size:      77,
+				MediaType:   empspec.MediaTypeSchemaDescriptor,
+				Digest:      "sha256:a50ae3a26456b388ec5174e4f8b580ec26a9f94fb2a29a68e00516b3ddef5e76",
+				Size:        77,
+				Annotations: map[string]string{"emporous.attributes": "{\"core-schema\":{\"id\":\"\"}}"},
 			},
 		},
 		{

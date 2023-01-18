@@ -1,16 +1,16 @@
-## uor-client-go serve
+## emporous serve
 
-Serve gRPC API to allow UOR collection management
+Serve gRPC API to allow Emporous collection management
 
 ```
-uor-client-go serve SOCKET [flags]
+emporous serve SOCKET [flags]
 ```
 
 ### Examples
 
 ```
   # Serve with a specified unix domain socket location
-  uor-client-go serve /var/run/test.sock
+  emporous serve /var/run/test.sock
 ```
 
 ### Options
@@ -29,5 +29,5 @@ uor-client-go serve SOCKET [flags]
 
 ### SEE ALSO
 
-* [uor-client-go](uor-client-go.md)	 - UOR Client
+* [emporous](emporous.md)	 - Emporous Client
 

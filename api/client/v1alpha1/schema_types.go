@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	"github.com/uor-framework/uor-client-go/schema"
+	"github.com/emporous/emporous-go/schema"
 )
 
 // SchemaConfigurationKind object kind of SchemaConfiguration
@@ -13,7 +13,7 @@ type SchemaConfiguration struct {
 	Schema   SchemaConfigurationSpec `json:"schema"`
 }
 
-// SchemaConfigurationSpec defines the configuration spec to build a UOR schema.
+// SchemaConfigurationSpec defines the configuration spec to build an #mporous schema.
 type SchemaConfigurationSpec struct {
 	// ID is a name that will be used to identify
 	// the schema

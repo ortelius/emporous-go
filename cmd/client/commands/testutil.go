@@ -10,7 +10,7 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2"
 
-	"github.com/uor-framework/uor-client-go/content/layout"
+	"github.com/emporous/emporous-go/content/layout"
 )
 
 func pushBlob(ctx context.Context, mediaType string, blob []byte, target oras.Target) (ocispec.Descriptor, error) {

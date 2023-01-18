@@ -17,13 +17,13 @@ The model.Node types must implement the following methods:
 
 ## Basic Node
 
-A basic node represent the smallest unit of information in a UOR dataset. This can be part of a structure alongside Collection node
+A basic node represent the smallest unit of information in a Emporous Collection. This can be part of a structure alongside Collection node
 types or references within a Collection node.
 
 ## Descriptor Node
 
-A descriptor node represent an OCI descriptor in a UOR dataset. This can be part of a structure alongside Collection node
-types or references within a Collection node. When using a UOR Collection to describe an OCI DAG, descriptor nodes are useful within 
+A descriptor node represent an OCI descriptor in a Emporous Collection. This can be part of a structure alongside Collection node
+types or references within a Collection node. When using a Emporous Collection to describe an OCI DAG, descriptor nodes are useful within 
 collection nodes.
 
 ## Collection Node
@@ -47,25 +47,25 @@ in the builder.Compatibility mode.
 
 ### Linked Collection
 
-The reference implementation has the concept of linked collections. This is a way to use the UOR model to arrange collections of OCI artifacts and any referring artifacts into a structure that can be traversed for various tooling and used by other parts of the model (e.g. Matcher). Linked collection information is stored within OCI manifest top-level annotation for collection building and retrieval.
+The reference implementation has the concept of linked collections. This is a way to use the Emporous model to arrange collections of OCI artifacts and any referring artifacts into a structure that can be traversed for various tooling and used by other parts of the model (e.g. Matcher). Linked collection information is stored within OCI manifest top-level annotation for collection building and retrieval.
 
 **Important Annotations**
 
 ```
 # Address of the default collection schema
-uor.schema
+emporous.schema
 ```
 ```
 # Schemas aggregated from all linked collections to the leaf nodes.
 # This allows for attribute aggregation to guide
 # cross-link traversal.
-uor.schema.linked
+emporous.schema.linked
 ```
 
 ```
 # Address of linked collections
 # This is only the address of direct links
-uor.collections.linked
+emporous.collections.linked
 ```
 
 #### Why not use the Manifest Referrers API?

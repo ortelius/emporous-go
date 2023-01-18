@@ -10,13 +10,13 @@ import (
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/content/file"
 
-	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
-	"github.com/uor-framework/uor-client-go/config"
-	"github.com/uor-framework/uor-client-go/content/layout"
-	"github.com/uor-framework/uor-client-go/manager/defaultmanager"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
-	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
-	"github.com/uor-framework/uor-client-go/util/examples"
+	"github.com/emporous/emporous-go/cmd/client/commands/options"
+	"github.com/emporous/emporous-go/config"
+	"github.com/emporous/emporous-go/content/layout"
+	"github.com/emporous/emporous-go/manager/defaultmanager"
+	"github.com/emporous/emporous-go/nodes/descriptor"
+	"github.com/emporous/emporous-go/registryclient/orasclient"
+	"github.com/emporous/emporous-go/util/examples"
 )
 
 // PullOptions describe configuration options that can
@@ -62,7 +62,7 @@ func NewPullCmd(common *options.Common) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "pull SRC",
-		Short:         "Pull a UOR collection based on content or attribute address",
+		Short:         "Pull a Emporous collection based on content or attribute address",
 		Example:       examples.FormatExamples(clientPullExamples...),
 		SilenceErrors: false,
 		SilenceUsage:  false,

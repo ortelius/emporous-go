@@ -4,15 +4,15 @@ import (
 	"context"
 	"encoding/json"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/google/go-containerregistry/pkg/v1/types"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/model/traversal"
-	"github.com/uor-framework/uor-client-go/nodes/collection"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
-	v2 "github.com/uor-framework/uor-client-go/nodes/descriptor/v2"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/model/traversal"
+	"github.com/emporous/emporous-go/nodes/collection"
+	"github.com/emporous/emporous-go/nodes/descriptor"
+	v2 "github.com/emporous/emporous-go/nodes/descriptor/v2"
 )
 
 // FetcherFunc fetches content for the specified descriptor
@@ -145,7 +145,7 @@ func getSuccessors(ctx context.Context, fetcher FetcherFunc, node ocispec.Descri
 		nodes := append([]ocispec.Descriptor{manifest.Config}, manifest.Layers...)
 
 		if manifest.Annotations != nil {
-			link, ok := manifest.Annotations[uorspec.AnnotationLink]
+			link, ok := manifest.Annotations[empspec.AnnotationLink]
 			if ok {
 				var descs []ocispec.Descriptor
 				if err := json.Unmarshal([]byte(link), &descs); err != nil {
@@ -184,7 +184,7 @@ func getSuccessors(ctx context.Context, fetcher FetcherFunc, node ocispec.Descri
 		}
 
 		if manifest.Annotations != nil {
-			link, ok := manifest.Annotations[uorspec.AnnotationLink]
+			link, ok := manifest.Annotations[empspec.AnnotationLink]
 			if ok {
 				var descs []ocispec.Descriptor
 				if err := json.Unmarshal([]byte(link), &descs); err != nil {
@@ -195,13 +195,13 @@ func getSuccessors(ctx context.Context, fetcher FetcherFunc, node ocispec.Descri
 		}
 
 		return append(nodes, manifest.Blobs...), nil
-	case uorspec.MediaTypeCollectionManifest:
+	case empspec.MediaTypeCollectionManifest:
 		content, err := fetcher(ctx, node)
 		if err != nil {
 			return nil, err
 		}
 
-		var manifest uorspec.Manifest
+		var manifest empspec.Manifest
 		if err := json.Unmarshal(content, &manifest); err != nil {
 			return nil, err
 		}

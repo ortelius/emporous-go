@@ -9,7 +9,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/uor-framework/uor-client-go/api/client/v1alpha1"
+	"github.com/emporous/emporous-go/api/client/v1alpha1"
 )
 
 // ReadDataSetConfig reads the specified config into a DataSetConfiguration type.

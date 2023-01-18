@@ -3,8 +3,8 @@ package v1alpha1
 import (
 	"encoding/json"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 )
 
 // DataSetConfigurationKind object kind of DataSetConfiguration.
@@ -17,7 +17,7 @@ type DataSetConfiguration struct {
 	Collection DataSetConfigurationSpec `json:"collection,omitempty"`
 }
 
-// DataSetConfigurationSpec defines the configuration spec to build a single UOR collection.
+// DataSetConfigurationSpec defines the configuration spec to build a single emporous collection.
 type DataSetConfigurationSpec struct {
 	// Components attaches component information to specific files.
 	Components ComponentSpec `json:"components,omitempty"`
@@ -60,7 +60,7 @@ type File struct {
 	File string `json:"file,omitempty"`
 	// FileInfo sets target path, ownership, and
 	// permissions for files that can be used with container runtimes.
-	FileInfo uorspec.File `json:"fileInfo,omitempty"`
+	FileInfo empspec.File `json:"fileInfo,omitempty"`
 	// Attributes is the lists of to associate to the file.
 	Attributes Attributes `json:"attributes,omitempty"`
 }
@@ -75,7 +75,7 @@ type Attributes map[string]interface{}
 func (f *File) UnmarshalJSON(data []byte) error {
 	type fileAlias File
 	test := &fileAlias{
-		FileInfo: uorspec.File{
+		FileInfo: empspec.File{
 			UID: -1,
 			GID: -1,
 		},

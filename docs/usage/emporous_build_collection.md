@@ -1,19 +1,19 @@
-## uor-client-go build collection
+## emporous build collection
 
 Build and save an OCI artifact from files
 
 ```
-uor-client-go build collection SRC DST [flags]
+emporous build collection SRC DST [flags]
 ```
 
 ### Examples
 
 ```
   # Build artifacts.
-  uor-client-go build collection my-directory localhost:5000/myartifacts:latest
+  emporous build collection my-directory localhost:5000/myartifacts:latest
   
   # Build artifacts with custom annotations.
-  uor-client-go build collection my-directory localhost:5000/myartifacts:latest --dsconfig dataset-config.yaml
+  emporous build collection my-directory localhost:5000/myartifacts:latest --dsconfig dataset-config.yaml
 ```
 
 ### Options
@@ -35,5 +35,5 @@ uor-client-go build collection SRC DST [flags]
 
 ### SEE ALSO
 
-* [uor-client-go build](uor-client-go_build.md)	 - Build and save an OCI artifact from files
+* [emporous build](emporous_build.md)	 - Build and save an OCI artifact from files
 

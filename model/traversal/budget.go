@@ -3,7 +3,7 @@ package traversal
 import (
 	"fmt"
 
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/model"
 )
 
 // Budget tracks budgeted operations during graph traversal.

@@ -1,16 +1,16 @@
-## uor-client-go push
+## emporous push
 
-Push a UOR collection into a registry
+Push a Emporous collection into a registry
 
 ```
-uor-client-go push DST [flags]
+emporous push DST [flags]
 ```
 
 ### Examples
 
 ```
   # Push artifacts.
-  uor-client-go push localhost:5000/myartifacts:latest
+  emporous push localhost:5000/myartifacts:latest
 ```
 
 ### Options
@@ -20,7 +20,7 @@ uor-client-go push DST [flags]
   -h, --help                  help for push
       --insecure              Allow connections to registries SSL registry without certs
       --plain-http            Use plain http and not https when contacting registries
-  -s, --sign                  keyless OIDC signing of UOR Collections with Sigstore
+  -s, --sign                  keyless OIDC signing of emporous Collections with Sigstore
 ```
 
 ### Options inherited from parent commands
@@ -31,5 +31,5 @@ uor-client-go push DST [flags]
 
 ### SEE ALSO
 
-* [uor-client-go](uor-client-go.md)	 - UOR Client
+* [emporous](emporous.md)	 - Emporous Client
 

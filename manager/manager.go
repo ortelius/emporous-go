@@ -3,13 +3,13 @@ package manager
 import (
 	"context"
 
-	clientapi "github.com/uor-framework/uor-client-go/api/client/v1alpha1"
-	"github.com/uor-framework/uor-client-go/content"
-	"github.com/uor-framework/uor-client-go/registryclient"
-	"github.com/uor-framework/uor-client-go/util/workspace"
+	clientapi "github.com/emporous/emporous-go/api/client/v1alpha1"
+	"github.com/emporous/emporous-go/content"
+	"github.com/emporous/emporous-go/registryclient"
+	"github.com/emporous/emporous-go/util/workspace"
 )
 
-// Manager defines methods for building, publishing, and retrieving UOR collections.
+// Manager defines methods for building, publishing, and retrieving emporous collections.
 type Manager interface {
 	// Build builds collection from input and store it in the underlying content store.
 	// If successful, the root descriptor is returned.

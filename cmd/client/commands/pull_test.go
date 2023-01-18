@@ -12,19 +12,19 @@ import (
 	"path/filepath"
 	"testing"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/google/go-containerregistry/pkg/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/require"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/memory"
 	orasregistry "oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 
-	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
-	"github.com/uor-framework/uor-client-go/log"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
+	"github.com/emporous/emporous-go/cmd/client/commands/options"
+	"github.com/emporous/emporous-go/log"
+	"github.com/emporous/emporous-go/nodes/descriptor"
 )
 
 func TestPullComplete(t *testing.T) {
@@ -289,7 +289,7 @@ func prepTestArtifact(t *testing.T, ref string) {
 	require.NoError(t, err)
 
 	manifestAnnotations := map[string]string{
-		uorspec.AnnotationLink: string(aggregationJSON),
+		empspec.AnnotationLink: string(aggregationJSON),
 	}
 	_, err = publishFunc(fileName, ref, fileContent, map[string]string{"test": "annotation"}, manifestAnnotations)
 	require.NoError(t, err)
@@ -305,7 +305,7 @@ func prepLinks(t *testing.T, ref string) []ocispec.Descriptor {
 	r, err := orasregistry.ParseReference(ref)
 	require.NoError(t, err)
 	linkAttr := descriptor.Properties{
-		Link: &uorspec.LinkAttributes{
+		Link: &empspec.LinkAttributes{
 			RegistryHint:  r.Registry,
 			NamespaceHint: r.Repository,
 			Transitive:    true,
@@ -314,7 +314,7 @@ func prepLinks(t *testing.T, ref string) []ocispec.Descriptor {
 	linkJSON, err := json.Marshal(linkAttr)
 	require.NoError(t, err)
 	ref1Annotations := map[string]string{
-		uorspec.AnnotationUORAttributes: string(linkJSON),
+		empspec.AnnotationEmporousAttributes: string(linkJSON),
 	}
 	desc1, err := publishFunc(fileName, ref1, fileContent, map[string]string{"test": "linkedannotation"}, ref1Annotations)
 	require.NoError(t, err)
@@ -322,7 +322,7 @@ func prepLinks(t *testing.T, ref string) []ocispec.Descriptor {
 	fileContent2 := []byte("Hello Again Again World !\n")
 	ref2 := fmt.Sprintf("%s-ref2", ref)
 	ref2Annotations := map[string]string{
-		uorspec.AnnotationUORAttributes: string(linkJSON),
+		empspec.AnnotationEmporousAttributes: string(linkJSON),
 	}
 	desc2, err := publishFunc(fileName2, ref2, fileContent2, map[string]string{"test": "annotation"}, ref2Annotations)
 	require.NoError(t, err)

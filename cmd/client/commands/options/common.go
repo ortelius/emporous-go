@@ -8,13 +8,13 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
-	"github.com/uor-framework/uor-client-go/log"
+	"github.com/emporous/emporous-go/log"
 )
 
 // EnvConfig stores CLI runtime configuration from environment variables.
 // Struct field names should match the name of the environment variable that the field is derived from.
 type EnvConfig struct {
-	UOR_DEV_MODE bool // true: show unimplemented stubs in --help
+	EMPOROUS_DEV_MODE bool // true: show unimplemented stubs in --help
 }
 
 // Common describes global configuration options that can be set.
@@ -40,12 +40,12 @@ func (o *Common) Init() error {
 	}
 	o.Logger = logger
 
-	cacheEnv := os.Getenv("UOR_CACHE")
+	cacheEnv := os.Getenv("EMPOROUS_CACHE")
 	switch {
 	case cacheEnv != "":
 		o.CacheDir = cacheEnv
 	default:
-		o.CacheDir = filepath.Join(xdg.CacheHome, "uor")
+		o.CacheDir = filepath.Join(xdg.CacheHome, "emporous")
 	}
 
 	return nil

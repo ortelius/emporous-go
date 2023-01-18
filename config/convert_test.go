@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/uor-framework/uor-client-go/api/client/v1alpha1"
-	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/api/client/v1alpha1"
+	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/model"
 )
 
 func TestConvertToModel(t *testing.T) {

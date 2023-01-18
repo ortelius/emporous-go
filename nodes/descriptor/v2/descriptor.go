@@ -3,11 +3,11 @@ package v2
 import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/nodes/descriptor"
 )
 
-// Node defines a single unit containing information about a UOR dataset node.
+// Node defines a single unit containing information about a Emporous dataset node.
 type Node struct {
 	id         string
 	descriptor ocispec.Descriptor

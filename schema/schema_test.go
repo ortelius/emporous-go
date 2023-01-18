@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/model"
+	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/model"
 )
 
 func TestSchema_Validate(t *testing.T) {

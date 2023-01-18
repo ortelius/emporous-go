@@ -3,11 +3,11 @@ package descriptor
 import (
 	"testing"
 
-	"github.com/uor-framework/uor-client-go/attributes"
+	"github.com/emporous/emporous-go/attributes"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/uor-framework/uor-client-go/util/testutils"
+	"github.com/emporous/emporous-go/util/testutils"
 )
 
 func TestJSONSubsetMatcher_Matches(t *testing.T) {

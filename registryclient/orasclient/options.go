@@ -13,9 +13,9 @@ import (
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/content/memory"
 
-	"github.com/uor-framework/uor-client-go/content"
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/registryclient"
+	"github.com/emporous/emporous-go/content"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/registryclient"
 )
 
 // ClientOption is a function that configures

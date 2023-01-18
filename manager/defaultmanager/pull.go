@@ -3,8 +3,8 @@ package defaultmanager
 import (
 	"context"
 
-	"github.com/uor-framework/uor-client-go/content"
-	"github.com/uor-framework/uor-client-go/registryclient"
+	"github.com/emporous/emporous-go/content"
+	"github.com/emporous/emporous-go/registryclient"
 )
 
 // Pull pulls a single collection to a specified storage destination.

@@ -3,11 +3,11 @@ package config
 import (
 	"testing"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/stretchr/testify/require"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 
-	"github.com/uor-framework/uor-client-go/api/client/v1alpha1"
-	"github.com/uor-framework/uor-client-go/schema"
+	"github.com/emporous/emporous-go/api/client/v1alpha1"
+	"github.com/emporous/emporous-go/schema"
 )
 
 func TestReadAttributeQuery(t *testing.T) {
@@ -75,7 +75,7 @@ func TestReadDataSetConfig(t *testing.T) {
 							Attributes: map[string]interface{}{
 								"fiction": true,
 							},
-							FileInfo: uorspec.File{
+							FileInfo: empspec.File{
 								UID: -1,
 								GID: -1,
 							},

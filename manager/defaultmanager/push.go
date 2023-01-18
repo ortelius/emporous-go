@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/uor-framework/uor-client-go/registryclient"
+	"github.com/emporous/emporous-go/registryclient"
 )
 
 // Push pushes collection to a remote location from the underlying content store.

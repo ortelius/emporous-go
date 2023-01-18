@@ -1,6 +1,6 @@
 package attributes
 
-import "github.com/uor-framework/uor-client-go/model"
+import "github.com/emporous/emporous-go/model"
 
 type stringAttribute struct {
 	key   string

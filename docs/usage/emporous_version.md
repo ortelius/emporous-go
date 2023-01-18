@@ -1,9 +1,9 @@
-## uor-client-go version
+## emporous version
 
 Print the version
 
 ```
-uor-client-go version [flags]
+emporous version [flags]
 ```
 
 ### Options
@@ -20,5 +20,5 @@ uor-client-go version [flags]
 
 ### SEE ALSO
 
-* [uor-client-go](uor-client-go.md)	 - UOR Client
+* [emporous](emporous.md)	 - Emporous Client
 

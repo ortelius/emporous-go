@@ -11,11 +11,11 @@ import (
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
 
-	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
-	"github.com/uor-framework/uor-client-go/content/layout"
-	"github.com/uor-framework/uor-client-go/manager/defaultmanager"
-	"github.com/uor-framework/uor-client-go/registryclient/orasclient"
-	"github.com/uor-framework/uor-client-go/util/examples"
+	"github.com/emporous/emporous-go/cmd/client/commands/options"
+	"github.com/emporous/emporous-go/content/layout"
+	"github.com/emporous/emporous-go/manager/defaultmanager"
+	"github.com/emporous/emporous-go/registryclient/orasclient"
+	"github.com/emporous/emporous-go/util/examples"
 )
 
 // PushOptions describe configuration options that can
@@ -40,7 +40,7 @@ func NewPushCmd(common *options.Common) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "push DST",
-		Short:         "Push a UOR collection into a registry",
+		Short:         "Push a Emporous collection into a registry",
 		Example:       examples.FormatExamples(clientPushExamples),
 		SilenceErrors: false,
 		SilenceUsage:  false,
@@ -55,7 +55,7 @@ func NewPushCmd(common *options.Common) *cobra.Command {
 	o.Remote.BindFlags(cmd.Flags())
 	o.RemoteAuth.BindFlags(cmd.Flags())
 
-	cmd.Flags().BoolVarP(&o.Sign, "sign", "s", o.Sign, "keyless OIDC signing of UOR Collections with Sigstore")
+	cmd.Flags().BoolVarP(&o.Sign, "sign", "s", o.Sign, "keyless OIDC signing of emporous Collections with Sigstore")
 
 	return cmd
 }

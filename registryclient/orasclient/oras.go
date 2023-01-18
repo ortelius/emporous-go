@@ -11,24 +11,24 @@ import (
 	"sort"
 	"sync"
 
+	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	uorspec "github.com/uor-framework/collection-spec/specs-go/v1alpha1"
 	"oras.land/oras-go/v2"
 	orascontent "oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/content/file"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 
-	"github.com/uor-framework/uor-client-go/content"
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/model/traversal"
-	"github.com/uor-framework/uor-client-go/nodes/collection"
-	collectionloader "github.com/uor-framework/uor-client-go/nodes/collection/loader"
-	"github.com/uor-framework/uor-client-go/nodes/descriptor/v2"
-	"github.com/uor-framework/uor-client-go/registryclient"
-	"github.com/uor-framework/uor-client-go/registryclient/orasclient/internal/cache"
+	"github.com/emporous/emporous-go/content"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/model/traversal"
+	"github.com/emporous/emporous-go/nodes/collection"
+	collectionloader "github.com/emporous/emporous-go/nodes/collection/loader"
+	"github.com/emporous/emporous-go/nodes/descriptor/v2"
+	"github.com/emporous/emporous-go/registryclient"
+	"github.com/emporous/emporous-go/registryclient/orasclient/internal/cache"
 )
 
 type orasClient struct {
@@ -148,7 +148,7 @@ func (c *orasClient) Save(ctx context.Context, ref string, store content.Store) 
 	return oras.Copy(ctx, c.artifactStore, ref, store, ref, cCopyOpts)
 }
 
-// LoadCollection loads a UOR collection type from a remote registry path.
+// LoadCollection loads a Emporous collection type from a remote registry path.
 func (c *orasClient) LoadCollection(ctx context.Context, reference string) (collection.Collection, error) {
 	value, exists := c.collections.Load(reference)
 	if exists {
@@ -292,11 +292,11 @@ func (c *orasClient) Pull(ctx context.Context, ref string, store content.Store) 
 			}
 
 			switch desc.Descriptor().MediaType {
-			case uorspec.MediaTypeSchemaDescriptor:
+			case empspec.MediaTypeSchemaDescriptor:
 				return true, nil
 			case ocispec.MediaTypeImageConfig:
 				return true, nil
-			case uorspec.MediaTypeConfiguration:
+			case empspec.MediaTypeConfiguration:
 				return true, nil
 			}
 

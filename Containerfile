@@ -27,8 +27,8 @@ FROM scratch
 COPY --from=builder /rootfs/ /
 
 ARG TARGETARCH
-COPY uor-client-go-linux-${TARGETARCH} /usr/local/bin/uor-client-go
-RUN set -ex && /usr/local/bin/uor-client-go version
+COPY emporous-linux-${TARGETARCH} /usr/local/bin/emporous
+RUN set -ex && /usr/local/bin/emporous version
 
-ENTRYPOINT ["/usr/local/bin/uor-client-go"]
+ENTRYPOINT ["/usr/local/bin/emporous"]
 CMD ["version"]

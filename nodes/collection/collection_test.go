@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/uor-framework/uor-client-go/attributes"
-	"github.com/uor-framework/uor-client-go/model"
-	"github.com/uor-framework/uor-client-go/util/testutils"
+	"github.com/emporous/emporous-go/attributes"
+	"github.com/emporous/emporous-go/model"
+	"github.com/emporous/emporous-go/util/testutils"
 )
 
 func TestCollection_Root(t *testing.T) {

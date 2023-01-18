@@ -1,5 +1,5 @@
 /*
-Copyright 2022 UOR-Framework Authors.
+Copyright 2022 Emporous Authors.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -13,4 +13,4 @@ limitations under the License.
 
 package model
 
-// This package defines core types and methods that describe UOR data sets.
+// This package defines core types and methods that describe emporous data sets.

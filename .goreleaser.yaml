@@ -1,4 +1,4 @@
-project_name: uor-client-go
+project_name: emporous
 
 env:
 - GO111MODULE=on
@@ -10,7 +10,7 @@ before:
     - go mod vendor
 builds:
   -
-    binary: uor-client-go-{{ .Os }}-{{ .Arch }}
+    binary: emporous-{{ .Os }}-{{ .Arch }}
     no_unique_dist_dir: true
     main: ./cmd/client
     flags:
@@ -44,14 +44,14 @@ builds:
       - goos: darwin
         goarch: ppc64le
     ldflags:
-      - "-X github.com/uor-framework/uor-client-go/cli.version={{ .Tag }}"
-      - "-X github.com/uor-framework/uor-client-go/cli.commit={{ .ShortCommit }}"
-      - "-X github.com/uor-framework/uor-client-go/cli.buildDate={{ .Date }}"
+      - "-X github.com/emporous/emporous-go/cli.version={{ .Tag }}"
+      - "-X github.com/emporous/emporous-go/cli.commit={{ .ShortCommit }}"
+      - "-X github.com/emporous/emporous-go/cli.buildDate={{ .Date }}"
     env:
       - CGO_ENABLED=0
   
 signs:
-- id: uor-client-go-keyless
+- id: emporous-keyless
   signature: "${artifact}.sig"
   certificate: "${artifact}.pem"
   env:
@@ -115,14 +115,14 @@ dockers:
     - --label=org.opencontainers.image.licenses=APACHE2.0
 
 docker_manifests:
-  - name_template: ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:{{ .Tag }}
+  - name_template: ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/emporous:{{ .Tag }}
     image_templates:
-      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:{{ .Tag }}-amd64
-      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:{{ .Tag }}-arm64
-  - name_template: ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:latest
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/emporous:{{ .Tag }}-amd64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/emporous:{{ .Tag }}-arm64
+  - name_template: ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/emporous:latest
     image_templates:
-      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:{{ .Tag }}-amd64
-      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/uor-client-go:{{ .Tag }}-arm64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/emporous:{{ .Tag }}-amd64
+      - ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/emporous:{{ .Tag }}-arm64
 
 docker_signs:
 - cmd: cosign
@@ -155,11 +155,11 @@ release:
   prerelease: allow
   github:
     owner: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
-    name: uor-client-go
+    name: emporous
   name_template: "{{.ProjectName}}-{{ .Tag }}"
   header: |
 
-    ## UOR Go Client {{ .Version }}
+    ## Emporous Go Client {{ .Version }}
 
   footer: |
 

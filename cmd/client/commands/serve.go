@@ -14,12 +14,12 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
-	managerapi "github.com/uor-framework/uor-client-go/api/services/collectionmanager/v1alpha1"
-	"github.com/uor-framework/uor-client-go/cmd/client/commands/options"
-	"github.com/uor-framework/uor-client-go/content/layout"
-	"github.com/uor-framework/uor-client-go/manager/defaultmanager"
-	"github.com/uor-framework/uor-client-go/services/collectionmanager"
-	"github.com/uor-framework/uor-client-go/util/examples"
+	managerapi "github.com/emporous/emporous-go/api/services/collectionmanager/v1alpha1"
+	"github.com/emporous/emporous-go/cmd/client/commands/options"
+	"github.com/emporous/emporous-go/content/layout"
+	"github.com/emporous/emporous-go/manager/defaultmanager"
+	"github.com/emporous/emporous-go/services/collectionmanager"
+	"github.com/emporous/emporous-go/util/examples"
 )
 
 // ServeOptions describe configuration options that can
@@ -42,7 +42,7 @@ func NewServeCmd(common *options.Common) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:           "serve SOCKET",
-		Short:         "Serve gRPC API to allow UOR collection management",
+		Short:         "Serve gRPC API to allow Emporous collection management",
 		Example:       examples.FormatExamples(clientServeExamples),
 		SilenceErrors: false,
 		SilenceUsage:  false,
