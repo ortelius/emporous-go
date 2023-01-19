@@ -8,11 +8,11 @@ import (
 
 	"github.com/buger/jsonparser"
 	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
+	"github.com/hashicorp/go-multierror"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/emporous/emporous-go/attributes"
 	"github.com/emporous/emporous-go/model"
-	"github.com/emporous/emporous-go/util/errlist"
 )
 
 var _ model.AttributeSet = &Properties{}
@@ -207,41 +207,42 @@ func Parse(in map[string]json.RawMessage) (*Properties, error) {
 	var out Properties
 	other := map[string]model.AttributeSet{}
 
-	var errs []error
+	var result *multierror.Error
+
 	for key, prop := range in {
 		switch key {
 		case TypeLink:
 			var l empspec.LinkAttributes
 			if err := json.Unmarshal(prop, &l); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				result = multierror.Append(result, ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Link = &l
 		case TypeDescriptor:
 			var d empspec.DescriptorAttributes
 			if err := json.Unmarshal(prop, &d); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				result = multierror.Append(result, ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Descriptor = &d
 		case TypeSchema:
 			var s empspec.SchemaAttributes
 			if err := json.Unmarshal(prop, &s); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				result = multierror.Append(result, ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Schema = &s
 		case TypeRuntime:
 			var r ocispec.ImageConfig
 			if err := json.Unmarshal(prop, &r); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				result = multierror.Append(result, ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Runtime = &r
 		case TypeFile:
 			var f empspec.File
 			if err := json.Unmarshal(prop, &f); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				result = multierror.Append(result, ParseError{Key: key, Err: err})
 				continue
 			}
 			out.File = &f
@@ -277,7 +278,7 @@ func Parse(in map[string]json.RawMessage) (*Properties, error) {
 			}
 
 			if err := jsonparser.ObjectEach(prop, handler); err != nil {
-				errs = append(errs, fmt.Errorf("key %s: %w", key, err))
+				result = multierror.Append(result, fmt.Errorf("key %s: %w", key, err))
 				continue
 			}
 
@@ -285,5 +286,5 @@ func Parse(in map[string]json.RawMessage) (*Properties, error) {
 		}
 	}
 	out.Others = other
-	return &out, errlist.NewErrList(errs)
+	return &out, result.ErrorOrNil()
 }

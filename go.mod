@@ -28,6 +28,7 @@ require (
 	github.com/buger/jsonparser v1.1.1
 	github.com/emporous/collection-spec v0.0.0-20230112181029-9df787e68bce
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	github.com/sigstore/cosign v1.13.1
 )
@@ -154,6 +155,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
