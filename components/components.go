@@ -12,7 +12,7 @@ import (
 	"github.com/emporous/emporous-go/version"
 )
 
-const ApplicationName = "uor"
+const ApplicationName = "emporous"
 
 // GenerateInventory generates an inventory based on input and DatasetConfiguration information.
 func GenerateInventory(input string, config clientapi.DataSetConfiguration) (*sbom.SBOM, error) {
