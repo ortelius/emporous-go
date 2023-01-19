@@ -2,8 +2,6 @@ package collectionmanager
 
 import (
 	"context"
-	"fmt"
-	"net/url"
 
 	"oras.land/oras-go/v2/registry/remote/auth"
 
@@ -20,13 +18,8 @@ func (s *authConfig) Credential(_ context.Context, registry string) (auth.Creden
 	if s.auth == nil {
 		return auth.EmptyCredential, nil
 	}
-	if s.auth.ServerAddress != "" {
-		// Do not return the auth info when server address doesn't match.
-		u, err := url.Parse(s.auth.ServerAddress)
-		if err != nil {
-			return auth.EmptyCredential, fmt.Errorf("parse server address: %w", err)
-		}
-		if registry != u.Host {
+	if s.auth.RegistryHost != "" {
+		if registry != s.auth.RegistryHost {
 			return auth.EmptyCredential, nil
 		}
 	}

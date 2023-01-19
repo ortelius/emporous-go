@@ -76,7 +76,7 @@ message File {
 message AuthConfig {
   string username = 1;
   string password = 2;
-  string server_address = 3;
+  string registry_host = 3;
   string access_token = 4;
   string refresh_token = 5;
 }
