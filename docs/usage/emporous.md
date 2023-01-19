@@ -28,6 +28,7 @@ emporous [flags]
 ### SEE ALSO
 
 * [emporous build](emporous_build.md)	 - Build and save an OCI artifact from files
+* [emporous create](emporous_create.md)	 - Create artifacts from existing OCI artifacts
 * [emporous inspect](emporous_inspect.md)	 - Print Emporous collection information
 * [emporous pull](emporous_pull.md)	 - Pull a Emporous collection based on content or attribute address
 * [emporous push](emporous_push.md)	 - Push a Emporous collection into a registry

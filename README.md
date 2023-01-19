@@ -673,7 +673,7 @@ echo "leaf" > leaf-workspace/leaf.txt
 ```bash
 cat << EOF > leaf-dataset-config.yaml
 kind: DataSetConfiguration
-apiVersion: client.uor-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 collection:
   components:
     cpes: 
@@ -695,8 +695,8 @@ EOF
 4. Build and push the leaf collection to the remote registry
 
 ```bash
-uor-client-go build collection leaf-workspace --plain-http localhost:5000/exercises/leaf:latest --dsconfig leaf-dataset-config.yaml
-uor-client-go push --plain-http localhost:5000/exercises/leaf:latest
+emporous build collection leaf-workspace --plain-http localhost:5000/exercises/leaf:latest --dsconfig leaf-dataset-config.yaml
+emporous push --plain-http localhost:5000/exercises/leaf:latest
 ```
 
 5. Build a Root collection and link the previously built collection
@@ -717,7 +717,7 @@ echo "root" > root-workspace/root.txt
 ```bash
 cat << EOF > root-dataset-config.yaml
 kind: DataSetConfiguration
-apiVersion: client.uor-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 collection:
   linkedCollections:
   - localhost:5000/exercises/leaf:latest
@@ -740,12 +740,12 @@ EOF
 8. Build and push the root collection to the remote registry
 
 ```bash
-uor-client-go build collection root-workspace --plain-http localhost:5000/exercises/root:latest --dsconfig root-dataset-config.yaml
-uor-client-go push --plain-http localhost:5000/exercises/root:latest
+emporous build collection root-workspace --plain-http localhost:5000/exercises/root:latest --dsconfig root-dataset-config.yaml
+emporous push --plain-http localhost:5000/exercises/root:latest
 ```
 9. Create inventory
 ```bash
-uor-client-go create inventory localhost:5000/exercises/root:latest --plain-http
+emporous create inventory localhost:5000/exercises/root:latest --plain-http
 ```
 
 > TIP: To avoid the requirement to manually input component information, test with a file that is already in a packaged format. This has been successfully tested with rpms.
