@@ -4,7 +4,7 @@
 > it is at very early stage of development. The functionality isn't complete
 > and there is no backwards compatibility guarantee.
 
-To learn more about Emporous visit the Emporous website at <https://emporous.io>.
+To learn more about Emporous, visit the Emporous website at <https://emporous.io>.
 
 ## Development
 
