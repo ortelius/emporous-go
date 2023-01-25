@@ -62,7 +62,7 @@ func AnnotationsFromAttributeSet(set model.AttributeSet) (map[string]string, err
 }
 
 // AnnotationsToAttributes OCI descriptor annotations to collection spec attributes if
-// the AnnotationsUORAttributes key is found.
+// the AnnotationsEmporousAttributes key is found.
 func AnnotationsToAttributes(annotations map[string]string) (map[string]json.RawMessage, error) {
 	specAttributes := map[string]json.RawMessage{}
 	extraAnnotations := map[string]string{}

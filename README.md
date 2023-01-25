@@ -1,19 +1,10 @@
-# Emporous
+# Emporous Client and Go Libraries
 
-Note: The UR Client is being actively developed. Please consider joining the emporous Community to participate!
+> **WARNING**: The version of this CLI and libraries is currently 0.X to indicate that
+> it is at very early stage of development. The functionality isn't complete
+> and there is no backwards compatibility guarantee.
 
-## Participate
-
-Please join us in the discussion forum and feel free to ask questions about the emporous-Framework or UR Client.
-
-## About
-
-The Universal Runtime Client interacts with emporous artifacts and is aware of the runtime instruction
-embedded in emporous artifacts.
-
-To learn more about Universal Runtime visit the emporous Framework website at <https://universalreference.io>.
-
-> WARNING: The repository is under active development and the API is subject to change.
+To learn more about Emporous visit the Emporous website at <https://emporous.io>.
 
 ## Development
 
@@ -199,7 +190,7 @@ cd ..
 ```bash
 cat << EOF > dataset-config.yaml
 kind: DataSetConfiguration
-apiVersion: client.emporous-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 collection:
   files:
     - file: "fish.jpg"
@@ -285,7 +276,7 @@ Create a file called `attribute-query.yaml` in the current directory:
 ```bash
 cat << EOF > attribute-query.yaml
 kind: AttributeQuery
-apiVersion: client.emporous-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 attributes:
   unknown:
     fiction: true
@@ -328,7 +319,7 @@ cd ${EMPOROUS_CLIENT_GO_REPO}/exercises/schema
 ```bash
 cat << EOF > schema-config.yaml
 kind: SchemaConfiguration
-apiVersion: client.emporous-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 schema:
   id: myschemaid
   attributeTypes:
@@ -390,7 +381,7 @@ Create the `dataset-config.yaml` for the collection with the following content. 
 ```bash
 cat << EOF > dataset-config.yaml
 kind: DataSetConfiguration
-apiVersion: client.emporous-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 collection:
   schemaAddress: "localhost:5000/exercises/myschema:latest"
   files:
@@ -424,7 +415,7 @@ In order to be able to build the schema, modify the _mammal_ attribute of the `d
 ```bash
 cat << EOF > dataset-config.yaml
 kind: DataSetConfiguration
-apiVersion: client.emporous-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 collection:
   schemaAddress: "localhost:5000/exercises/myschema:latest"
   files:
@@ -493,7 +484,7 @@ cd ${EMPOROUS_CLIENT_GO_REPO}/exercises/linked
 ```yaml
 cat << EOF > schema-config.yaml
 kind: SchemaConfiguration
-apiVersion: client.emporous-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 schema:
   id: myschemaid
   attributeTypes:
@@ -529,7 +520,7 @@ echo "leaf" > leaf-workspace/leaf.txt
 ```bash
 cat << EOF > leaf-dataset-config.yaml
 kind: DataSetConfiguration
-apiVersion: client.emporous-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 collection:
   schemaAddress: localhost:5000/exercises/linkedschema:latest
   files:
@@ -569,7 +560,7 @@ echo "root" > root-workspace/root.txt
 ```bash
 cat << EOF > root-dataset-config.yaml
 kind: DataSetConfiguration
-apiVersion: client.emporous-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 collection:
   linkedCollections:
   - localhost:5000/exercises/leaf:latest
@@ -627,7 +618,7 @@ leaf.txt root.txt
 ```bash
 cat << EOF > color-query.yaml
 kind: AttributeQuery
-apiVersion: client.emporous-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 attributes:
   "myschemaid":
      "color": "orange"
@@ -671,7 +662,7 @@ go build -o myworkspace/helloworld main.go
 ```bash
 cat << EOF > dataset-config.yaml
 kind: DataSetConfiguration
-apiVersion: client.emporous-framework.io/v1alpha1
+apiVersion: client.emporous.io/v1alpha1
 collection:
   runtime:
     Cmd:

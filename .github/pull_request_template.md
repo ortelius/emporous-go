@@ -35,4 +35,4 @@ Fixes # (issue)
 - [ ] My changes generate no new warnings
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] New and existing unit tests pass locally with my changes
-- [ ] Requires updates to the [Getting Started Guide](https://universalreference.io/docs/quick-start/)
+- [ ] Requires updates to the [Getting Started Guide](https://emporous.io/docs/quick-start/)

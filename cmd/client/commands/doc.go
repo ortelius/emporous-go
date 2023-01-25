@@ -14,4 +14,4 @@ limitations under the License.
 package commands
 
 // This package defines a reference implementation of the
-// Universal Runtime client and library usage.
+// Emporous client and library usage.
