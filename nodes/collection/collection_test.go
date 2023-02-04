@@ -259,21 +259,21 @@ func TestCollection_Attributes(t *testing.T) {
 			nodes: []model.Node{
 				&testutils.FakeNode{
 					I: "node1",
-					A: attributes.Attributes{
-						"title": attributes.NewString("title", "node1"),
-					},
+					A: attributes.NewSet(map[string]model.AttributeValue{
+						"title": attributes.NewString("node1"),
+					}),
 				},
 				&testutils.FakeNode{
 					I: "node2",
-					A: attributes.Attributes{
-						"title": attributes.NewString("title", "node2"),
-					},
+					A: attributes.NewSet(map[string]model.AttributeValue{
+						"title": attributes.NewString("node2"),
+					}),
 				},
 				&testutils.FakeNode{
 					I: "node3",
-					A: attributes.Attributes{
-						"title": attributes.NewString("title", "node3"),
-					},
+					A: attributes.NewSet(map[string]model.AttributeValue{
+						"title": attributes.NewString("node3"),
+					}),
 				},
 			},
 			edges: []model.Edge{

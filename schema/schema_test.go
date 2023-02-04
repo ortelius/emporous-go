@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"encoding/json"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,42 +13,48 @@ import (
 
 func TestSchema_Validate(t *testing.T) {
 	type spec struct {
-		name        string
-		schemaTypes Types
-		doc         model.AttributeSet
-		expRes      bool
-		expError    string
+		name       string
+		properties map[string]map[string]string
+		doc        map[string]model.AttributeValue
+		expRes     bool
+		expError   string
 	}
 
 	cases := []spec{
 		{
 			name: "Success/ValidAttributes",
-			schemaTypes: map[string]Type{
-				"size": TypeNumber,
+			properties: map[string]map[string]string{
+				"size": {
+					"type": "number",
+				},
 			},
-			doc: attributes.Attributes{
-				"size": attributes.NewFloat("size", 1.0),
+			doc: map[string]model.AttributeValue{
+				"size": attributes.NewFloat(1.0),
 			},
 			expRes: true,
 		},
 		{
 			name: "Failure/IncompatibleType",
-			schemaTypes: map[string]Type{
-				"size": TypeBool,
+			properties: map[string]map[string]string{
+				"size": {
+					"type": "boolean",
+				},
 			},
-			doc: attributes.Attributes{
-				"size": attributes.NewFloat("size", 1.0),
+			doc: map[string]model.AttributeValue{
+				"size": attributes.NewFloat(1.0),
 			},
 			expRes:   false,
 			expError: "size: invalid type. expected: boolean, given: integer",
 		},
 		{
 			name: "Failure/MissingKey",
-			schemaTypes: map[string]Type{
-				"size": TypeString,
+			properties: map[string]map[string]string{
+				"size": {
+					"type": "number",
+				},
 			},
-			doc: attributes.Attributes{
-				"name": attributes.NewString("name", "test"),
+			doc: map[string]model.AttributeValue{
+				"name": attributes.NewString("test"),
 			},
 			expError: "(root): size is required",
 			expRes:   false,
@@ -55,13 +63,14 @@ func TestSchema_Validate(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			loader, err := FromTypes(c.schemaTypes)
+			loader, err := fromProperties(c.properties)
 			require.NoError(t, err)
 
 			schema, err := New(loader)
 			require.NoError(t, err)
 
-			result, err := schema.Validate(c.doc)
+			set := attributes.NewSet(c.doc)
+			result, err := schema.Validate(set)
 			if c.expError != "" {
 				require.EqualError(t, err, c.expError)
 			} else {
@@ -70,4 +79,36 @@ func TestSchema_Validate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func fromProperties(properties map[string]map[string]string) (Loader, error) {
+	// Build an object in json from the provided types
+	type jsonSchema struct {
+		Type       string                       `json:"type"`
+		Properties map[string]map[string]string `json:"properties"`
+		Required   []string                     `json:"required"`
+	}
+
+	// Fill in properties and required keys. At this point
+	// we consider all keys as required.
+	var required []string
+	for key := range properties {
+		required = append(required, key)
+	}
+
+	// Make the required slice order deterministic
+	sort.Slice(required, func(i, j int) bool {
+		return required[i] < required[j]
+	})
+
+	tmp := jsonSchema{
+		Type:       "object",
+		Properties: properties,
+		Required:   required,
+	}
+	b, err := json.Marshal(tmp)
+	if err != nil {
+		return Loader{}, err
+	}
+	return FromBytes(b)
 }

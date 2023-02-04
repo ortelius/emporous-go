@@ -25,12 +25,12 @@ func TestCollection_SubCollection(t *testing.T) {
 		{
 			name: "Success/NilMatcher",
 			nodes: []model.Node{
-				&testutils.FakeNode{I: "node1", A: attributes.Attributes{
-					"test": attributes.NewString("test", "match"),
-				}},
-				&testutils.FakeNode{I: "node2", A: attributes.Attributes{
-					"test": attributes.NewString("test", "notmatch"),
-				}},
+				&testutils.FakeNode{I: "node1", A: attributes.NewSet(map[string]model.AttributeValue{
+					"test": attributes.NewString("match"),
+				})},
+				&testutils.FakeNode{I: "node2", A: attributes.NewSet(map[string]model.AttributeValue{
+					"test": attributes.NewString("notmatch"),
+				})},
 			},
 			edges: []model.Edge{
 				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
@@ -45,18 +45,18 @@ func TestCollection_SubCollection(t *testing.T) {
 		{
 			name: "Success/OneNodeFiltered",
 			nodes: []model.Node{
-				&testutils.FakeNode{I: "node1", A: attributes.Attributes{
-					"test": attributes.NewString("test", "match"),
-				}},
-				&testutils.FakeNode{I: "node2", A: attributes.Attributes{
-					"test": attributes.NewString("test", "notmatch"),
-				}},
+				&testutils.FakeNode{I: "node1", A: attributes.NewSet(map[string]model.AttributeValue{
+					"test": attributes.NewString("match"),
+				})},
+				&testutils.FakeNode{I: "node2", A: attributes.NewSet(map[string]model.AttributeValue{
+					"test": attributes.NewString("notmatch"),
+				})},
 			},
 			edges: []model.Edge{
 				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
 			},
 			matcher: matchers.PartialAttributeMatcher{
-				"test": attributes.NewString("test", "match"),
+				"test": attributes.NewString("match"),
 			},
 			assertFunc: func(collection Collection) bool {
 				node1 := collection.NodeByID("node1")
@@ -67,18 +67,18 @@ func TestCollection_SubCollection(t *testing.T) {
 		{
 			name: "Success/AllNodesFiltered",
 			nodes: []model.Node{
-				&testutils.FakeNode{I: "node1", A: attributes.Attributes{
-					"test": attributes.NewString("test", "match"),
-				}},
-				&testutils.FakeNode{I: "node2", A: attributes.Attributes{
-					"test": attributes.NewString("test", "notmatch"),
-				}},
+				&testutils.FakeNode{I: "node1", A: attributes.NewSet(map[string]model.AttributeValue{
+					"test": attributes.NewString("match"),
+				})},
+				&testutils.FakeNode{I: "node2", A: attributes.NewSet(map[string]model.AttributeValue{
+					"test": attributes.NewString("notmatch"),
+				})},
 			},
 			edges: []model.Edge{
 				&Edge{T: &testutils.FakeNode{I: "node2"}, F: &testutils.FakeNode{I: "node1"}},
 			},
 			matcher: matchers.PartialAttributeMatcher{
-				"test": attributes.NewString("test", "nomatch"),
+				"test": attributes.NewString("nomatch"),
 			},
 			assertFunc: func(collection Collection) bool {
 				return len(collection.Nodes()) == 0

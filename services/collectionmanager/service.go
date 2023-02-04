@@ -2,6 +2,7 @@ package collectionmanager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"google.golang.org/grpc/codes"
@@ -67,9 +68,13 @@ func (s *service) PublishContent(ctx context.Context, message *managerapi.Publis
 	if message.Collection != nil {
 		var files []v1alpha1.File
 		for _, file := range message.Collection.Files {
+			attributesJSON, err := json.Marshal(file.Attributes)
+			if err != nil {
+				return &managerapi.Publish_Response{}, status.Error(codes.Internal, err.Error())
+			}
 			f := v1alpha1.File{
 				File:       file.File,
-				Attributes: file.Attributes.AsMap(),
+				Attributes: attributesJSON,
 			}
 			files = append(files, f)
 		}

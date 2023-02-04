@@ -15,7 +15,6 @@ import (
 
 	clientapi "github.com/emporous/emporous-go/api/client/v1alpha1"
 	"github.com/emporous/emporous-go/attributes"
-	load "github.com/emporous/emporous-go/config"
 	"github.com/emporous/emporous-go/content"
 	"github.com/emporous/emporous-go/model"
 	"github.com/emporous/emporous-go/nodes/descriptor"
@@ -50,7 +49,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 		return "", fmt.Errorf("path %q empty workspace", space.Path("."))
 	}
 
-	var sets []model.AttributeSet
+	var sets []map[string]model.AttributeValue
 	regexpByFilename := map[string]*regexp.Regexp{}
 	fileInfoByName := map[string]fileInformation{}
 	for _, file := range config.Collection.Files {
@@ -70,11 +69,11 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 		}
 		regexpByFilename[file.File] = nameSearch
 
-		set, err := load.ConvertToModel(file.Attributes)
+		set, err := attributes.ParseToSet(file.Attributes)
 		if err != nil {
 			return "", err
 		}
-		sets = append(sets, set)
+		sets = append(sets, set.List())
 
 		fileInfo := fileInformation{
 			AttributeSet: set,
@@ -85,8 +84,9 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 	}
 
 	// Merge the sets to ensure the dataset configuration
-	// meet the schema require.
-	mergedSet, err := attributes.Merge(sets...)
+	// meets the schema requirements, we will allow same-type overwrites here.
+	// QUESTION(jpower432): Is this a case to evaluate attributes on a descriptor level?
+	mergedSet, err := mergeAttributes(sets, attributes.MergeOptions{AllowSameTypeOverwrites: true})
 	if err != nil {
 		return "", fmt.Errorf("failed to merge attributes: %w", err)
 	}
@@ -112,7 +112,7 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 			schemaID = detectedSchemaID
 		}
 
-		valid, err := schemaDoc.Validate(mergedSet)
+		valid, err := schemaDoc.Validate(attributes.NewSet(mergedSet))
 		if err != nil {
 			return "", fmt.Errorf("schema validation error: %w", err)
 		}
@@ -165,13 +165,13 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 			return nil
 		}
 
-		var sets []model.AttributeSet
+		var sets []map[string]model.AttributeValue
 		var fileConfig []empspec.File
 		for file, fileInfo := range fileInfoByName {
 			nameSearch := regexpByFilename[file]
 			if nameSearch.Match([]byte(node.Location)) {
 				if fileInfo.HasAttributes() {
-					sets = append(sets, fileInfo.AttributeSet)
+					sets = append(sets, fileInfo.AttributeSet.List())
 				}
 				if fileInfo.HasFileInfo() {
 					fileConfig = append(fileConfig, fileInfo.File)
@@ -186,11 +186,11 @@ func (d DefaultManager) Build(ctx context.Context, space workspace.Workspace, co
 			return fmt.Errorf("file %q: more than one match for file configuration", node.Location)
 		}
 
-		merged, err := attributes.Merge(sets...)
+		merged, err := mergeAttributes(sets, attributes.MergeOptions{})
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to merge attributes: %w", err)
 		}
-		if err := node.Properties.Merge(map[string]model.AttributeSet{schemaID: merged}); err != nil {
+		if err := node.Properties.Merge(map[string]model.AttributeSet{schemaID: attributes.NewSet(merged)}); err != nil {
 			return fmt.Errorf("file %s: %w", node.Location, err)
 		}
 		return nil
@@ -339,6 +339,18 @@ func fetchJSONSchema(ctx context.Context, schemaAddress string, store content.At
 
 	sc, err := schema.New(loader)
 	return sc, schemaID, err
+}
+
+func mergeAttributes(sets []map[string]model.AttributeValue, options attributes.MergeOptions) (map[string]model.AttributeValue, error) {
+	if len(sets) == 0 {
+		return nil, nil
+	}
+
+	if len(sets) == 1 {
+		return sets[0], nil
+	}
+
+	return attributes.Merge(sets[0], options, sets[1:]...)
 }
 
 // fileInformation pairs information configurable

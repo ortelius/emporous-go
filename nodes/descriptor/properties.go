@@ -2,11 +2,7 @@ package descriptor
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
-	"strconv"
 
-	"github.com/buger/jsonparser"
 	empspec "github.com/emporous/collection-spec/specs-go/v1alpha1"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
@@ -28,15 +24,12 @@ type Properties struct {
 	Others map[string]model.AttributeSet `json:"-"`
 }
 
-// TODO(jpower432): When complex attribute sets are supported include core attributes filtering
-// and searching in the AttributeSet methods.
-
 // Exists checks for the existence of an attribute pair in the
 // AttributeSet in the Properties.
 // Only the "Others" field is evaluated during the search.
-func (p *Properties) Exists(attribute model.Attribute) (bool, error) {
+func (p *Properties) Exists(key string, attribute model.AttributeValue) (bool, error) {
 	for _, set := range p.Others {
-		exists, err := set.Exists(attribute)
+		exists, err := set.Exists(key, attribute)
 		if err != nil {
 			return false, err
 		}
@@ -51,7 +44,7 @@ func (p *Properties) Exists(attribute model.Attribute) (bool, error) {
 // Find searches all AttributeSets in the Properties
 // for a key and returns an attribute value.
 // Only the "Others" field is evaluated during the search.
-func (p *Properties) Find(s string) model.Attribute {
+func (p *Properties) Find(s string) model.AttributeValue {
 	for _, set := range p.Others {
 		value := set.Find(s)
 		if value != nil {
@@ -64,7 +57,7 @@ func (p *Properties) Find(s string) model.Attribute {
 // FindBySchema find the attribute value in the
 // AttributeSet matching the given schema ID.
 // Only the "Others" field is evaluated during the search.
-func (p *Properties) FindBySchema(schema, key string) model.Attribute {
+func (p *Properties) FindBySchema(schema, key string) model.AttributeValue {
 	set, found := p.Others[schema]
 	if !found {
 		return nil
@@ -75,12 +68,12 @@ func (p *Properties) FindBySchema(schema, key string) model.Attribute {
 // ExistsBySchema checks the existence of the attributes in the
 // AttributeSet matching the given schema ID.
 // Only the "Others" field is evaluated during the search.
-func (p *Properties) ExistsBySchema(schema string, attribute model.Attribute) (bool, error) {
+func (p *Properties) ExistsBySchema(schema string, key string, attribute model.AttributeValue) (bool, error) {
 	set, found := p.Others[schema]
 	if !found {
 		return false, nil
 	}
-	return set.Exists(attribute)
+	return set.Exists(key, attribute)
 }
 
 // MarshalJSON marshal an instance of Properties
@@ -116,17 +109,18 @@ func (p *Properties) MarshalJSON() ([]byte, error) {
 // Properties. If the attribute under different schemas
 // cannot merge, nil will be returned.
 // Only the "Others" field is evaluated.
-func (p *Properties) List() map[string]model.Attribute {
-	var sets []model.AttributeSet
+func (p *Properties) List() map[string]model.AttributeValue {
+	var sets []map[string]model.AttributeValue
 	for _, set := range p.Others {
-		sets = append(sets, set)
+		sets = append(sets, set.List())
 	}
-	mergedList, err := attributes.Merge(sets...)
+
+	mergedList, err := attributes.Merge(sets[0], attributes.MergeOptions{}, sets[1:]...)
 	if err != nil {
 		return nil
 	}
 
-	return mergedList.List()
+	return mergedList
 }
 
 // Len returns the length of the all AttributeSets
@@ -152,11 +146,11 @@ func (p *Properties) Merge(sets map[string]model.AttributeSet) error {
 			p.Others[key] = set
 			continue
 		}
-		updatedSet, err := attributes.Merge(set, existingSet)
+		updatedSet, err := attributes.Merge(set.List(), attributes.MergeOptions{}, existingSet.List())
 		if err != nil {
 			return err
 		}
-		p.Others[key] = updatedSet
+		p.Others[key] = attributes.NewSet(updatedSet)
 	}
 	return nil
 }
@@ -213,75 +207,45 @@ func Parse(in map[string]json.RawMessage) (*Properties, error) {
 		case TypeLink:
 			var l empspec.LinkAttributes
 			if err := json.Unmarshal(prop, &l); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Link = &l
 		case TypeDescriptor:
 			var d empspec.DescriptorAttributes
 			if err := json.Unmarshal(prop, &d); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Descriptor = &d
 		case TypeSchema:
 			var s empspec.SchemaAttributes
 			if err := json.Unmarshal(prop, &s); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Schema = &s
 		case TypeRuntime:
 			var r ocispec.ImageConfig
 			if err := json.Unmarshal(prop, &r); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
 			out.Runtime = &r
 		case TypeFile:
 			var f empspec.File
 			if err := json.Unmarshal(prop, &f); err != nil {
-				errs = append(errs, ParseError{Key: key, Err: err})
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
 			out.File = &f
 		default:
-			set := attributes.Attributes{}
-			handler := func(key []byte, value []byte, dataType jsonparser.ValueType, offset int) (err error) {
-				valueAsString := string(value)
-				keyAsString := string(key)
-				var attr model.Attribute
-				switch dataType {
-				case jsonparser.String:
-					attr = attributes.NewString(keyAsString, valueAsString)
-				case jsonparser.Number:
-					// Using float for number like the standard lib
-					floatVal, err := strconv.ParseFloat(valueAsString, 64)
-					if err != nil {
-						return err
-					}
-					attr = attributes.NewFloat(keyAsString, floatVal)
-				case jsonparser.Boolean:
-					boolVal, err := strconv.ParseBool(valueAsString)
-					if err != nil {
-						return err
-					}
-					attr = attributes.NewBool(keyAsString, boolVal)
-				case jsonparser.Null:
-					attr = attributes.NewNull(keyAsString)
-				default:
-					return ParseError{Key: keyAsString, Err: errors.New("unsupported attribute type")}
-				}
-				set[attr.Key()] = attr
-				return nil
-			}
-
-			if err := jsonparser.ObjectEach(prop, handler); err != nil {
-				errs = append(errs, fmt.Errorf("key %s: %w", key, err))
+			attrSet, err := attributes.ParseToSet(prop)
+			if err != nil {
+				errs = append(errs, attributes.ParseError{Key: key, Err: err})
 				continue
 			}
-
-			other[key] = set
+			other[key] = attrSet
 		}
 	}
 	out.Others = other

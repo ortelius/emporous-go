@@ -277,7 +277,7 @@ func TestResolveByAttribute(t *testing.T) {
 			cacheDir: "testdata/attributes",
 			ref:      "localhost:5001/test:latest",
 			matcher: matchers.PartialAttributeMatcher{
-				"org.opencontainers.image.title": attributes.NewString("org.opencontainers.image.title", "fish.jpg"),
+				"org.opencontainers.image.title": attributes.NewString("fish.jpg"),
 			},
 			expRes: []ocispec.Descriptor{
 				{
@@ -293,7 +293,7 @@ func TestResolveByAttribute(t *testing.T) {
 			cacheDir: "testdata/valid",
 			ref:      "localhost:5001/test:latest",
 			matcher: matchers.PartialAttributeMatcher{
-				"type": attributes.NewString("type", "png"),
+				"type": attributes.NewString("png"),
 			},
 		},
 		{
