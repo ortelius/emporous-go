@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/emporous/emporous-go/attributes"
 	"github.com/emporous/emporous-go/model"
 	"github.com/emporous/emporous-go/util/testutils"
-	"github.com/emporous/emporous-go/attributes"
 )
 
 var iteratorTests = []struct {

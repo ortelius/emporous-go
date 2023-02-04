@@ -8,7 +8,6 @@ import (
 	"github.com/emporous/emporous-go/attributes"
 	"github.com/emporous/emporous-go/model"
 	"github.com/emporous/emporous-go/util/testutils"
-
 )
 
 func TestJSONSubsetMatcher_Matches(t *testing.T) {
