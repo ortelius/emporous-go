@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"sort"
 
 	"sigs.k8s.io/yaml"
 
@@ -37,6 +38,15 @@ func LoadDataSetConfig(data []byte) (configuration v1alpha1.DataSetConfiguration
 	if err = dec.Decode(&configuration); err != nil {
 		return configuration, err
 	}
+
+	// Sort the slices within the DataSetConfiguration and store the file
+	// in the manifest config of the OCI artifact for later.
+	sort.Slice(configuration.Collection.Files, func(i, j int) bool {
+		return configuration.Collection.Files[i].File < configuration.Collection.Files[j].File
+	})
+	sort.Slice(configuration.Collection.LinkedCollections, func(i, j int) bool {
+		return configuration.Collection.LinkedCollections[i] < configuration.Collection.LinkedCollections[j]
+	})
 	return configuration, err
 }
 
