@@ -1,5 +1,4 @@
 kind: SchemaConfiguration
 apiVersion: client.emporous.io/v1alpha1
 schema:
-  attributeTypes:
-    "test": "string"
+  schemaPath: "testdata/configs/test.json"

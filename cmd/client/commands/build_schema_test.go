@@ -111,7 +111,7 @@ func TestBuildSchemaRun(t *testing.T) {
 
 	cases := []spec{
 		{
-			name: "Success/FlatWorkspace",
+			name: "Success/ValidateSchemaConfig",
 			opts: &BuildSchemaOptions{
 				BuildOptions: &BuildOptions{
 					Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
@@ -126,6 +126,24 @@ func TestBuildSchemaRun(t *testing.T) {
 				},
 				SchemaConfig: "testdata/configs/schema-config.yaml",
 			},
+		},
+		{
+			name: "Failure/NoSchemaPath",
+			opts: &BuildSchemaOptions{
+				BuildOptions: &BuildOptions{
+					Destination: fmt.Sprintf("%s/client-flat-test:latest", u.Host),
+					Common: &options.Common{
+						IOStreams: genericclioptions.IOStreams{
+							Out:    os.Stdout,
+							In:     os.Stdin,
+							ErrOut: os.Stderr,
+						},
+						Logger: testlogr,
+					},
+				},
+				SchemaConfig: "testdata/configs/schema-config-nopath.yaml",
+			},
+			expError: "no schema path provided in schema config",
 		},
 	}
 
