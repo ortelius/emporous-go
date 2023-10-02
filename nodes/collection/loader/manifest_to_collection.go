@@ -126,6 +126,16 @@ func addOrGetNode(graph *collection.Collection, desc ocispec.Descriptor) (model.
 	return n, nil
 }
 
+// Adapted from the `oras` project's `content.Successors` function.
+// Original source: https://github.com/oras-project/oras-go/blob/a428ca67f59b94f7365298870bcac78c769b80bd/content/graph.go#L50
+// Copyright The ORAS Authors. Licensed under the Apache License 2.0.
+//
+// Description:
+// The following code has been adapted from the original `oras` project to fit the needs of this project.
+// Changes made:
+// - Added `FetcherFunc` to allow for custom fetching of content.
+
+
 // getSuccessor returns the nodes directly pointed by the current node. This is adapted from the `oras` content.Successors
 // to allow the use of a function signature to pull descriptor content.
 func getSuccessors(ctx context.Context, fetcher FetcherFunc, node ocispec.Descriptor) ([]ocispec.Descriptor, error) {

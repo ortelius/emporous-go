@@ -6,6 +6,9 @@ import (
 	"github.com/emporous/emporous-go/model"
 )
 
+// Similar to the budget in the go-ipld-prime library.
+// Reference: https://github.com/ipld/go-ipld-prime/blob/ab0f17bec1e700e4c76a6bbc28e7260cea7c035d/traversal/fns.go#L114
+
 // Budget tracks budgeted operations during graph traversal.
 type Budget struct {
 	// Maximum numbers of nodes to visit in a single traversal operator before stopping.

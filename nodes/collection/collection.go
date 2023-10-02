@@ -14,6 +14,15 @@ var (
 	_ model.Iterator = &Collection{}
 )
 
+// This code is adapted from the "gonum/graph/simple/directed.go" file from the Gonum project.
+// Original source: https://github.com/gonum/gonum/blob/e8ed540b8ee27ad9adf717046542d9ed24eb9215/graph/simple/directed.go#L36
+// Copyright © 2013 The Gonum Authors. All rights reserved.
+// The original code was licensed under the BSD-3-Clause.
+//
+// Description:
+// The following code has been adapted and heavily modified from the original Gonum project
+// to suit the needs of this project. 
+
 // Collection is implementation of a model Node represent one OCI artifact
 // stored in memory.
 // WARNING: Collection type is not thread-safe.
