@@ -19,7 +19,6 @@ var (
 // Description:
 // The following code has been adapted from the original Gonum project for use in this project.
 
-
 // Note(jpower432): Could possibly removed or deprecated. I do not believe this is used anywhere.
 
 // InOrderIterator implements the model.Iterator interface and traverse the nodes

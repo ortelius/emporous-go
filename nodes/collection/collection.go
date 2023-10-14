@@ -21,7 +21,7 @@ var (
 //
 // Description:
 // The following code has been adapted and heavily modified from the original Gonum project
-// to suit the needs of this project. 
+// to suit the needs of this project.
 
 // Collection is implementation of a model Node represent one OCI artifact
 // stored in memory.

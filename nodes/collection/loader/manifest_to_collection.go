@@ -134,7 +134,11 @@ func addOrGetNode(graph *collection.Collection, desc ocispec.Descriptor) (model.
 // The following code has been adapted from the original `oras` project to fit the needs of this project.
 // Changes made:
 // - Added `FetcherFunc` to allow for custom fetching of content.
+// - Added `empspec.MediaTypeCollectionManifest` to allow for loading of collection manifests.
+// - Added `empspec.AnnotationLink` to allow for loading of linked manifests.
 
+// TODO: Replace FetcherFunc with upstream
+// https://github.com/oras-project/oras-go/blob/86176e8c5e8c63f418ed2f71bead3abe0b5f2ccb/content/storage.go#L75
 
 // getSuccessor returns the nodes directly pointed by the current node. This is adapted from the `oras` content.Successors
 // to allow the use of a function signature to pull descriptor content.
