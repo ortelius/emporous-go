@@ -100,7 +100,7 @@ func AnnotationsToAttributes(annotations map[string]string) (map[string]json.Raw
 }
 
 // AnnotationsFromAttributes converts collection spec attributes to collection annotations
-//// for OCI descriptor compatibility.
+// // for OCI descriptor compatibility.
 func AnnotationsFromAttributes(attributes map[string]json.RawMessage) (map[string]string, error) {
 	attrJSoN, err := json.Marshal(attributes)
 	if err != nil {

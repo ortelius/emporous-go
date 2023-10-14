@@ -32,10 +32,13 @@ var (
 	ErrInvalidDateTimeFormat = errors.New("invalid date and time format")
 )
 
-// PackOptions and Pack are modified version of the upstream oras.Pack.
-// The main difference is that the timestamp information is not optional in the annotations.
-// To ensure digest reproducibility for this effort, timestamp information will be collected and stored
-// in predicate information in the artifact attestations.
+// Adapted from the `oras` project's `Pack` function and `PackOptions` struct.
+// Original source: https://github.com/oras-project/oras-go/blob/main/pack.go
+// Copyright The ORAS Authors. Licensed under the Apache License 2.0.
+//
+// Changes:
+// - Added `DisableTimestamp` option to disable the creation timestamp annotation.
+
 // TODO(jpower432): PR this back to `oras-go` if it makes sense.
 
 // PackOptions contains parameters for Pack.

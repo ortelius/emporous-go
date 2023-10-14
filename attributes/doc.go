@@ -18,3 +18,6 @@ package attributes
 
 // This package contains helper functions when creating new attributes.
 // WARNING: The helper functions (attribute.Reflect) in this package use reflection and therefore will incur a performance penalty.
+
+// Similar implementation to the go-ipld-prime library.
+// Reference: https://github.com/ipld/go-ipld-prime/tree/master/node/basicnode
