@@ -282,7 +282,7 @@ func (d DefaultManager) addLinks(ctx context.Context, client registryclient.Clie
 		if err != nil {
 			return nil, fmt.Errorf("link %q: %w", l, err)
 		}
-		defer rc.Close()
+		rc.Close()
 
 		if desc.Annotations == nil {
 			desc.Annotations = map[string]string{}
