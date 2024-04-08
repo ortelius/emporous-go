@@ -278,10 +278,12 @@ func (d DefaultManager) addLinks(ctx context.Context, client registryclient.Clie
 	d.logger.Infof("Processing %d link(s)", len(links))
 	var linkedDesc []ocispec.Descriptor
 	for _, l := range links {
-		desc, _, err := client.GetManifest(ctx, l)
+		desc, rc, err := client.GetManifest(ctx, l)
 		if err != nil {
 			return nil, fmt.Errorf("link %q: %w", l, err)
 		}
+		rc.Close()
+
 		if desc.Annotations == nil {
 			desc.Annotations = map[string]string{}
 		}

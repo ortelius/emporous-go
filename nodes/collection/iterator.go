@@ -11,6 +11,16 @@ var (
 	_ model.Iterator = &ByAttributesIterator{}
 )
 
+// This code is adapted from the "gonum/graph/iterator/nodes.go" file in the Gonum project.
+// Original source: https://github.com/gonum/gonum/blob/master/graph/iterator/nodes.go
+// Copyright © 2013 The Gonum Authors. All rights reserved.
+// The original code was licensed under the BSD-3-Clause.
+//
+// Description:
+// The following code has been adapted from the original Gonum project for use in this project.
+
+// Note(jpower432): Could possibly removed or deprecated. I do not believe this is used anywhere.
+
 // InOrderIterator implements the model.Iterator interface and traverse the nodes
 // in the order provided.
 type InOrderIterator struct {
@@ -18,7 +28,7 @@ type InOrderIterator struct {
 	nodes []model.Node
 }
 
-// NewInOrderIterator returns a OrderedNodes initialized with the provided nodes.
+// NewInOrderIterator returns a NewInOrderIterator initialized with the provided nodes.
 func NewInOrderIterator(nodes []model.Node) *InOrderIterator {
 	return &InOrderIterator{idx: -1, nodes: nodes}
 }
@@ -67,7 +77,7 @@ type ByAttributesIterator struct {
 	attributes ByAttributeSet
 }
 
-// NewByAttributesIterator returns a LazyOrderedNodesAttribute initialized with the
+// NewByAttributesIterator returns a NewByAttributesIterator initialized with the
 // provided nodes.
 func NewByAttributesIterator(nodes []model.Node) *ByAttributesIterator {
 	return &ByAttributesIterator{attributes: nodes}

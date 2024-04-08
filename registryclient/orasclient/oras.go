@@ -159,6 +159,7 @@ func (c *orasClient) LoadCollection(ctx context.Context, reference string) (coll
 	if err != nil {
 		return collection.Collection{}, err
 	}
+	defer manifestBytes.Close()
 
 	// Get manifest information to obtain annotations
 	var manifest ocispec.Descriptor
@@ -426,7 +427,8 @@ func (c *orasClient) setupRepo(ref string) (*remote.Repository, error) {
 }
 
 // TODO(jpower432): PR upstream so that this can be done with the pre-copy option. Currently the error to skip descriptors is
-// private https://github.com/oras-project/oras-go/blob/9e5b1419cdedd6240a5bf836c83f75270ba9d74b/copy.go#L49.
+// private
+// Reference: https://github.com/oras-project/oras-go/blob/9e5b1419cdedd6240a5bf836c83f75270ba9d74b/copy.go#L49.
 
 // successorFnWithSparseManifest defines a successor function to use with oras.Copy that will skip any expected linked content (i.e. sparse manifests)
 func successorFnWithSparseManifests(ctx context.Context, fetcher orascontent.Fetcher, desc ocispec.Descriptor) ([]ocispec.Descriptor, error) {
