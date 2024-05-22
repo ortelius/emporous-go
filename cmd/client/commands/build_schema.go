@@ -99,21 +99,13 @@ func (o *BuildSchemaOptions) Run(ctx context.Context) error {
 		}
 	}()
 
-	var userSchema schema.Loader
-	if config.Schema.SchemaPath != "" {
-		schemaBytes, err := ioutil.ReadFile(config.Schema.SchemaPath)
-		if err != nil {
-			return err
-		}
-		userSchema, err = schema.FromBytes(schemaBytes)
-		if err != nil {
-			return err
-		}
-	} else {
-		userSchema, err = schema.FromTypes(config.Schema.AttributeTypes)
-		if err != nil {
-			return err
-		}
+	schemaBytes, err := ioutil.ReadFile(config.Schema.SchemaPath)
+	if err != nil {
+		return err
+	}
+	userSchema, err := schema.FromBytes(schemaBytes)
+	if err != nil {
+		return err
 	}
 
 	schemaAnnotations := map[string]string{}

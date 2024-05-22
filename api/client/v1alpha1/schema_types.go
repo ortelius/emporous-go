@@ -1,9 +1,5 @@
 package v1alpha1
 
-import (
-	"github.com/emporous/emporous-go/schema"
-)
-
 // SchemaConfigurationKind object kind of SchemaConfiguration
 const SchemaConfigurationKind = "SchemaConfiguration"
 
@@ -19,9 +15,6 @@ type SchemaConfigurationSpec struct {
 	// the schema
 	ID          string `json:"id"`
 	Description string `json:"description"`
-	// SchemaPath defines that path to a JSON schema. If set, the AttributeTypes fields
-	// will be ignored.
-	SchemaPath string
-	// AttributeTypes is a collection of attribute type definitions.
-	AttributeTypes schema.Types `json:"attributeTypes,omitempty"`
+	// SchemaPath defines that path to a JSON schema.
+	SchemaPath string `json:"schemaPath"`
 }

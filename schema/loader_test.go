@@ -7,55 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFromTypes(t *testing.T) {
-	type spec struct {
-		name      string
-		types     map[string]Type
-		expSchema string
-		expError  string
-	}
-
-	cases := []spec{
-		{
-			name: "Success/ValidConfiguration",
-			types: map[string]Type{
-				"test": TypeString,
-				"size": TypeNumber,
-			},
-			expSchema: "{\"type\":\"object\",\"properties\":" + "" +
-				"{\"size\":{\"type\":\"number\"},\"test\":{\"type\":\"string\"}},\"required\":[\"size\",\"test\"]}",
-		},
-		{
-			name: "Failure/InvalidType",
-			types: map[string]Type{
-				"test": TypeString,
-				"size": TypeInvalid,
-			},
-			expError: "must set schema type",
-		},
-		{
-			name: "Failure/UnknownType",
-			types: map[string]Type{
-				"test": TypeString,
-				"size": 20,
-			},
-			expError: "unknown schema type",
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			schema, err := FromTypes(c.types)
-			if c.expError != "" {
-				require.EqualError(t, err, c.expError)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, c.expSchema, string(schema.Export()))
-			}
-		})
-	}
-}
-
 func TestFromBytes(t *testing.T) {
 	type spec struct {
 		name      string
